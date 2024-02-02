@@ -39,7 +39,7 @@ class TaskOne(Node):
 
         # If it doesn't detect more than one pole, rotate in place to try to find buoys
         if len(poles) < 2:
-            print("Only one or no pole found, rotating to try to locate buoys...")
+            print("Only one or no pole found, keep going forward")
             self.boat_controller.set_forward_velocity(0.1)
             # self.boat_controller.set_angular_velocity(0.0)
             self.boat_controller.cmd_vel_publisher.publish(self.boat_controller.cmd_vel)
