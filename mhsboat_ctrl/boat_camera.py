@@ -6,9 +6,11 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge
 import cv2
 from ultralytics import YOLO
-import json, sys
+import json, sys, os
 
-model = YOLO("/root/ros_ws/src/mhsboat_ctrl/mhsboat_ctrl/v9.pt")
+# model = YOLO("/root/ros_ws/src/mhsboat_ctrl/mhsboat_ctrl/v9.pt")
+model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v9.pt")
+model = YOLO(model_path)
 print("Model loaded")
 
 
@@ -96,16 +98,16 @@ class CameraService(Node):
                     length_y = int(bounding_box[3]) - int(bounding_box[1])
                     area = length_x * length_y
                     # Filtering out weird pole data on bottom of screen
-                    if y_top < 535:
-                        pole_data = {
-                            "name": name,
-                            "area": area,
-                            "x_left": x_left,
-                            "x_right": x_right,
-                            "y_top": y_top,
-                            "y_bottom": y_bottom,
-                        }
-                        poles.append(pole_data)
+                    # if y_top < 535:
+                    pole_data = {
+                        "name": name,
+                        "area": area,
+                        "x_left": x_left,
+                        "x_right": x_right,
+                        "y_top": y_top,
+                        "y_bottom": y_bottom,
+                    }
+                    poles.append(pole_data)
 
                 # print(f"{name} {int(confidence*100)}% {bounding_box}")
 

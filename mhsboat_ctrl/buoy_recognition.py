@@ -10,16 +10,16 @@ from enum import Enum
 from boat_interfaces.msg import AiOutput
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
-import cv2
+import os
 import time
 import numpy as np
 from collections import defaultdict
 
 # from rgb import colors
 
-model = YOLO(f"/root/roboboat_ws/src/mhsboat_ctrl/mhsboat_ctrl/v10.pt")
+model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v10.pt")
+model = YOLO(model_path)
 print("Model loaded")
-# model = YOLO(f"/root/roboboat_ws/src/jbc/jbc/best.pt")
 
 
 # model.to("cuda")

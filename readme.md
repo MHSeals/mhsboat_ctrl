@@ -4,12 +4,12 @@
 1. Clone into src directory
 ```shell
 cd /root/ros_ws/src
-git clone https://github.com/Wavefire5201/boat_ctrl
+git clone https://github.com/Wavefire5201/mhsboat_ctrl
 ```
 2. Build package
 ```shell
 cd ..
-colcon build --symlink-install --packages-select boat_ctrl
+colcon build --symlink-install --packages-select mhsboat_ctrl
 ```
 3. Source setup files
 ```shell
