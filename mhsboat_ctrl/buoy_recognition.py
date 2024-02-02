@@ -17,7 +17,7 @@ from collections import defaultdict
 
 # from rgb import colors
 
-model = YOLO(f"/root/ros_ws/src/mhsboat_ctrl/mhsboat_ctrl/v10.pt")
+model = YOLO(f"/root/roboboat_ws/src/mhsboat_ctrl/mhsboat_ctrl/v10.pt")
 print("Model loaded")
 # model = YOLO(f"/root/roboboat_ws/src/jbc/jbc/best.pt")
 
@@ -27,7 +27,7 @@ class CameraSubscriber(Node):
     def __init__(self):
         super().__init__("camera_subscriber")
         self.create_subscription(Image, "/color/image_raw", self.callback, 10)
-        # self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
+        #self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
 
         # create publisher that publishes bounding box coordinates and size and buoy type
         # int32 num -- um of buoys
@@ -326,7 +326,8 @@ class CameraSubscriber(Node):
             ids=ids,
         )
 
-        cv2.imshow("result", original_frame)
+        #commented out for xavier and jetson so no error when no screen
+        #cv2.imshow("result", original_frame)
         c = cv2.waitKey(1)
         """
         if c == 107:

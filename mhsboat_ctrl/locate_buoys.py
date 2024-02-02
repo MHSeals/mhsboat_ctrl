@@ -84,12 +84,14 @@ class locate_buoys(Node):
             self.buoy_types,
             self.lefts,
             self.tops,
+            self.ids
         ) = analyze(
             cameraAi_output,
             self.pointCloud,
             self.current_lat,
             self.current_long,
             self.quaternion,
+            self.ids
         )
         self.publish_coordinates()
 
@@ -116,14 +118,19 @@ class locate_buoys(Node):
         )
 
 
-def analyze(cameraAi_output, pointCloud, current_lat, current_long, quaternion):
+def analyze(cameraAi_output, pointCloud, current_lat, current_long, quaternion, pre_ids):
     latitudes = []
     longitudes = []
     buoy_types = []
     lefts = []
     tops = []
+    ids = []
+
+    if cameraAi_output.num!=len(cameraAi_output.lefts) or cameraAi_output.num!=len(cameraAi_output.tops) or cameraAi_output.num!=len(cameraAi_output.types) or cameraAi_output.num!=len(cameraAi_output.ids):
+        return latitudes, longitudes, buoy_types, lefts, tops, ids
 
     for i in range(cameraAi_output.num):
+        print("i: "+str(i))
         # calculate the 3D angle of each buoy location
         # returns a list of the left/right angle (theta) and the up/down angle (phi) relative to boat
         print("num: " + str(cameraAi_output.num))
@@ -147,8 +154,9 @@ def analyze(cameraAi_output, pointCloud, current_lat, current_long, quaternion):
         buoy_types.append(cameraAi_output.types[i])
         lefts.append(cameraAi_output.lefts[i])
         tops.append(cameraAi_output.tops[i])
+        ids.append(pre_ids[i])
 
-    return latitudes, longitudes, buoy_types, lefts, tops
+    return latitudes, longitudes, buoy_types, lefts, tops, ids
 
 
 # calculate the 3D angle of each buoy location
@@ -156,14 +164,13 @@ def analyze(cameraAi_output, pointCloud, current_lat, current_long, quaternion):
 def get_angle(cameraAi_output, index):
     # currently the FOV of the simulated camera
     # replace with FOV of real camera
-    FOV_H = 86
-    FOV_V = 57
+    FOV_H = 80
+    FOV_V = 56
 
     print("index: " + str(index))
     print("lefts: " + str(cameraAi_output.lefts))
     midX = cameraAi_output.lefts[index] + cameraAi_output.widths[index] / 2
     midY = cameraAi_output.tops[index] + cameraAi_output.heights[index] / 2
-
     width = cameraAi_output.img_width
     height = cameraAi_output.img_height
 
@@ -174,9 +181,10 @@ def get_angle(cameraAi_output, index):
     print("degreesPerPixelH: " + str(degreesPerPixelH))
     print("FOV_H: " + str(FOV_H))
     theta = midX * degreesPerPixelH - FOV_H / 2
-    phi = midY * degreesPerPixelV - FOV_V / 2 + 15.5
+    phi = (midY * degreesPerPixelV - FOV_V / 2 + 15.5)
     # phi = midY * degreesPerPixelV - FOV_V/2
     print("THETA: " + str(theta))
+    print("PHI: "+ str(phi))
     # add 15.5 because camera is at slight angle down and the 15.5 corrects for it
     # shouldn't be a problem when the camera is mounted horizontally on the real boat
 

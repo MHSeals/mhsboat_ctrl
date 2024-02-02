@@ -29,8 +29,12 @@ class locate_buoys(Node):
         )
 
         # subscribes to the GPS location
+        # self.gps_subscriber = self.create_subscription(
+        #     NavSatFix, "/wamv/sensors/gps/gps/fix", self.gps_callback, 10
+        # )
+
         self.gps_subscriber = self.create_subscription(
-            NavSatFix, "/wamv/sensors/gps/gps/fix", self.gps_callback, 10
+            NavSatFix, "/mavros/global_position/global", self.gps_callback, 10
         )
 
         # self.waypoint_publisher = self.create_publisher(

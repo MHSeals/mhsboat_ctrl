@@ -18,15 +18,16 @@ class center_of_clusters(Node):
         self.pcd_publisher = self.create_publisher(
             PointCloud2, "center_of_clusters", 10
         )
-        # self.subscription = self.create_subscription(PointCloud2,
-        # "/wamv/sensors/lidars/lidar_wamv_sensor/points",self.listener_callback,10)
+        #self.subscription = self.create_subscription(PointCloud2,
+            # "/wamv/sensors/lidars/lidar_wamv_sensor/points",self.listener_callback,10
+        # )
 
         # REAL TOPIC
         self.subscription = self.create_subscription(
             PointCloud2, "/velodyne_points", self.listener_callback, 10
         )
 
-        self.allPointsPublisher = self.create_publisher(PointCloud2, "all_points", 10)
+        self.allPointsPublisher = self.create_publisher(PointCloud2, "/all_points", 10)
         timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.pcd = PointCloud2()

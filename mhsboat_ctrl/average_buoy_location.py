@@ -37,7 +37,7 @@ class average_buoy_location(Node):
         )
 
         self.average_coordinate_publisher = self.create_publisher(
-            BuoyCoordinates, "AverageBuoyCoordinates", 10
+            BuoyCoordinates, "/AverageBuoyCoordinates", 10
         )
 
     def buoy_coordinates_callback(self, BuoyCoordinatesOutput):
