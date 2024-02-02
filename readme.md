@@ -38,3 +38,5 @@ ros2 run boat_ctrl <entry_point>
 - buoy_recognition - Analyzes images to detect buoys
 - jon_taskone - midpoint of red and green poles
 - jon_tasktwo - in progress
+### misc
+- fetch_models - download AI models
