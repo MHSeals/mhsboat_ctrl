@@ -17,8 +17,9 @@ from collections import defaultdict
 
 # from rgb import colors
 
-# model = YOLO(f"/root/ros_ws/src/jbc/jbc/best.pt")
-model = YOLO(f"/root/roboboat_ws/src/jbc/jbc/best.pt")
+model = YOLO(f"/root/ros_ws/src/mhsboat_ctrl/mhsboat_ctrl/v10.pt")
+print("Model loaded")
+# model = YOLO(f"/root/roboboat_ws/src/jbc/jbc/best.pt")
 
 
 # model.to("cuda")

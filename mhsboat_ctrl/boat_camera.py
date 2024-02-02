@@ -6,15 +6,19 @@ from std_msgs.msg import String
 from cv_bridge import CvBridge
 import cv2
 from ultralytics import YOLO
-
 import json, sys
 
-model = YOLO("/root/ros_ws/src/boat_ctrl/boat_ctrl/V9_model.pt")
+model = YOLO("/root/ros_ws/src/mhsboat_ctrl/mhsboat_ctrl/v9.pt")
+print("Model loaded")
+
 
 class CameraService(Node):
     def __init__(self):
         super().__init__("camera_service")
-        self.show = sys.argv[1]
+        try:
+            self.show = eval(sys.argv[1])
+        except IndexError:
+            self.show = False
 
         self.create_subscription(
             Image,
@@ -22,9 +26,9 @@ class CameraService(Node):
             self.callback,
             10,
         )
+        # /wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw
 
         self.camera_publisher = self.create_publisher(String, "/taskone/poles", 10)
-        
 
     def callback(self, data: Image):
         # Convert camera topic output to cv2 processable data
@@ -45,7 +49,7 @@ class CameraService(Node):
 
             def as_bgr(self) -> tuple:
                 return (self.b, self.g, self.r)
-            
+
         colors: dict[rgb] = {
             "blue_ball": rgb(0, 0, 255),
             "dock": rgb(109, 67, 3),
@@ -140,9 +144,9 @@ def main(args=None):
     camera.destroy_node()
     rclpy.shutdown()
 
+
 if __name__ == "__main__":
     main()
-
 
 
 """
