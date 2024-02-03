@@ -250,7 +250,9 @@ def convert_to_lat_long(x, y, current_lat, current_long, q, theta):
     yaw = math.degrees(
         math.atan2(2.0 * (q.z * q.w + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
     )
-    yaw = 132
+    yaw = 90-yaw
+    if yaw<0:
+        yaw+=360
     print("yaw: " + str(yaw) + " theta: " + str(theta))
 
     # current_lat = 30
@@ -258,8 +260,8 @@ def convert_to_lat_long(x, y, current_lat, current_long, q, theta):
 
     distance = math.sqrt(x**2 + y**2)
 
-    easting = distance * math.cos(math.radians(theta - yaw))
-    northing = distance * math.sin(math.radians(theta - yaw)) * -1
+    easting = distance * math.sin(math.radians(theta - yaw))
+    northing = distance * math.cos(math.radians(theta - yaw)) * -1
     print("distance: " + str(distance))
     print("easting: " + str(easting))
     print("northing: " + str(northing))
