@@ -181,7 +181,7 @@ def get_angle(cameraAi_output, index):
     print("degreesPerPixelH: " + str(degreesPerPixelH))
     print("FOV_H: " + str(FOV_H))
     theta = midX * degreesPerPixelH - FOV_H / 2
-    phi = (midY * degreesPerPixelV - FOV_V / 2 + 15.5)
+    phi = (midY * degreesPerPixelV - FOV_V / 2 )
     # phi = midY * degreesPerPixelV - FOV_V/2
     print("THETA: " + str(theta))
     print("PHI: "+ str(phi))

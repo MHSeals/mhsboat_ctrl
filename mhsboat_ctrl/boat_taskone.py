@@ -2,9 +2,9 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
-from boat_ctrl.boat_arm import ArmingService
-from boat_ctrl.boat_mode import ModeService
-from boat_ctrl.boat_controller import BoatController
+#from boat_ctrl.boat_arm import ArmingService
+#from boat_ctrl.boat_mode import ModeService
+from mhsboat_ctrl.boat_controller import BoatController
 
 import json
 
