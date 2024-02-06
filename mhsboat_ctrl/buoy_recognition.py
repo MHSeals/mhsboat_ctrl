@@ -119,6 +119,7 @@ class CameraSubscriber(Node):
         frame = self.camera_output
         # print("frame"+str(frame))
         frame = cv2.resize(frame, FRAME_SIZE)
+        frame_copy = frame
         x_scale_factor = frame.shape[1] / IN_SIZE[0]
         y_scale_factor = frame.shape[0] / IN_SIZE[1]
         x_orig, y_orig = frame.shape[1], frame.shape[0]
@@ -333,7 +334,9 @@ class CameraSubscriber(Node):
 
         if(int(time)%10==0):
             imgpath = path.join('/home/roboboat/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(time))
-            cv2.imwrite(imgpath,frame)
+            cv2.imwrite(imgpath+"_raw",frame_copy)
+            cv2.imwrite(imgpath+"_ai",frame)
+
         c = cv2.waitKey(1)
         """
         if c == 107:
