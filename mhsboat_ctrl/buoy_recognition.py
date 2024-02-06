@@ -330,12 +330,14 @@ class CameraSubscriber(Node):
 
         #commented out for xavier and jetson so no error when no screen
         #cv2.imshow("result", original_frame)
-        time = time.time()
+        t = time.time()
 
-        if(int(time)%10==0):
-            imgpath = path.join('/home/roboboat/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(time))
-            cv2.imwrite(imgpath+"_raw",frame_copy)
-            cv2.imwrite(imgpath+"_ai",frame)
+        print("t: "+str(t))
+        if(int(t)%10==0):
+            imgpath = path.join('/root/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
+            cv2.imwrite(imgpath+"_raw.jpg",frame_copy)
+            cv2.imwrite(imgpath+"_ai.jpg",frame)
+            print("saved")
 
         c = cv2.waitKey(1)
         """
