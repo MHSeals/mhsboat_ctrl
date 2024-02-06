@@ -9,6 +9,8 @@ import numpy as np
 from boat_interfaces.msg import AiOutput
 from boat_interfaces.msg import BuoyCoordinates
 from geographic_msgs.msg import GeoPoseStamped
+from geometry_msgs.msg import TwistStamped, Vector3
+
 
 
 class locate_buoys(Node):
@@ -43,6 +45,10 @@ class locate_buoys(Node):
 
         self.waypoint_publisher = self.create_publisher(
             GeoPoseStamped, "/mavros/setpoint_position/global", 10
+        )
+
+        self.cmd_vel_publisher = self.create_publisher(
+            TwistStamped, "/mavros/setpoint_velocity/cmd_vel", 10
         )
 
     def set_waypoint(self, lat: float, long: float):
@@ -84,6 +90,8 @@ class Buoy:
 
 
 def taskOne(self, latitudes, longitudes, types):
+    twist = TwistStamped()
+
     redPoleList = []
     greenPoleList = []
     print("types: " + str(types))
@@ -97,34 +105,17 @@ def taskOne(self, latitudes, longitudes, types):
     print(greenPoleList)
 
     if len(redPoleList) == 0 or len(greenPoleList) == 0:
+        #change later to get a good turn speed
+        #also idk if this is good logic
+        twist.twist.angular.z = 0.1
+        self.cmd_vel_publisher.publish(twist)
+        twist.twist.angular.z = 0
+        self.cmd_vel_publisher.publish(twist)
+
         return
+    
     redPoleDistances = []
     greenPoleDistances = []
-
-    minRedDist = 1000000
-    minRedIndex = 1000000
-    for i, redPole in enumerate(redPoleList):
-        dist = math.sqrt(
-            (redPole.latitude - self.boat_latitude) ** 2
-            + (redPole.longitude - self.boat_longitude) ** 2
-        )
-        redPoleDistances.append(dist)
-        if dist < minRedDist:
-            minRedDist = dist
-            minRedIndex = i
-
-    minGreenDist = 1000000
-    minGreenIndex = 1000000
-    for i, greenPole in enumerate(greenPoleList):
-        dist = math.sqrt(
-            (greenPole.latitude - self.boat_latitude) ** 2
-            + (greenPole.longitude - self.boat_longitude) ** 2
-        )
-        greenPoleDistances.append(dist)
-        if dist < minGreenDist:
-            minGreenDist = dist
-            minGreenIndex = i
-
     for i in range(len(redPoleList)):
         for j in range(i + 1, len(redPoleList)):
             if redPoleDistances[i] > redPoleDistances[j]:
@@ -155,6 +146,7 @@ def taskOne(self, latitudes, longitudes, types):
     #     BuoyCoordinates(latitudes=[midLat], longitudes=[midLong], types=["waypoint"])
     # )
 
+    print("waypoint: "+str(midLat)+" "+str(midLong))
     self.set_waypoint(midLat, midLong)
 
 
