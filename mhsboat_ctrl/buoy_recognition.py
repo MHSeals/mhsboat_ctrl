@@ -11,10 +11,11 @@ from boat_interfaces.msg import AiOutput
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 import os
+from os import path
 import time
 import numpy as np
 from collections import defaultdict
-
+import time
 # from rgb import colors
 
 model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v10.pt")
@@ -131,7 +132,7 @@ class CameraSubscriber(Node):
         frame = cv2.resize(frame, IN_SIZE)
         # print("frame size?: "+str(cv2.size(frame)))
 
-        frame_area = frame.shape[0] * frame.shape[1]
+        frame_area = frame.shape[0] * frame.shape[1]    
 
         fc += 1
 
@@ -328,6 +329,11 @@ class CameraSubscriber(Node):
 
         #commented out for xavier and jetson so no error when no screen
         #cv2.imshow("result", original_frame)
+        time = time.time()
+
+        if(int(time)%10==0):
+            imgpath = path.join('/home/roboboat/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(time))
+            cv2.imwrite(imgpath,frame)
         c = cv2.waitKey(1)
         """
         if c == 107:
