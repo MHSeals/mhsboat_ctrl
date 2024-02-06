@@ -32,7 +32,8 @@ setup(
             "jon_tasktwo = mhsboat_ctrl.tasktwo:main",
             "jon_taskone = mhsboat_ctrl.taskone:main",
             "fetch_models = mhsboat_ctrl.fetch_models:main",
-            "temp = mhsboat_ctrl.temp:main"
+            "temp = mhsboat_ctrl.temp:main",
+            "logger = mhsboat_ctrl.logger:main"
         ],
     },
 )
