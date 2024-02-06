@@ -177,14 +177,14 @@ def get_angle(cameraAi_output, index):
     degreesPerPixelH = FOV_H / width
     degreesPerPixelV = FOV_V / height
 
-    print("midX: " + str(midX))
-    print("degreesPerPixelH: " + str(degreesPerPixelH))
-    print("FOV_H: " + str(FOV_H))
+    # print("midX: " + str(midX))
+    # print("degreesPerPixelH: " + str(degreesPerPixelH))
+    # print("FOV_H: " + str(FOV_H))
     theta = midX * degreesPerPixelH - FOV_H / 2
     phi = (midY * degreesPerPixelV - FOV_V / 2 )
     # phi = midY * degreesPerPixelV - FOV_V/2
-    print("THETA: " + str(theta))
-    print("PHI: "+ str(phi))
+    # print("THETA: " + str(theta))
+    # print("PHI: "+ str(phi))
     # add 15.5 because camera is at slight angle down and the 15.5 corrects for it
     # shouldn't be a problem when the camera is mounted horizontally on the real boat
 
@@ -250,18 +250,19 @@ def convert_to_lat_long(x, y, current_lat, current_long, q, theta):
     yaw = math.degrees(
         math.atan2(2.0 * (q.z * q.w + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
     )
-    yaw = 90-yaw
-    if yaw<0:
-        yaw+=360
+    bearing = 90-yaw
+    if bearing<0:
+        bearing+=360
     print("yaw: " + str(yaw) + " theta: " + str(theta))
+    print("bearing: " + str(bearing) + " theta: " + str(theta))
 
     # current_lat = 30
     # current_long = 30
 
     distance = math.sqrt(x**2 + y**2)
 
-    easting = distance * math.sin(math.radians(theta - yaw))
-    northing = distance * math.cos(math.radians(theta - yaw)) * -1
+    easting = distance * math.sin(math.radians(theta - yaw)) 
+    northing = distance * math.cos(math.radians(theta - yaw))*-1
     print("distance: " + str(distance))
     print("easting: " + str(easting))
     print("northing: " + str(northing))
