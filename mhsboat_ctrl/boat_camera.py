@@ -9,7 +9,7 @@ from ultralytics import YOLO
 import json, sys, os
 
 # model = YOLO("/root/ros_ws/src/mhsboat_ctrl/mhsboat_ctrl/v9.pt")
-model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v9.pt")
+model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v12.pt")
 model = YOLO(model_path)
 print("Model loaded")
 
@@ -67,10 +67,10 @@ class CameraService(Node):
         # scale camera output down to that size, then scale back up so we can view it normally
         frame = self.camera_output
         original_frame = self.camera_output
-        x_scale_factor = original_frame.shape[1] / 640
-        y_scale_factor = original_frame.shape[0] / 640
+        x_scale_factor = original_frame.shape[1] / 1080
+        y_scale_factor = original_frame.shape[0] / 1080
         x_orig, y_orig = original_frame.shape[1], original_frame.shape[0]
-        frame = cv2.resize(frame, (640, 640))
+        frame = cv2.resize(frame, (1080, 1080))
         result = model(frame)
 
         poles = []

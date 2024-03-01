@@ -7,7 +7,7 @@ from sensor_msgs.msg import PointCloud2, PointField
 from std_msgs.msg import Header
 import numpy as np
 import struct
-from sklearn.cluster import DBSCAN
+#from sklearn.cluster import DBSCAN
 
 
 class center_of_clusters(Node):

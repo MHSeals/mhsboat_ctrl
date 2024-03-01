@@ -16,9 +16,80 @@ import time
 import numpy as np
 from collections import defaultdict
 import time
+from sensor_msgs.msg import Imu
+import imutils
+import math
+
+from rclpy.qos import (
+    QoSProfile,
+    QoSDurabilityPolicy,
+    QoSReliabilityPolicy,
+    QoSLivelinessPolicy,
+    QoSHistoryPolicy,
+)
+
+start_time = time.perf_counter()
+
+display_time = 1
+fc = 0
+FPS = 0
+total_frames = 0
+prog_start = time.perf_counter()
+
+FRAME_SIZE = (1920, 1080)
+
+IN_SIZE = (1280, 1280)
+
+track_history = defaultdict(lambda: [])
+
+class rgb:
+    def __init__(self, r, g, b):
+        self.r = r
+        self.g = g
+        self.b = b
+
+    def __str__(self):
+        return f"rgb({self.r}, {self.g}, {self.b})"
+
+    def __repr__(self):
+        return f"rgb({self.r}, {self.g}, {self.b})"
+
+    def as_bgr(self) -> tuple:
+        return (self.b, self.g, self.r)
+
+    def invert(self):
+        return rgb(255 - self.r, 255 - self.g, 255 - self.b)
+
+    def text_color(self):
+        luma = 0.2126 * self.r + 0.7152 * self.g + 0.0722 * self.b
+
+        if luma < 40:
+            return rgb(255, 255, 255)
+        else:
+            return rgb(0, 0, 0)
+
+colors: "dict[str, rgb]" = {
+    "blue_buoy": rgb(33, 49, 255),
+    "dock": rgb(132, 66, 0),
+    "green_buoy": rgb(135, 255, 0),
+    "green_pole_buoy": rgb(0, 255, 163),
+    "misc_buoy": rgb(255, 0, 161),
+    "red_buoy": rgb(255, 0, 0),
+    "red_pole_buoy": rgb(255, 92, 0),
+    "yellow_buoy": rgb(255, 255, 0),
+    "black_buoy": rgb(0, 0, 0),
+    "red_racquet_ball": rgb(255, 153, 0),
+    "yellow_racquet_ball": rgb(204, 255, 0),
+    "blue_racquet_ball": rgb(102, 20, 219),
+}
+
 # from rgb import colors
 
-model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v10.pt")
+model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v12.pt")
+print(model_path)
+if not os.path.exists(model_path):
+    raise Exception("Model not found")
+
 model = YOLO(model_path)
 print("Model loaded")
 
@@ -27,9 +98,20 @@ print("Model loaded")
 class CameraSubscriber(Node):
     def __init__(self):
         super().__init__("camera_subscriber")
+        qos_profile = QoSProfile(
+            depth=10,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            liveliness=QoSLivelinessPolicy.AUTOMATIC,
+        )
         self.create_subscription(Image, "/color/image_raw", self.callback, 10)
         #self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
-
+        self.imu_subscriber = self.create_subscription(
+            Imu, "/mavros/imu/data", self.imu_callback, qos_profile
+        )
+        self.roll = 0
+        self.pitch = 0
         # create publisher that publishes bounding box coordinates and size and buoy type
         # int32 num -- um of buoys
         # int32 img_width -- width of image
@@ -51,51 +133,23 @@ class CameraSubscriber(Node):
     def timer_callback(self):
         print("publish")
         self.publisher.publish(self.output)
+        
+    def imu_callback(self, data):
+        q = data.orientation
+        self.roll = math.degrees(
+            math.atan2(2 * (q.w*q.x + q.y*q.z), 1-2 * (q.x*q.x + q.y*q.y))
+        ) - 2.05
+        self.pitch = math.degrees(
+            (math.pi*-1)/2 + 2*math.atan2(math.sqrt(1 + 2 * (q.w*q.y - q.x*q.z)), math.sqrt(1 - 2 * (q.w*q.y - q.x*q.z)))
+        ) + 1.46
+        print("roll: "+str(self.roll))
 
     def callback(self, data: Image):
+        callback_start = time.perf_counter()
+        global start_time, display_time, fc, FPS, total_frames, prog_start, FRAME_SIZE, IN_SIZE, track_history
         print("callback")
 
-        class rgb:
-            def __init__(self, r, g, b):
-                self.r = r
-                self.g = g
-                self.b = b
-
-            def __str__(self):
-                return f"rgb({self.r}, {self.g}, {self.b})"
-
-            def __repr__(self):
-                return f"rgb({self.r}, {self.g}, {self.b})"
-
-            def as_bgr(self) -> tuple:
-                return (self.b, self.g, self.r)
-
-            def invert(self):
-                return rgb(255 - self.r, 255 - self.g, 255 - self.b)
-
-            def text_color(self):
-                luma = 0.2126 * self.r + 0.7152 * self.g + 0.0722 * self.b
-
-                if luma < 40:
-                    return rgb(255, 255, 255)
-                else:
-                    return rgb(0, 0, 0)
-
-        colors: dict[str, rgb] = {
-            "blue_buoy": rgb(33, 49, 255),
-            "dock": rgb(132, 66, 0),
-            "green_buoy": rgb(135, 255, 0),
-            "green_pole_buoy": rgb(0, 255, 163),
-            "misc_buoy": rgb(255, 0, 161),
-            "red_buoy": rgb(255, 0, 0),
-            "red_pole_buoy": rgb(255, 92, 0),
-            "yellow_buoy": rgb(255, 255, 0),
-            "black_buoy": rgb(0, 0, 0),
-            "red_racquet_ball": rgb(255, 153, 0),
-            "yellow_racquet_ball": rgb(204, 255, 0),
-            "blue_racquet_ball": rgb(102, 20, 219),
-        }
-        track_history = defaultdict(lambda: [])
+        inference_stat_file = ""
 
         # can change to use different webcams
         # cap = cv2.VideoCapture("PXL_20240108_222954915.TS.mp4")
@@ -103,33 +157,42 @@ class CameraSubscriber(Node):
         # if not cap.isOpened():
         # raise IOError("Cannot open webcam")
 
-        start_time = time.perf_counter()
-
-        display_time = 1
-        fc = 0
-        FPS = 0
-        total_frames = 0
-        prog_start = time.perf_counter()
-
-        FRAME_SIZE = (1280, 720)
-
-        IN_SIZE = (1280, 1280)
-
         self.camera_output = CvBridge().imgmsg_to_cv2(data, "bgr8")
         frame = self.camera_output
+        original_frame = frame.copy()
+        frame = imutils.rotate(self.camera_output,angle=self.roll*-1)
+        if self.pitch<0:
+            FOV = 56
+            height, width, channels = frame.shape
+            keep = FOV - self.pitch*-1
+            delete_ratio = 1-keep/FOV
+            num_delete_rows = int(delete_ratio * height)
+            cropped_img = frame[num_delete_rows:height]
+            black_canvas = np.zeros((num_delete_rows, width, channels),dtype="uint8")
+            shifted_img = cv2.vconcat([cropped_img,black_canvas])
+            frame = shifted_img
+        else:
+            FOV = 56
+            height, width, channels = frame.shape
+            keep = FOV - self.pitch
+            keep_ratio = keep/FOV
+            num_keep_rows = int(keep_ratio * height)
+            cropped_img = frame[0:num_keep_rows]
+            black_canvas = np.zeros((height-num_keep_rows, width, channels),dtype="uint8")
+            shifted_img = cv2.vconcat([black_canvas,cropped_img])
+            frame = shifted_img
+
         # print("frame"+str(frame))
         frame = cv2.resize(frame, FRAME_SIZE)
-        frame_copy = frame
         x_scale_factor = frame.shape[1] / IN_SIZE[0]
         y_scale_factor = frame.shape[0] / IN_SIZE[1]
-        x_orig, y_orig = frame.shape[1], frame.shape[0]
 
         total_frames += 1
         TIME = time.perf_counter() - start_time
 
         frame = cv2.resize(frame, FRAME_SIZE)
 
-        original_frame = frame.copy()
+        disp_frame = frame.copy()
         frame = cv2.resize(frame, IN_SIZE)
         # print("frame size?: "+str(cv2.size(frame)))
 
@@ -144,10 +207,13 @@ class CameraSubscriber(Node):
 
         fps_disp = "FPS: " + str(FPS)[:5]
 
+        start = time.perf_counter()
         results = model.track(frame, persist=True, tracker="bytetrack.yaml")
+        INFERENCE_MS = (time.perf_counter() - start) * 1000
+        inference_stat_file += f"Inference took {INFERENCE_MS}ms\n"
 
-        original_frame = cv2.putText(
-            original_frame,
+        disp_frame = cv2.putText(
+            disp_frame,
             fps_disp,
             (10, 25),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -156,8 +222,8 @@ class CameraSubscriber(Node):
             1,
         )
 
-        original_frame = cv2.putText(
-            original_frame,
+        disp_frame = cv2.putText(
+            disp_frame,
             "Press k to pause",
             (10, 50),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -166,8 +232,8 @@ class CameraSubscriber(Node):
             1,
         )
 
-        original_frame = cv2.putText(
-            original_frame,
+        disp_frame = cv2.putText(
+            disp_frame,
             "Press ESC to exit",
             (10, 75),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -176,8 +242,8 @@ class CameraSubscriber(Node):
             1,
         )
 
-        original_frame = cv2.putText(
-            original_frame,
+        disp_frame = cv2.putText(
+            disp_frame,
             "Press r to restart (video cap only)",
             (10, 100),
             cv2.FONT_HERSHEY_SIMPLEX,
@@ -197,7 +263,7 @@ class CameraSubscriber(Node):
         for pred in results:
             names = pred.names
 
-            for i in range(len(pred.boxes)):
+            for i, _ in enumerate(pred.boxes):
                 num += 1
                 name = names.get(int(pred.boxes.cls[i]))
                 types.append(name)
@@ -252,8 +318,8 @@ class CameraSubscriber(Node):
 
                     # Draw the tracking lines
                     points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
-                    original_frame = cv2.polylines(
-                        original_frame,
+                    disp_frame = cv2.polylines(
+                        disp_frame,
                         [points],
                         isClosed=False,
                         color=color.as_bgr(),
@@ -262,16 +328,16 @@ class CameraSubscriber(Node):
 
                 print(f"{name} {int(confidence*100)}% {bounding_box}")
 
-                # original_frame = cv2.putText(original_frame,
-                #                              f"{id if id is not None else 'None'}: {name} ({int(confidence*100)})% {int(area)}px",
-                #                              (int(bounding_box[0]), int(bounding_box[1])-5),
-                #                              cv2.FONT_HERSHEY_SIMPLEX, 0.4, color.as_bgr(), 1)
-                # original_frame = cv2.rectangle(original_frame,
-                #                                (int(bounding_box[0]), int(bounding_box[1])),
-                #                                (int(bounding_box[2]), int(bounding_box[3])),
-                #                                color.as_bgr(), 1)
+                disp_frame = cv2.putText(disp_frame,
+                                             f"{id if id is not None else 'None'}: {name} ({int(confidence*100)})% {int(area)}px",
+                                             (int(bounding_box[0]), int(bounding_box[1])-5),
+                                             cv2.FONT_HERSHEY_SIMPLEX, 0.4, color.as_bgr(), 1)
+                disp_frame = cv2.rectangle(disp_frame,
+                                               (int(bounding_box[0]), int(bounding_box[1])),
+                                               (int(bounding_box[2]), int(bounding_box[3])),
+                                               color.as_bgr(), 1)
 
-                annotator = Annotator(original_frame, line_width=1)
+                annotator = Annotator(disp_frame, line_width=1)
 
                 annotator.box_label(
                     (x, y, x + w, y + h),
@@ -280,7 +346,7 @@ class CameraSubscriber(Node):
                     txt_color=color.text_color().as_bgr(),
                 )
 
-                original_frame = annotator.result()
+                disp_frame = annotator.result()
 
         # bounding_box[0] = left side
         # bounding_box[1] = top
@@ -290,7 +356,7 @@ class CameraSubscriber(Node):
         # print("num: "+str(num))
 
         # sort all data to be in increasing id order
-        for i in range(len(ids)):
+        for i, _ in enumerate(ids):
             for j in range(i + 1, len(ids)):
                 if ids[i] > ids[j]:
                     tempId = ids[i]
@@ -315,6 +381,8 @@ class CameraSubscriber(Node):
                     widths[j] = tempWidths
                     heights[j] = tempHeights
 
+        
+
         self.output = AiOutput(
             num=num,
             img_width=IN_SIZE[0],
@@ -329,15 +397,25 @@ class CameraSubscriber(Node):
         )
 
         #commented out for xavier and jetson so no error when no screen
-        #cv2.imshow("result", original_frame)
+        #cv2.imshow("result", disp_frame)
         t = time.time()
 
         print("t: "+str(t))
-        if(int(t)%10==0):
-            imgpath = path.join('/root/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
-            cv2.imwrite(imgpath+"_raw.jpg",frame_copy)
-            cv2.imwrite(imgpath+"_ai.jpg",frame)
-            print("saved")
+        imgpath = path.join('/root/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
+        #imgpath = path.join('/home/roboboat/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
+
+        cv2.imwrite(imgpath+"_ai.jpg",disp_frame)
+        cv2.imwrite(imgpath+"_raw.jpg",original_frame)
+        print("saved")
+
+        callback_time = (time.perf_counter() - callback_start) * 1000
+        inference_stat_file += f"Callback processing took {callback_time}ms"
+        average_fps_all_time = total_frames / (time.perf_counter() - prog_start)
+        inference_stat_file += f"Current alltime FPS: {average_fps_all_time}"
+        inference_stat_file += f"Current avg FPS: {FPS}"
+
+        with open(path.join("/root/roboboat_ws/src/mhsboat_ctrl/logs/text/InferenceStats", f"{str(t)}.txt"), "w") as f:
+            f.write(inference_stat_file)
 
         c = cv2.waitKey(1)
         """
@@ -392,10 +470,10 @@ class CameraSubscriber(Node):
         }
 
         frame = self.camera_output
-        original_frame = self.camera_output
-        x_scale_factor = original_frame.shape[1] / 640
-        y_scale_factor = original_frame.shape[0] / 640
-        x_orig, y_orig = original_frame.shape[1], original_frame.shape[0]
+        disp_frame = self.camera_output
+        x_scale_factor = disp_frame.shape[1] / 640
+        y_scale_factor = disp_frame.shape[0] / 640
+        x_orig, y_orig = disp_frame.shape[1], disp_frame.shape[0]
         frame = cv2.resize(frame, (640, 640))
 
         result = model(frame)
@@ -433,23 +511,23 @@ class CameraSubscriber(Node):
 
                 color = colors.get(name, rgb(255, 255, 255))
 
-                original_frame = cv2.putText(original_frame, 
+                disp_frame = cv2.putText(disp_frame, 
                                             f"{name} {int(confidence*100)}%",
                                             (int(bounding_box[0]), int(bounding_box[1])-5),
                                             cv2.FONT_HERSHEY_SIMPLEX, 0.4, color.as_bgr(), 1)
-                original_frame = cv2.rectangle(original_frame,
+                disp_frame = cv2.rectangle(disp_frame,
                                             (int(bounding_box[0]), int(bounding_box[1])),
                                             (int(bounding_box[2]), int(bounding_box[3])), 
                                             color.as_bgr(), 1)
 
-        # original_frame = cv2.putText(original_frame, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
+        # disp_frame = cv2.putText(disp_frame, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 0), 2)
         #bounding_box[0] = left side
         #bounding_box[1] = top
         #bounding_box[2] = right side
         #bounding_box[3] = bottom
         print(types)
         self.output = AiOutput(num=num,img_width=data.width,img_height=data.height,types=types,confidences=confidences,lefts=lefts,tops=tops,widths=widths,heights=heights)
-        cv2.imshow("result", original_frame)
+        cv2.imshow("result", disp_frame)
         cv2.waitKey(1)
         # if c == 27:
         #     break

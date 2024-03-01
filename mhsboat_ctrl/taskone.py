@@ -4,6 +4,7 @@ from rclpy.node import Node
 import sensor_msgs.msg as sensor_msgs
 from sensor_msgs.msg import PointCloud2, PointField, NavSatFix, Imu
 from geometry_msgs.msg import Quaternion
+from mavos_msgs import GlobalPositionTarget
 import math
 import numpy as np
 from boat_interfaces.msg import AiOutput
@@ -44,7 +45,7 @@ class locate_buoys(Node):
         # )
 
         self.waypoint_publisher = self.create_publisher(
-            GeoPoseStamped, "/mavros/setpoint_position/global", 10
+            GlobalPositionTarget, "/mavros/setpoint_position/global", queue_size=1,latch=True
         )
 
         self.cmd_vel_publisher = self.create_publisher(
@@ -52,7 +53,9 @@ class locate_buoys(Node):
         )
 
     def set_waypoint(self, lat: float, long: float):
-        msg = GeoPoseStamped()
+        head = Header()
+        head.stamp = rospy.Time.now()
+        msg = GlobalPositionTarget(latitude=lat,longitude=long,altitude=0,header=head)
         msg.pose.position.latitude = lat
         msg.pose.position.longitude = long
         self.waypoint_publisher.publish(msg)

@@ -3,3 +3,7 @@
 .vscode
 temp.py
 /logs/images
+*.txt
+*.jpg
+*.zip
+*.gz
