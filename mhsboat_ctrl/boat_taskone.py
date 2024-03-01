@@ -2,8 +2,8 @@ import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import String
-#from boat_ctrl.boat_arm import ArmingService
-#from boat_ctrl.boat_mode import ModeService
+from mhsboat_ctrl.boat_arm import ArmingService
+from mhsboat_ctrl.boat_mode import ModeService
 from mhsboat_ctrl.boat_controller import BoatController
 
 import json
@@ -39,9 +39,9 @@ class TaskOne(Node):
 
         # If it doesn't detect more than one pole, rotate in place to try to find buoys
         if len(poles) < 2:
-            print("Only one or no pole found, keep going forward")
-            self.boat_controller.set_forward_velocity(0.1)
-            # self.boat_controller.set_angular_velocity(0.0)
+            print("Only one or no pole found, spinning in place")
+            # self.boat_controller.set_forward_velocity(0.1)
+            self.boat_controller.set_angular_velocity(-0.3)
             self.boat_controller.cmd_vel_publisher.publish(self.boat_controller.cmd_vel)
             return
 
@@ -72,29 +72,30 @@ class TaskOne(Node):
         # Vice versa for poles on right side of screen
 
         # print(buoy_middle)
-
+        # TODO: find optimal motor speed
+        self.boat_controller.set_forward_velocity(0.0)
         if (
             left_buoy["x_right"] < SCREEN_MIDDLE
             and right_buoy["x_left"] < SCREEN_MIDDLE
         ):
             # Turn left to orientate boat between two buoys
             print("TWO BUOYS ON LEFT SIDE OF SCREEN")
-            self.boat_controller.set_angular_velocity(0.01)
+            self.boat_controller.set_angular_velocity(0.50)
         elif (
             left_buoy["x_right"] > SCREEN_MIDDLE
             and right_buoy["x_left"] > SCREEN_MIDDLE
         ):
             # Turn right to orientate boat between two buoys
             print("TWO BUOYS ON RIGHT SIDE OF SCREEN")
-            self.boat_controller.set_angular_velocity(-0.01)
-        elif buoy_middle - SCREEN_MIDDLE > 5:
+            self.boat_controller.set_angular_velocity(-0.50)
+        elif buoy_middle - SCREEN_MIDDLE > 20:
             print("TOO LEFT")
-            self.boat_controller.set_angular_velocity(-0.01)
-        elif SCREEN_MIDDLE - buoy_middle > 5:
+            self.boat_controller.set_angular_velocity(-0.30)
+        elif SCREEN_MIDDLE - buoy_middle > 20:
             print("TOO RIGHT")
-            self.boat_controller.set_angular_velocity(0.01)
+            self.boat_controller.set_angular_velocity(0.30)
 
-        elif SCREEN_MIDDLE - buoy_middle < 5 and buoy_middle - SCREEN_MIDDLE < 5:
+        elif SCREEN_MIDDLE - buoy_middle < 20 and buoy_middle - SCREEN_MIDDLE < 20:
             print("MOVING FORWARD")
             self.boat_controller.set_forward_velocity(1.0)
 

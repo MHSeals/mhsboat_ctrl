@@ -16,6 +16,18 @@ import time
 import numpy as np
 from collections import defaultdict
 import time
+from sensor_msgs.msg import Imu
+import imutils
+import math
+
+from rclpy.qos import (
+    QoSProfile,
+    QoSDurabilityPolicy,
+    QoSReliabilityPolicy,
+    QoSLivelinessPolicy,
+    QoSHistoryPolicy,
+)
+
 # from rgb import colors
 
 model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "v10.pt")
@@ -27,9 +39,19 @@ print("Model loaded")
 class CameraSubscriber(Node):
     def __init__(self):
         super().__init__("camera_subscriber")
+        qos_profile = QoSProfile(
+            depth=10,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            liveliness=QoSLivelinessPolicy.AUTOMATIC,
+        )
         self.create_subscription(Image, "/color/image_raw", self.callback, 10)
         #self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
-
+        self.imu_subscriber = self.create_subscription(
+            Imu, "/mavros/imu/data", self.imu_callback, qos_profile
+        )
+        self.roll = 0
         # create publisher that publishes bounding box coordinates and size and buoy type
         # int32 num -- um of buoys
         # int32 img_width -- width of image
@@ -54,6 +76,12 @@ class CameraSubscriber(Node):
 
     def callback(self, data: Image):
         print("callback")
+
+    def imu_callback(self, data):
+        q = data.orientation
+        self.role = math.degrees(
+            math.atan2(2 * (q.w*q.x + q.y*q.z), 1-2 * (q.x*q.x + q.y*q.y))
+        )
 
         class rgb:
             def __init__(self, r, g, b):
@@ -116,7 +144,8 @@ class CameraSubscriber(Node):
         IN_SIZE = (1280, 1280)
 
         self.camera_output = CvBridge().imgmsg_to_cv2(data, "bgr8")
-        frame = self.camera_output
+        frame = imutils.rotate(self.camera_output,angle=self.roll)
+        
         # print("frame"+str(frame))
         frame = cv2.resize(frame, FRAME_SIZE)
         frame_copy = frame
@@ -334,7 +363,9 @@ class CameraSubscriber(Node):
 
         print("t: "+str(t))
         if(int(t)%10==0):
-            imgpath = path.join('/root/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
+            # imgpath = path.join('/root/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
+            imgpath = path.join('/home/roboboat/roboboat_ws/src/mhsboat_ctrl/logs/images/',str(t))
+
             cv2.imwrite(imgpath+"_raw.jpg",frame_copy)
             cv2.imwrite(imgpath+"_ai.jpg",frame)
             print("saved")

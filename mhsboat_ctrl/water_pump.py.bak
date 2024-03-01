@@ -1,0 +1,32 @@
+import rclpy
+from rclpy.node import Node
+
+from mavros_msgs.msg import OverrideRCIn
+
+
+class TaskoneWaypoint(Node):
+    def __init__(self):
+        super().__init__("water_pump_node")
+
+        self.pump_subscriber = self.create_subscription(OverrideRCIn,"/mavros/rc/in",self.pump_callback,10)
+        self.pump_publisher = self.create_publisher(OverrideRCIn,"/mavros/rc/in", 10)
+
+
+
+    def pump_callback(self,data):
+        arr = data
+        arr.channels[10]=2006
+    
+        self.pump_publisher.publish(arr)
+
+def main(args=None):
+    rclpy.init(args=args)
+    taskone = TaskoneWaypoint()
+    rclpy.spin(taskone)
+
+    taskone.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == "__main__":
+    main()

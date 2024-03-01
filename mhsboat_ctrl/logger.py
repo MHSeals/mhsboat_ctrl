@@ -63,7 +63,9 @@ class logger(Node):
             GeoPoseStamped, "/mavros/setpoint_position/global", self.waypoint_callback, 10
         )
 
-        self.base_path = "/root/roboboat_ws/src/mhsboat_ctrl/logs/text/"
+        #self.base_path = "/root/roboboat_ws/src/mhsboat_ctrl/logs/text/"
+        self.base_path = "/home/roboboat/roboboat_ws/src/mhsboat_ctrl/logs/text/"
+
     def ai_callback(self, data: AiOutput):
         write_data(data,self.base_path+"AiOutput/")
 

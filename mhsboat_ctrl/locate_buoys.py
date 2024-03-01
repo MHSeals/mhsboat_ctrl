@@ -16,7 +16,6 @@ import numpy as np
 from boat_interfaces.msg import AiOutput
 from boat_interfaces.msg import BuoyCoordinates
 
-
 class locate_buoys(Node):
     def __init__(self):
         super().__init__("locate_buoys")
@@ -195,6 +194,7 @@ def get_angle(cameraAi_output, index):
 # returns X, Y, Z
 def get_XYZ_coordinates(theta, phi, pointCloud, name):
     points = np.array(list(read_points(pointCloud)))
+    copy = np.copy(points)
     mask = np.empty(points.shape[0], dtype=bool)
     for index, point in enumerate(points):
         x = point[0]
@@ -212,10 +212,11 @@ def get_XYZ_coordinates(theta, phi, pointCloud, name):
 
         # if theta and phi are in list by some closeness
         # keep point, else delete point
-        degrees = 5
+        degrees = 2
         if (
             math.fabs(thetaPoint - theta) <= degrees
             or math.fabs(phiPoint - phi) <= degrees
+            #ignore vertical because usually, USUALLY, the vertical angle can be weird and has no use but the horizontal angle is ok.
         ):
             # print("theta: "+str(theta))
             # print("thetaPoint: "+str(thetaPoint))
@@ -230,8 +231,15 @@ def get_XYZ_coordinates(theta, phi, pointCloud, name):
             math.fabs(thetaPoint - theta) <= degrees
             and math.fabs(phiPoint - phi) <= degrees
         )
-
+    for p in points:
+        print(p)
     points = np.delete(points, mask, axis=0)
+    copy = np.delete(copy, mask, axis=0)
+    
+    print("distances: ")
+    for point, c in zip(points,copy):
+        print(math.sqrt(point[0]**2+point[1]**2))
+        print(math.sqrt(c[0]**2+c[1]**2))
 
     print(name)
     print("after points: " + str(points))
@@ -259,10 +267,14 @@ def convert_to_lat_long(x, y, current_lat, current_long, q, theta):
     # current_lat = 30
     # current_long = 30
 
+    ###WHY!!!
+    
+    
+    
     distance = math.sqrt(x**2 + y**2)
 
-    easting = distance * math.sin(math.radians(theta - yaw)) 
-    northing = distance * math.cos(math.radians(theta - yaw))*-1
+    easting = distance * math.cos(math.radians(yaw - theta))
+    northing = distance * math.sin(math.radians(yaw - theta))
     print("distance: " + str(distance))
     print("easting: " + str(easting))
     print("northing: " + str(northing))

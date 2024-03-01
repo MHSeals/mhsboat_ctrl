@@ -33,7 +33,9 @@ setup(
             "jon_taskone = mhsboat_ctrl.taskone:main",
             "fetch_models = mhsboat_ctrl.fetch_models:main",
             "temp = mhsboat_ctrl.temp:main",
-            "logger = mhsboat_ctrl.logger:main"
+            "logger = mhsboat_ctrl.logger:main",
+            "water_pump = mhsboat_ctrl.water_pump:main",
+            "mission_planner = mhsboat_ctrl.mission_planner:main"
         ],
     },
 )
