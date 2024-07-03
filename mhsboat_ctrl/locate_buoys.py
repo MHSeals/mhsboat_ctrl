@@ -162,31 +162,25 @@ def analyze(cameraAi_output, pointCloud, current_lat, current_long, quaternion, 
 # calculate the 3D angle of each buoy location
 # returns a list of the left/right angle (theta) and the up/down angle (phi)
 def get_angle(cameraAi_output, index):
-    # currently the FOV of the simulated camera
-    # replace with FOV of real camera
-    FOV_H = 80
-    FOV_V = 56
+    # our camera is D435
+    # https://www.intelrealsense.com/depth-camera-d435/
+    FOV_H = 69
+    FOV_V = 42
 
-    print("index: " + str(index))
-    print("lefts: " + str(cameraAi_output.lefts))
-    midX = cameraAi_output.lefts[index] + cameraAi_output.widths[index] / 2
-    midY = cameraAi_output.tops[index] + cameraAi_output.heights[index] / 2
-    width = cameraAi_output.img_width
-    height = cameraAi_output.img_height
+    centerX = cameraAi_output.img_width / 2.0
+    centerY = cameraAi_output.img_height / 2.0
 
-    degreesPerPixelH = FOV_H / width
-    degreesPerPixelV = FOV_V / height
+    pointX = cameraAi_output.lefts[index] + cameraAi_output.widths[index] / 2.0
+    pointY = cameraAi_output.tops[index] + cameraAi_output.heights[index] / 2.0
 
-    # print("midX: " + str(midX))
-    # print("degreesPerPixelH: " + str(degreesPerPixelH))
-    # print("FOV_H: " + str(FOV_H))
-    theta = midX * degreesPerPixelH - FOV_H / 2
-    phi = (midY * degreesPerPixelV - FOV_V / 2 )
-    # phi = midY * degreesPerPixelV - FOV_V/2
-    # print("THETA: " + str(theta))
-    # print("PHI: "+ str(phi))
-    # add 15.5 because camera is at slight angle down and the 15.5 corrects for it
-    # shouldn't be a problem when the camera is mounted horizontally on the real boat
+    deltaX = pointX - centerX
+    deltaY = pointY - centerY
+
+    fX = cameraAi_output.img_width / (2.0 * math.tan(math.radians(FOV_H / 2.0)))
+    fY = cameraAi_output.img_height / (2.0 * math.tan(math.radians(FOV_V / 2.0)))
+
+    theta = math.degrees(math.atan(deltaX / fX))
+    phi = math.degrees(math.atan(deltaY / fY))
 
     return theta, phi
 
