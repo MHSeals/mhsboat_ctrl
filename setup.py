@@ -19,21 +19,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "boat_arm = mhsboat_ctrl.boat_arm:main",
-            "boat_mode = mhsboat_ctrl.boat_mode:main",
-            "boat_controller = mhsboat_ctrl.boat_mavros_controller:main",
-            "boat_taskone = mhsboat_ctrl.boat_taskone:main",
-            "boat_camera = mhsboat_ctrl.boat_camera:main",
-            "boat_taskone_waypoint = mhsboat_ctrl.boat_taskone_waypoint:main",
-            "buoy_recognition = mhsboat_ctrl.buoy_recognition:main",
-            "locate_buoys = mhsboat_ctrl.locate_buoys:main",
-            "center_of_clusters = mhsboat_ctrl.center_of_clusters:main",
-            "average_buoy_location = mhsboat_ctrl.average_buoy_location:main",
-            "jon_tasktwo = mhsboat_ctrl.tasktwo:main",
-            "jon_taskone = mhsboat_ctrl.taskone:main",
-            "fetch_models = mhsboat_ctrl.fetch_models:main",
-            "temp = mhsboat_ctrl.temp:main",
-            "logger = mhsboat_ctrl.logger:main"
+            "mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main"
         ],
     },
 )
