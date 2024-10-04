@@ -43,3 +43,13 @@ class BoatController(Node):
                             task.status = TaskStatus.COMPLETED
                         else:
                             print("Task failed to run.")
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    boat_controller = BoatController()
+
+    rclpy.spin(boat_controller)
+
+    boat_controller.destroy_node()
+    rclpy.shutdown()
