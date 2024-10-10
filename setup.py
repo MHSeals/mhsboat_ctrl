@@ -12,9 +12,8 @@ setup(
     ],
     install_requires=["setuptools"],
     zip_safe=True,
-    maintainer="Wavefire5201",
-    maintainer_email="enoch.zhu154@gmail.com",
-    description="Multitool package for Roboboat",
+    author="Wavefire5201, Alec Jensen",
+    description="Control Package for the MHSeals Boat",
     license="GNU GPLv3",
     tests_require=["pytest"],
     entry_points={

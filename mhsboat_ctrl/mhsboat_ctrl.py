@@ -1,10 +1,10 @@
 import rclpy
 from rclpy.node import Node
+import glob
 
-from enums import TaskCompletionStatus, TaskStatus
-from sensors import Sensors
-
-from tasks.taskone import TaskOne
+from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
+from mhsboat_ctrl.sensors import Sensors
+from mhsboat_ctrl.task import Task
 
 class BoatController(Node):
     tasks = []
@@ -14,14 +14,19 @@ class BoatController(Node):
 
         self.sensors = Sensors()
 
-        self.add_task(TaskOne(self.sensors))
+        for task_file in glob.glob("tasks/*.py"):
+            task_module = __import__(task_file[:-3].replace("/", "."), fromlist=[""])
+            task_module.main(self)
+
+        self.get_logger().info("Boat Controller Node Initialized")
 
         self.run()
 
-    def add_task(self, task):
+    def add_task(self, task: Task):
         self.tasks.append(task)
 
     def run(self):
+        self.get_logger().info("Running tasks")
         while rclpy.ok():
             for task in self.tasks:
                 if task.status == TaskStatus.COMPLETED:
@@ -31,7 +36,7 @@ class BoatController(Node):
                 if search_result is not None:
                     assert type(search_result) == tuple[int, int]
 
-                    print(f"Found Task at {search_result[0]}, {search_result[1]}")
+                    self.get_logger().info(f"Found Task at {search_result[0]}, {search_result[1]}")
 
                     inp = ""
                     while True:
@@ -46,7 +51,7 @@ class BoatController(Node):
                         if completion_status == TaskCompletionStatus.SUCCESS:
                             task.status = TaskStatus.COMPLETED
                         else:
-                            print("Task failed to run.")
+                            self.get_logger().error("Task failed")
 
 def main(args=None):
     rclpy.init(args=args)

@@ -1,7 +1,7 @@
 import abc
 from typing import ClassVar
 
-from enums import TaskCompletionStatus, TaskStatus
+from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 
 
 class Task(abc.ABC):
