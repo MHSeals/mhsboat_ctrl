@@ -7,6 +7,9 @@ from enums import TaskCompletionStatus, TaskStatus
 class Task(abc.ABC):
     status: ClassVar[TaskStatus]
 
+    def __init__(self, sensors):
+        self.sensors = sensors
+
     def __init_subclass__(cls, **kwargs):
         for var in ['status']:
             if not hasattr(cls, var):

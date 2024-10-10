@@ -2,6 +2,8 @@ import rclpy
 from rclpy.node import Node
 
 from enums import TaskCompletionStatus, TaskStatus
+from sensors import Sensors
+
 from tasks.taskone import TaskOne
 
 class BoatController(Node):
@@ -10,7 +12,9 @@ class BoatController(Node):
     def __init__(self):
         super().__init__('mhsboat_ctrl')
 
-        self.add_task(TaskOne())
+        self.sensors = Sensors()
+
+        self.add_task(TaskOne(self.sensors))
 
         self.run()
 
