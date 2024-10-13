@@ -1,11 +1,10 @@
 import abc
-from typing import ClassVar
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 
 
 class Task(abc.ABC):
-    status: ClassVar[TaskStatus]
+    status: TaskStatus
 
     def __init__(self, sensors):
         self.sensors = sensors
@@ -18,7 +17,7 @@ class Task(abc.ABC):
                 )
 
     @abc.abstractmethod
-    def search(self) -> None | tuple[int, int]:
+    def search(self) -> None | tuple[float, float]:
         ...
 
     @abc.abstractmethod

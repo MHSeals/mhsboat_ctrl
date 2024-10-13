@@ -23,9 +23,10 @@ class Shape(CourseObject):
 
 
 class Buoy(CourseObject):
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, color: BuoyColors):
         self.x = x
         self.y = y
+        self.color = color
 
     def __str__(self):
         return f"Buoy({self.x}, {self.y})"

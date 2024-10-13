@@ -3,6 +3,9 @@ from rclpy.node import Node
 from boat_interfaces.msg import AiOutput
 from sensor_msgs.msg import PointCloud2, Imu
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
+import os
+import yaml
+from typing import Literal
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -43,6 +46,9 @@ class Sensors(Node):
         )
 
         self._process_timer = self.create_timer(0.1, self._process_sensor_data)
+        super().__init__('sensors')
+
+        self.detected_objects: list[CourseObject] = []
 
         self.get_logger().info("Sensors Node Initialized")
 
@@ -83,7 +89,32 @@ class Sensors(Node):
         5. mark detected buoys on the map
         6. expose the map of the detected buoys to the task code
         7. profit
-
-    eventually:
-        - simulated map to test the task code
     """
+
+
+class SensorsSimulated(Node):
+    def __init__(self, map_file: str):
+        super().__init__('sensors')
+
+        if not os.path.exists(map_file):
+            raise FileNotFoundError(f"Map file {map_file} does not exist")
+        
+        self.detected_objects: list[CourseObject] = []
+
+        with open(map_file, "r") as f:
+            try:
+                map_data = yaml.safe_load(f)
+
+                for obj in map_data["objects"]:
+                    if obj.get('pole_buoy') is not None:
+                        self.detected_objects.append(
+                            PoleBuoy(
+                                obj['pole_buoy']['x'],
+                                obj['pole_buoy']['y'],
+                                BuoyColors[obj['pole_buoy']['color']] # type: ignore
+                            )
+                        )
+            except yaml.YAMLError as e:
+                raise ValueError(f"Error parsing map file: {e}")
+
+        self.get_logger().info("Simualted Sensors Node Initialized")
