@@ -16,3 +16,9 @@ The `Sensors` class in mhsboat_ctrl/sensors.py is responsible for subscribing to
 
 ## Enums
 The `TaskCompletionStatus` and `TaskStatus` enums in `mhsboat_ctrl/enums.py` are used to represent the status of tasks.
+
+## Simulation
+To run the control system in simulation mode, pass the `use_simulated_map` and `map_file` parameters to the mhsboat_ctrl node. For example:
+```bash
+ros2 run mhsboat_ctrl mhsboat_ctrl --ros-args -p use_simulated_map:=true -p map_file:=src/mhsboat_ctrl/maps/taskone.yaml
+```
