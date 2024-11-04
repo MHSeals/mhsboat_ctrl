@@ -404,7 +404,7 @@ class SensorsSimulated(Node):
         if not os.path.exists(map_file):
             raise FileNotFoundError(f"Map file {map_file} does not exist")
 
-        self.detected_objects: list[CourseObject] = []
+        self.map: list[CourseObject] = []
 
         with open(map_file, "r") as f:
             try:
@@ -415,7 +415,7 @@ class SensorsSimulated(Node):
                         if obj['pole_buoy']['color'].upper() not in ["RED", "GREEN"]:
                             raise ValueError(f"Invalid color for pole buoy: {obj['pole_buoy']['color']} at {obj['pole_buoy']['x']}, {obj['pole_buoy']['y']}")
                         
-                        self.detected_objects.append(
+                        self.map.append(
                             PoleBuoy(
                                 obj['pole_buoy']['x'],
                                 obj['pole_buoy']['y'],

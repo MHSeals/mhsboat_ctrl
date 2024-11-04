@@ -8,7 +8,7 @@ This is the control system for the MHSeals boat.
 - Python >= 3.8
 - [Custom messages](https://github.com/MHSeals/mhsboat_ctrl/tree/boat_interfaces)
     - (replace `ros_ws` with the path to your ROS 2 workspace)
-    - `cd ~/ros_ws/src && git clone https://github.com/MHSeals/mhsboat_ctrl/ -b boat_interfaces`
+    - `cd ~/ros_ws/src && git clone https://github.com/MHSeals/mhsboat_ctrl/ -b boat_interfaces boat_interfaces`
 
 ## Building
 You should build this package using symlink install so that you can easily modify the code and see the changes without having to rebuild the package. To build the package, run the following commands, substituting with the path to your ROS 2 workspace:
