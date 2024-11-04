@@ -29,8 +29,8 @@ class TaskOne(Task):
 
         # self.plot_all_buoys_and_angles()
 
-        red_pole_buoys = [buoy for buoy in self.sensors.detected_objects if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.RED]
-        green_pole_buoys = [buoy for buoy in self.sensors.detected_objects if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.GREEN]
+        red_pole_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.RED]
+        green_pole_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.GREEN]
 
         if len(red_pole_buoys) < 2 or len(green_pole_buoys) < 2:
             return None

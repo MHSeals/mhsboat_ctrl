@@ -2,6 +2,14 @@
 
 This is the control system for the MHSeals boat.
 
+## Dependencies
+- ROS 2 Humble
+- Ubuntu 22.04
+- Python >= 3.8
+- [Custom messages](https://github.com/MHSeals/mhsboat_ctrl/tree/boat_interfaces)
+    - (replace `ros_ws` with the path to your ROS 2 workspace)
+    - `cd ~/ros_ws/src && git clone https://github.com/MHSeals/mhsboat_ctrl/ -b boat_interfaces`
+
 ## Task System
 
 Task files live in the `mhsboat_ctrl/tasks` directory. Each task is a separate class that inherits from the `Task` class in [`mhsboat_ctrl/tasks/task.py`](mhsboat_ctrl/tasks/task.py). The `Task` class has a `run` method that is called by the main loop of the control system. The `run` method should return a `TaskCompletionStatus` object indicating the status of the task. The `Task` class also has a `search` method which searches for the next task to run. The `search` method should return either `None` if it isn't found, or a tuple `(x, y)` where `x` and `y` are the coordinates of where the task was found.
