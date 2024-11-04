@@ -6,6 +6,14 @@ import time
 simple_wb = cv2.xphoto.createSimpleWB()
 
 def preprocess(image: np.ndarray) -> np.ndarray:
+    """
+    Preprocesses an image for buoy recognition
+
+    :param image: The image to preprocess
+    :type image: class:`numpy.ndarray`
+    :return: The preprocessed image
+    :rtype: class:`numpy.ndarray`
+    """
     # automatic color balance
     image = simple_wb.balanceWhite(image)
 

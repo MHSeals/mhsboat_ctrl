@@ -22,13 +22,17 @@ import urllib.request
 from mhsboat_ctrl.utils import rgb
 from mhsboat_ctrl.utils.image_tools import preprocess
 
+MODEL_URL = "https://github.com/MHSeals/buoy-model/releases/download/V14/best.pt"
+
+file_name = path.basename(MODEL_URL)
+
 model_path = os.path.join(os.path.dirname(
-    os.path.realpath(__file__)), "v13.pt")
+    os.path.realpath(__file__)), file_name)
 
 if not os.path.exists(model_path):
-    print("Model not found; downloading model v13")
+    print(f"Model not found; downloading {MODEL_URL}")
     urllib.request.urlretrieve(
-        "https://github.com/MHSeals/buoy-model/releases/download/V13/v13.pt", model_path)
+        MODEL_URL, model_path)
 
 model = YOLO(model_path)
 print("Model loaded")

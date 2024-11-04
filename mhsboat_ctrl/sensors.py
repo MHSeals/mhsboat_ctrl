@@ -9,6 +9,7 @@ import math
 import numpy as np
 import struct
 import sys
+from typing import Iterable, Generator
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -100,7 +101,10 @@ class Sensors(Node):
     def imu_output(self) -> Imu | None:
         return self._imu_cache[-1][0] if len(self._imu_cache) > 0 else None
 
-    def _process_sensor_data(self):
+    def _process_sensor_data(self) -> None:
+        """
+        Process the sensor data
+        """
         if len(self._camera_cache) == 0 or len(self._lidar_cache) == 0 or len(self._imu_cache) == 0:
             self.get_logger().info("Not enough data to process; waiting for more data")
             return
@@ -181,7 +185,17 @@ class Sensors(Node):
 
     # calculate the 3D angle of each buoy location
     # returns a list of the left/right angle (theta) and the up/down angle (phi)
-    def get_angle(self, camera_data: AiOutput, index):
+    def get_angle(self, camera_data: AiOutput, index: int) -> tuple[float, float]:
+        """
+        Calculate the 3D angle of a bounding box in the camera image relative to the camera
+
+        :param camera_data: The camera data
+        :type  camera_data: class:`boat_interfaces.msg.AiOutput`
+        :param index: The index of the bounding box
+        :type  index: int
+        :return: The left/right angle (theta) and the up/down angle (phi)
+        :rtype:  tuple[float, float]
+        """
         # our camera is D435
         # https://www.intelrealsense.com/depth-camera-d435/
         FOV_H = 69
@@ -209,7 +223,21 @@ class Sensors(Node):
     # Use angle to get the XYZ coordinates of each buoy
     # returns X, Y, Z
 
-    def get_XYZ_coordinates(self, theta, phi, pointCloud, name):
+    def get_XYZ_coordinates(self, theta: float, phi: float, pointCloud: PointCloud2, name: str):
+        """
+        Get the XYZ coordinates of a buoy based on the angle from the camera
+
+        :param theta: The angle from the x-axis
+        :type  theta: float
+        :param phi: The angle from the z-axis
+        :type  phi: float
+        :param pointCloud: The point cloud data
+        :type  pointCloud: class:`sensor_msgs.msg.PointCloud2`
+        :param name: The name of the buoy
+        :type  name: str
+        :return: The X, Y, Z coordinates of the buoy
+        :rtype:  tuple[float, float, float]
+        """
         points = np.array(list(self.read_points(pointCloud)))
         mask = np.empty(points.shape[0], dtype=bool)
         for index, point in enumerate(points):
@@ -260,19 +288,20 @@ class Sensors(Node):
             return (0, 0, 0)
         return (points[0][0], points[0][1], points[0][2])
     
-    def read_points(self, cloud, field_names=None, skip_nans=False, uvs=[]):
+    def read_points(self, cloud: PointCloud2, field_names: Iterable | None = None, skip_nans: bool = False, uvs: Iterable = []):
         """
-        Read points from a L{sensor_msgs.PointCloud2} message.
-        @param cloud: The point cloud to read from.
-        @type  cloud: L{sensor_msgs.PointCloud2}
-        @param field_names: The names of fields to read. If None, read all fields. [default: None]
-        @type  field_names: iterable
-        @param skip_nans: If True, then don't return any point with a NaN value.
-        @type  skip_nans: bool [default: False]
-        @param uvs: If specified, then only return the points at the given coordinates. [default: empty list]
-        @type  uvs: iterable
-        @return: Generator which yields a list of values for each point.
-        @rtype:  generator
+        Read points from a :class:`sensor_msgs.PointCloud2` message.
+
+        :param cloud: The point cloud to read from.
+        :type  cloud: class:`sensor_msgs.msg.PointCloud2`
+        :param field_names: The names of fields to read. If None, read all fields. [default: None]
+        :type  field_names: iterable
+        :param skip_nans: If True, then don't return any point with a NaN value.
+        :type  skip_nans: bool [default: False]
+        :param uvs: If specified, then only return the points at the given coordinates. [default: empty list]
+        :type  uvs: iterable
+        :return: Generator which yields a list of values for each point.
+        :rtype:  generator
         """
         assert isinstance(cloud, PointCloud2), "cloud is not a sensor_msgs.msg.PointCloud2"
         fmt = self._get_struct_fmt(cloud.is_bigendian, cloud.fields, field_names)
@@ -322,7 +351,18 @@ class Sensors(Node):
                         offset += point_step
 
 
-    def _get_struct_fmt(self, is_bigendian, fields, field_names=None):
+    def _get_struct_fmt(self, is_bigendian: bool, fields: Iterable, field_names: Iterable | None = None):
+        """
+        Get the struct format string for the given fields.
+        
+        :param is_bigendian: Whether the data is big-endian.
+        :type  is_bigendian: bool
+        :param fields: The point fields to read.
+        :type  fields: iterable
+        :param field_names: The names of fields to read. If None, read all fields. [default: None]
+        :type  field_names: iterable
+        :return: The struct format string.
+        :rtype:  str"""
         fmt = ">" if is_bigendian else "<"
 
         offset = 0

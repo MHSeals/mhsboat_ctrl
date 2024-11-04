@@ -45,9 +45,18 @@ class BoatController(Node):
         self.sensors.destroy_node()
 
     def add_task(self, task: Task):
+        """
+        Add a task to the controller
+
+        :param task: The task to add
+        :type task: class:`mhsboat_ctrl.task.Task`
+        """
         self.tasks.append(task)
 
     def run(self):
+        """
+        Run the boat controller
+        """
         self.get_logger().info("Running Boat Controller")
         while rclpy.ok():
             for task in self.tasks:

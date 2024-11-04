@@ -67,9 +67,21 @@ class TaskOne(Task):
 
                         return (int((red1.x + green1.x + red2.x + green2.x) / 4), int((red1.y + green1.y + red2.y + green2.y) / 4))
 
-    def calculate_angle(self, p1: PoleBuoy, p2: PoleBuoy, p3: PoleBuoy):
-        v1 = np.array([p1.x - p2.x, p1.y - p2.y])
-        v2 = np.array([p3.x - p2.x, p3.y - p2.y])
+    def calculate_angle(self, b1: PoleBuoy, b2: PoleBuoy, b3: PoleBuoy) -> float:
+        """
+        Calculate the angle between the lines formed by the 3 points
+
+        :param b1: The first buoy
+        :type b1: class:`mhsboat_ctrl.course_objects.PoleBuoy`
+        :param b2: The second buoy
+        :type b2: class:`mhsboat_ctrl.course_objects.PoleBuoy`
+        :param b3: The third buoy
+        :type b3: class:`mhsboat_ctrl.course_objects.PoleBuoy`
+        :return: The angle between the lines
+        :rtype: float
+        """
+        v1 = np.array([b1.x - b2.x, b1.y - b2.y])
+        v2 = np.array([b3.x - b2.x, b3.y - b2.y])
         angle = np.arctan2(np.linalg.det([v1, v2]), np.dot(v1, v2))
         return abs(np.degrees(angle))
 
