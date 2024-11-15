@@ -169,7 +169,16 @@ class Sensors(Node):
                 # TODO: do we need to track duck images?
                 pass
 
-        # TODO: Match the detected objects from frame with the map
+            local_detected_objects[-1].last_seen = self.get_clock().now().nanoseconds
+        
+        """
+        TODO: Match the detected objects from frame with the map
+
+        - get change in position and orientation from odometry
+        - rotate and translate the map objects based on the change in position and orientation
+        - match the detected objects with the map objects, allowing for some error
+        - update the map objects with the detected objects
+        """
 
     # calculate the 3D angle of each buoy location
     # returns a list of the left/right angle (theta) and the up/down angle (phi)
