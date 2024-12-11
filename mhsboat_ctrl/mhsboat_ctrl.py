@@ -65,7 +65,7 @@ class BoatController(Node):
 
                 search_result = task.search()
                 if search_result is not None:
-                    self.get_logger().info(f"Found Task at {search_result[0]}, {search_result[1]}")
+                    self.get_logger().info(f"Found Task {task.__qualname__}")
 
                     inp = ""
                     while True:

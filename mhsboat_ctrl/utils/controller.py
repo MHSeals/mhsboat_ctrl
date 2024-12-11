@@ -3,7 +3,7 @@ from rclpy.node import Node
 from geometry_msgs.msg import TwistStamped
 
 
-class BoatController(Node):
+class ThrusterController(Node):
     def __init__(self):
         super().__init__("boat_controller")
         self.cmd_vel_publisher = self.create_publisher(TwistStamped, "/mavros/setpoint_velocity/cmd_vel", 10)

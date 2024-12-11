@@ -11,7 +11,7 @@ import numpy as np
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
-from mhsboat_ctrl.utils.controller import BoatController
+from mhsboat_ctrl.utils.controller import ThrusterController
 
 buoy_color_mapping: dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,
@@ -28,7 +28,7 @@ class Sensors(Node):
 
         self.map: list[CourseObject] = []
 
-        self.controller = BoatController()
+        self.controller = ThrusterController()
 
         # cache for the sensors, limited to 3 items
         # this allows us to find the data that has the
