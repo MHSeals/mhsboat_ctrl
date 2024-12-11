@@ -1,5 +1,4 @@
 **/*.pt
 **/__pycache__/
-.vscode
 temp.py
 /logs/images

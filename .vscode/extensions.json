@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "edwinhuish.better-comments-next",
+        "ms-python.autopep8",
+        "oderwat.indent-rainbow",
+        "visualstudioexptteam.vscodeintellicode",
+        "ms-python.vscode-pylance",
+        "ms-iot.vscode-ros",
+        "ms-python.python"
+    ]
+}
