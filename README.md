@@ -17,6 +17,13 @@ cd ~/ros_ws
 colcon build --symlink-install --packages-select mhsboat_ctrl
 ```
 
+## Principles
+1. **Boat-Centric Coordinates**: All coordinates and movements are relative to the boat. The boat is always considered the origin (0,0) of the coordinate system. This simplifies calculations and ensures that all sensor data and task decisions are made with respect to the boat's current position and orientation.
+
+2. **Modularity**: The system is modular, allowing for easy addition and modification of tasks. Each task is a separate class that inherits from the Task class in mhsboat_ctrl/tasks/task.py. This modularity ensures that new tasks can be added without affecting the existing system.
+
+3. **Simulation Support**: The system supports running in simulation mode, allowing for testing and development without the need for physical hardware. This is achieved by passing the use_simulated_map and map_file parameters to the mhsboat_ctrl node.
+
 ## Task System
 
 Task files live in the `mhsboat_ctrl/tasks` directory. Each task is a separate class that inherits from the `Task` class in [`mhsboat_ctrl/tasks/task.py`](mhsboat_ctrl/tasks/task.py). The `Task` class has a `run` method that is called by the main loop of the control system. The `run` method should return a `TaskCompletionStatus` object indicating the status of the task. The `Task` class also has a `search` method which searches for the next task to run. The `search` method should return either `None` if it isn't found, or a tuple `(x, y)` where `x` and `y` are the coordinates of where the task was found.

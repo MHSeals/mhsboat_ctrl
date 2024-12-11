@@ -11,6 +11,7 @@ import numpy as np
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
+from mhsboat_ctrl.utils.controller import BoatController
 
 buoy_color_mapping: dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,
@@ -26,6 +27,8 @@ class Sensors(Node):
         super().__init__('sensors')
 
         self.map: list[CourseObject] = []
+
+        self.controller = BoatController()
 
         # cache for the sensors, limited to 3 items
         # this allows us to find the data that has the
@@ -128,8 +131,13 @@ class Sensors(Node):
 
             # Use angle to get the XYZ coordinates of each buoy
             # returns X, Y, Z
-            x, y, z = self.get_XYZ_coordinates(
+            coords = self.get_XYZ_coordinates(
                 theta, phi, lidar_data, camera_data.types[i])
+            
+            if coords is None:
+                continue
+
+            x, y, z = coords
 
             # skip point if no associated lidar points
             if x == 0 and y == 0 and z == 0:
@@ -175,9 +183,9 @@ class Sensors(Node):
         TODO: Match the detected objects from frame with the map
 
         - get change in position and orientation from odometry
-        - rotate and translate the map objects based on the change in position and orientation
-        - match the detected objects with the map objects, allowing for some error
-        - update the map objects with the detected objects
+        - translate the map based on odometry
+        - check if the detected objects match with the map objects in the map
+        - if they do match, update the map objects with the detected objects
         """
 
     # calculate the 3D angle of each buoy location
@@ -232,8 +240,8 @@ class Sensors(Node):
         :type  pointCloud: class:`sensor_msgs.msg.PointCloud2`
         :param name: The name of the buoy
         :type  name: str
-        :return: The X, Y, Z coordinates of the buoy
-        :rtype:  tuple[float, float, float]
+        :return: The X, Y, Z coordinates of the buoy, or None if the buoy is not found
+        :rtype:  tuple[float, float, float] | None
         """
         points = np.array(list(read_points(pointCloud)))
         mask = np.empty(points.shape[0], dtype=bool)
@@ -276,26 +284,15 @@ class Sensors(Node):
 
         points = np.delete(points, mask, axis=0)
 
-        print(name)
-        print("after points: " + str(points))
         if len(points) > 1:
             rp = np.mean(points, axis=0)
             return rp[0], rp[1], rp[2]
         if len(points) == 0:
-            return (0, 0, 0)
+            return None
         return (points[0][0], points[0][1], points[0][2])
 
-    """ 
-    TODO:
-        1. get slam - done
-        2. wait for clustering - done
-        3. wait for ai output - done
-        4. match ai output with clustering - done
-        5. mark detected buoys on the map
-        6. profit
-    """
-
-
+# TODO: Make SensorsSimulated relative to the boat
+# TODO: Simple physics to simulate the boat's movement
 class SensorsSimulated(Node):
     def __init__(self, map_file: str):
         super().__init__('sensors')
