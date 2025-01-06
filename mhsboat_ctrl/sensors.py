@@ -2,6 +2,7 @@ import rclpy
 from rclpy.node import Node
 from boat_interfaces.msg import AiOutput
 from sensor_msgs.msg import PointCloud2, Imu, PointField
+from geometry_msgs.msg import Quaternion
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
 import os
 import yaml
@@ -179,14 +180,94 @@ class Sensors(Node):
 
             local_detected_objects[-1].last_seen = self.get_clock().now().nanoseconds
         
-        """
-        TODO: Match the detected objects from frame with the map
+        # Get change in position and orientation from odometry
+        if imu_data is None:
+            self.get_logger().warn("No odometry data available")
+            return
 
-        - get change in position and orientation from odometry
-        - translate the map based on odometry
-        - check if the detected objects match with the map objects in the map
-        - if they do match, update the map objects with the detected objects
+        # Translate the map based on odometry
+        translation_matrix = self._get_translation_matrix(imu_data)
+        self._translate_map(translation_matrix)
+
+        # Check if the detected objects match with the map objects
+        # TODO: Is there a more efficient way to do this?
+        for detected_obj in local_detected_objects:
+            matched = False
+            for map_obj in self.map:
+                if self._is_match(detected_obj, map_obj):
+                    map_obj.x = detected_obj.x
+                    map_obj.y = detected_obj.y
+                    map_obj.last_seen = detected_obj.last_seen
+                    matched = True
+                    break
+            if not matched:
+                self.map.append(detected_obj)
+    
+    def _get_translation_matrix(self, odom_data: Imu) -> np.ndarray:
         """
+        Get the translation matrix based on odometry data
+
+        :param odom_data: The odometry data
+        :type  odom_data: class:`sensor_msgs.msg.Imu`
+        :return: The translation matrix
+        :rtype:  numpy.ndarray
+        """
+        # Assuming odom_data contains orientation as quaternion and position as x, y, z
+        orientation = odom_data.orientation
+        position = odom_data.position
+
+        # Convert quaternion to rotation matrix
+        rotation_matrix = self._quaternion_to_rotation_matrix(orientation)
+
+        # Create translation matrix
+        translation_matrix = np.eye(4)
+        translation_matrix[:3, :3] = rotation_matrix
+        translation_matrix[:3, 3] = [position.x, position.y, position.z]
+
+        return translation_matrix
+
+    def _quaternion_to_rotation_matrix(self, q: Quaternion) -> np.ndarray:
+        """
+        Convert a quaternion to a rotation matrix
+
+        :param q: The quaternion
+        :type  q: class:`geometry_msgs.msg.Quaternion`
+        :return: The rotation matrix
+        :rtype:  numpy.ndarray
+        """
+        x, y, z, w = q.x, q.y, q.z, q.w
+        return np.array([
+            [1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+            [2 * (x * y + z * w), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - x * w)],
+            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x ** 2 + y ** 2)]
+        ])
+
+    def _translate_map(self, translation_matrix: np.ndarray) -> None:
+        """
+        Translate the map based on the translation matrix
+
+        :param translation_matrix: The translation matrix
+        :type  translation_matrix: numpy.ndarray
+        """
+        for obj in self.map:
+            point = np.array([obj.x, obj.y, 0, 1])
+            translated_point = translation_matrix @ point
+            obj.x, obj.y = translated_point[:2]
+
+    def _is_match(self, detected_obj: CourseObject, map_obj: CourseObject) -> bool:
+        """
+        Check if the detected object matches with the map object
+
+        :param detected_obj: The detected object
+        :type  detected_obj: class:`mhsboat_ctrl.course_objects.CourseObject`
+        :param map_obj: The map object
+        :type  map_obj: class:`mhsboat_ctrl.course_objects.CourseObject`
+        :return: True if the objects match, False otherwise
+        :rtype:  bool
+        """
+        distance_threshold = 1.0  # Define a threshold for matching objects
+        distance = np.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
+        return distance < distance_threshold
 
     # calculate the 3D angle of each buoy location
     # returns a list of the left/right angle (theta) and the up/down angle (phi)
