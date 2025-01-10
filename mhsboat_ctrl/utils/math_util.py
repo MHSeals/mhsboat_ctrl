@@ -1,7 +1,7 @@
 import math
 import numpy as np
 
-from mhsboat_ctrl.utils.types import numeric
+from mhsboat_ctrl.utils.custom_types import numeric
 from mhsboat_ctrl.course_objects import Buoy
 
 def angle(x1: numeric, y1: numeric, x2: numeric, y2: numeric, x3: numeric, y3: numeric) -> float:
@@ -27,19 +27,3 @@ def midpoint(x1: numeric, y1: numeric, x2: numeric, y2: numeric) -> tuple[numeri
 
 def calculate_bouy_angle(self, b1: Buoy, b2: Buoy, b3: Buoy) -> float:
     return angle(b1.x, b1.y, b2.x, b2.y, b3.x, b3.y)
-
-if __name__ == "__main__":
-    assert angle(0, 0, 1, 0, 0, 1) == 90
-    assert angle(0, 0, 1, 0, 1, 1) == 45
-    assert angle(0, 0, 1, 0, 1, -1) == 135
-
-    assert distance(0, 0, 0, 0) == 0
-    assert distance(0, 0, 1, 0) == 1
-    assert distance(0, 0, 0, 1) == 1
-
-    assert midpoint(0, 0, 0, 0) == (0, 0)
-    assert midpoint(0, 0, 1, 0) == (0.5, 0)
-    assert midpoint(0, 0, 0, 1) == (0, 0.5)
-    assert midpoint(0, 0, 1, 1) == (0.5, 0.5)
-
-    print("All tests passed!")

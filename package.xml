@@ -23,6 +23,7 @@
   <depend>pyyaml</depend>
   <depend>matplotlib</depend>
   <depend>scikit-learn</depend>
+  <depend>opencv-contrib-python</depend>
 
   <!-- Custom Messages -->
   <depend>boat_interfaces</depend>
