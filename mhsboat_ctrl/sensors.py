@@ -12,7 +12,7 @@ import numpy as np
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
-from mhsboat_ctrl.utils.controller import ThrusterController
+from mhsboat_ctrl.utils.controller import ThrusterController, SimulatedController
 
 buoy_color_mapping: dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,
@@ -200,6 +200,8 @@ class Sensors(Node):
                     map_obj.last_seen = detected_obj.last_seen
                     matched = True
                     break
+            else:
+                ...
             if not matched:
                 self.map.append(detected_obj)
     
@@ -373,10 +375,12 @@ class Sensors(Node):
         return (points[0][0], points[0][1], points[0][2])
 
 # TODO: Make SensorsSimulated relative to the boat
-# TODO: Simple physics to simulate the boat's movement
+# TODO: Move buoy locations according to fake odometry
 class SensorsSimulated(Node):
     def __init__(self, map_file: str):
         super().__init__('sensors')
+
+        self.controller = SimulatedController()
 
         if not os.path.exists(map_file):
             raise FileNotFoundError(f"Map file {map_file} does not exist")
