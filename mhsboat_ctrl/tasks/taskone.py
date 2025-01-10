@@ -6,7 +6,7 @@ from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import PoleBuoy
 from mhsboat_ctrl.sensors import Sensors, SensorsSimulated
-from mhsboat_ctrl.utils.math import distance, angle, calculate_polebouy_angle
+from mhsboat_ctrl.mhsboat_ctrl.utils.math_util import distance, angle, calculate_polebouy_angle
 
 # TODO: What is a good value for these?
 ANGLE_ALLOWED_DEVIATION = 15 # degrees
