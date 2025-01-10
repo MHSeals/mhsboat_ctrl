@@ -400,6 +400,40 @@ class SensorsSimulated(Node):
                                 BuoyColors[obj['pole_buoy']['color'].upper()] # type: ignore - this will always be either red or green
                             )
                         )
+                    elif obj.get('ball_buoy') is not None:
+                        self.map.append(
+                            BallBuoy(
+                                obj['ball_buoy']['x'],
+                                obj['ball_buoy']['y'],
+                                BuoyColors[obj['ball_buoy']['color'].upper()]
+                            )
+                        )
+                    elif obj.get('buoy') is not None:
+                        self.map.append(
+                            Buoy(
+                                obj['buoy']['x'],
+                                obj['buoy']['y'],
+                                BuoyColors[obj['buoy']['color'].upper()]
+                            )
+                        )
+                    elif obj.get('shape') is not None:
+                        self.map.append(
+                            Shape(
+                                obj['shape']['x'],
+                                obj['shape']['y'],
+                                Shapes[obj['shape']['shape'].upper()],
+                                BuoyColors[obj['shape']['color'].upper()]
+                            )
+                        )
+                    elif obj.get('course_object') is not None:
+                        self.map.append(
+                            CourseObject(
+                                obj['course_object']['x'],
+                                obj['course_object']['y']
+                            )
+                        )
+                    else:
+                        raise ValueError(f"Unknown buoy type in map file: {obj}")
             except yaml.YAMLError as e:
                 raise ValueError(f"Error parsing map file: {e}")
 
