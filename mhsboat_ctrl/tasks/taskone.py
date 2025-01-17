@@ -96,7 +96,9 @@ class TaskOne(Task):
 
     def run(self) -> TaskCompletionStatus:
         self.controller.get_logger().info("Running TaskOne")
-
+        
+        self.sensors.controller.set_forward_velocity(self, FORWARD_VELOCITY)
+        
         if(distance(self.red_pole_buoys[0].x, self.red_pole_buoys[0].y, 0, 0) < distance(self.red_pole_buoys[1].x, self.red_pole_buoys[1].y, 0, 0)):
             closest_red_bouy = distance(self.red_pole_buoys[0].x, self.red_pole_buoys[0].y, 0, 0)
         else:
@@ -106,7 +108,14 @@ class TaskOne(Task):
         else:
             closest_green_bouy = (self.green_pole_buoys[0].x, self.green_pole_buoys[0].y, 0, 0)
         
-        
+        mid = midpoint(closest_red_bouy.x, closest_red_bouy.y, closest_green_bouy.y, closest_green_bouy.y)
+        if(mid[2]>ALLOWED_TURN_DEVIATION):
+            self.sensors.controller.set_angular_velocity(self, -ANGULAR_VELOCITY)
+        elif(mid[2]<-ALLOWED_TURN_DEVIATION):
+            self.sensors.controller.set_angular_velocity(self, ANGULAR_VELOCITY)
+        else:
+            self.sensors.controller.set_angular_velocity(self, 0)
+            
         return TaskCompletionStatus.SUCCESS
 
 def main(controller: BoatController):
