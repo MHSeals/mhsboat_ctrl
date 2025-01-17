@@ -21,9 +21,9 @@ def distance(x1: numeric, y1: numeric, x2: numeric, y2: numeric) -> float:
 
 def midpoint(x1: numeric, y1: numeric, x2: numeric, y2: numeric) -> tuple[numeric, numeric]:
     """
-    Calcualte the midpoints between two points in 3d space
+    Calcualte the midpoints between two points in 2d space
     """
-    return [(x1+x2)/2, (y1+y2)/2]
+    return ((x1+x2)/2, (y1+y2)/2)
 
-def calculate_bouy_angle(self, b1: Buoy, b2: Buoy, b3: Buoy) -> float:
+def calculate_buoy_angle(b1: Buoy, b2: Buoy, b3: Buoy) -> float:
     return angle(b1.x, b1.y, b2.x, b2.y, b3.x, b3.y)

@@ -12,7 +12,7 @@ import numpy as np
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
-from mhsboat_ctrl.utils.controller import ThrusterController, SimulatedController
+from mhsboat_ctrl.utils.thruster_controller import ThrusterController, SimulatedController
 
 buoy_color_mapping: dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,

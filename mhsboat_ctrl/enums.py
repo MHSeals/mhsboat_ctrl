@@ -6,6 +6,7 @@ class TaskCompletionStatus(Enum):
     FAILURE = 1
     CANCELLED = 2
     PARTIAL_SUCCESS = 3
+    NOT_STARTED = 4
 
 
 class TaskStatus(Enum):

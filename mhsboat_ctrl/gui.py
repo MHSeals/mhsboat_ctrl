@@ -1,10 +1,14 @@
+import rclpy
+from rclpy.node import Node
 import numpy as np
 import yaml
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Hide annoying prompt
-import pygame
+import pygame 
+
 from mhsboat_ctrl.course_objects import Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
+from mhsboat_ctrl.utils.thruster_controller import SimulatedController
 
 # Constants
 FONT_SIZE = 40
@@ -18,8 +22,10 @@ BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
-class GUI():
-    def __init__(self):
+class GUI(Node):
+    def __init__(self, controller: SimulatedController):
+        super().__init__("boat_gui")
+
         # Start Pygame window
         pygame.init()
 
@@ -35,6 +41,16 @@ class GUI():
         self.run = True
         self.load = False 
         self.save = False
+
+        self.controller = controller
+
+        """
+        controller.twist.linear.x - forward velocity
+        controller.twist.linear.y - backward velocity
+        controller.twist.angular.z - angular velocity
+        """
+
+        self.display_timer = self.create_timer(0, self.display_loop)
     
     def display_loop(self):
         # Event handler
@@ -134,13 +150,14 @@ class GUI():
 
 class Boat():
     # Initialize starting values
-    def __init__(self, color: pygame.Color, width: int, height: int, x=0.0, y=0.0, angular_vel=0.0, linear_vel=0.0, orientation=0.0):
+    def __init__(self, color: pygame.Color, width: int, height: int, x=0.0, y=0.0, angular_vel=0.0, linear_vel_x=0.0, linear_vel_y=0.0, orientation=0.0):
         # Properties
         self.color = color
         self.width = width 
         self.height = height 
         self.angular_vel = angular_vel 
-        self.linear_vel = linear_vel
+        self.linear_vel_x = linear_vel_x
+        self.linear_vel_y = linear_vel_y
         self.orientation = orientation
         self.x = x
         self.y = y
@@ -150,12 +167,12 @@ class Boat():
 
     # Print string
     def __str__(self):
-        return f"Boat(x:{self.x}, y:{self.y}, o:{self.orientation}, ω:{self.angular_vel}, v:{self.linear_vel})"
+        return f"Boat(x:{self.x}, y:{self.y}, o:{self.orientation}, ω:{self.angular_vel}, vx:{self.linear_vel_x}, vy:{self.linear_vel_y})"
 
     # Move the boat based on linear velocity and orientation
     def move(self, dt: float):
-       self.x += np.cos(self.orientation) * self.linear_vel * dt
-       self.y -= np.sin(self.orientation) * self.linear_vel * dt
+       self.x += self.linear_vel_x * dt
+       self.y -= self.linear_vel_y * dt
    
     # Turn the boat based on angular velocity in radians per second
     def turn(self, dt: float):

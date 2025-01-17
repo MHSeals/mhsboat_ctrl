@@ -1,3 +1,3 @@
 from typing import Union
 
-numeric = Union[int, float, complex]
+numeric = Union[int, float]
