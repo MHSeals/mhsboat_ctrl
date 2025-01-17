@@ -37,68 +37,65 @@ class GUI():
         self.save = False
     
     def display_loop(self):
-        if(self.run):
-            # Event handler
-            for event in pygame.event.get():
-                if(event.type == pygame.KEYDOWN):
-                    if event.key == pygame.K_l:
-                        self.load = True
-                        self.words = "LOAD MAP FILE?"
-                    elif event.key == pygame.K_s:
-                        self.save = True
-                        self.words = "SAVE MAP FILE?"
-                    elif event.key == pygame.K_g:
-                        self.buoy_color = BuoyColors.GREEN
-                    elif event.key == pygame.K_r:
-                        self.buoy_color = BuoyColors.RED
-                    elif event.key == pygame.K_y:
-                        self.buoy_color = BuoyColors.YELLOW
-                    elif event.key == pygame.K_b:
-                        self.buoy_color = BuoyColors.BLACK
-                    elif event.key == pygame.K_u:
-                        self.buoy_color = BuoyColors.BLUE
-                    elif event.key == pygame.K_1:
-                        self.buoy_type = BallBuoy
-                    elif event.key == pygame.K_2:
-                        self.buoy_type = PoleBuoy
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    pos = pygame.mouse.get_pos()
-                    if self.buoy_type == PoleBuoy and self.buoy_color != BuoyColors.RED and self.buoy_color != BuoyColors.GREEN:
-                        print("Buoy color not available for type")
-                    else:
-                        self.buoys.append(buoy_type(*pos, self.buoy_color)) # type: ignore
-                elif event.type == pygame.QUIT:
-                    self.run = False
+        # Event handler
+        for event in pygame.event.get():
+            if(event.type == pygame.KEYDOWN):
+                if event.key == pygame.K_l:
+                    self.load = True
+                    self.words = "LOAD MAP FILE?"
+                elif event.key == pygame.K_s:
+                    self.save = True
+                    self.words = "SAVE MAP FILE?"
+                elif event.key == pygame.K_g:
+                    self.buoy_color = BuoyColors.GREEN
+                elif event.key == pygame.K_r:
+                    self.buoy_color = BuoyColors.RED
+                elif event.key == pygame.K_y:
+                    self.buoy_color = BuoyColors.YELLOW
+                elif event.key == pygame.K_b:
+                    self.buoy_color = BuoyColors.BLACK
+                elif event.key == pygame.K_u:
+                    self.buoy_color = BuoyColors.BLUE
+                elif event.key == pygame.K_1:
+                    self.buoy_type = BallBuoy
+                elif event.key == pygame.K_2:
+                    self.buoy_type = PoleBuoy
+            elif event.type == pygame.MOUSEBUTTONUP:
+                pos = pygame.mouse.get_pos()
+                if self.buoy_type == PoleBuoy and self.buoy_color != BuoyColors.RED and self.buoy_color != BuoyColors.GREEN:
+                    print("Buoy color not available for type")
+                else:
+                    self.buoys.append(self.buoy_type(*pos, self.buoy_color)) # type: ignore
+            elif event.type == pygame.QUIT or not self.run:
+                self.quit()
+                return
 
-            # Calculate delta time to compensate for flucuating framerate
-            self.time = pygame.time.get_ticks() / 1000
-            self.dt = self.time - self.prev_time
+        # Calculate delta time to compensate for flucuating framerate
+        self.time = pygame.time.get_ticks() / 1000
+        self.dt = self.time - self.prev_time
 
-            # Wipes the screen by drawing the background
-            self.screen.fill(convert_color(BACKGROUND_COLOR))
+        # Wipes the screen by drawing the background
+        self.screen.fill(convert_color(BACKGROUND_COLOR))
 
-            # Update and draw the boat
-            self.boat.turn(self.dt)
-            self.boat.move(self.dt)
-            self.boat.draw()
-            
-            # Draw the buoys
-            self.draw_buoys()
-            
-            # Update and draw the text
-            if not (self.load or self.save):
-                self.words = f"{self.buoy_type.__name__}_{self.buoy_color.value}".upper()
-            self.draw_text(self.words)
+        # Update and draw the boat
+        self.boat.turn(self.dt)
+        self.boat.move(self.dt)
+        self.draw_boat(self.boat.get_draw_points())
+        
+        # Draw the buoys
+        self.draw_buoys()
+        
+        # Update and draw the text
+        if not (self.load or self.save):
+            self.words = f"{self.buoy_type.__name__}_{self.buoy_color.value}".upper()
+        self.draw_text(self.words)
 
-            # Update the display and save current time for delta time
-            self.prev_time = self.time
-            pygame.display.update()
-
-        # Properly shutdown Pygame after quit event
-        pygame.quit()
+        # Update the display and save current time for delta time
+        self.prev_time = self.time
+        pygame.display.update()
 
     def draw_boat(self, points):
-        pygame.draw.polygon(self.boat.color, points)
+        pygame.draw.polygon(self.screen, self.boat.color, points)
 
     def draw_text(self, words):
         font_surface = self.text.render(words, True, FONT_COLOR)    
@@ -128,6 +125,12 @@ class GUI():
 
     def read_map(self):
         ...
+        
+    def quit(self):
+        self.run = False
+        pygame.quit()
+        print("GUI Quit")
+        
 
 class Boat():
     # Initialize starting values
@@ -182,7 +185,7 @@ def convert_color(color: str) -> pygame.Color:
             print(f"Color not defined in colordict: {e}")
             return pygame.Color("pink") # Default color to indicate error
 
-# Function that darkens any given color by subtractinga certain amount from the color value
+# Function that darkens any given color by subtracting a certain amount from the color value
 def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
     new_color = []
     for i in range(3):
