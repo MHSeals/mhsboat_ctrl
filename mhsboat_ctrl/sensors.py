@@ -1,6 +1,6 @@
 import rclpy
 from rclpy.node import Node
-from boat_interfaces.msg import AiOutput
+from boat_interfaces.msg import AiOutput, BuoyMap
 from sensor_msgs.msg import PointCloud2, Imu, PointField
 from geometry_msgs.msg import Quaternion
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
@@ -61,6 +61,8 @@ class Sensors(Node):
 
         self._process_timer = self.create_timer(0.1, self._process_sensor_data)
         super().__init__('sensors')
+
+        self.map_publisher = self.create_publisher(CourseObject, "/map", 10)
 
         self.map: list[CourseObject] = []
 
@@ -204,6 +206,30 @@ class Sensors(Node):
                 ...
             if not matched:
                 self.map.append(detected_obj)
+
+        # Publish the map
+        msg = BuoyMap()
+        x, y, types, colors = [], [], [], []
+        for obj in self.map:
+            x.append(obj.x)
+            y.append(obj.y)
+            
+            if isinstance(obj, Shape):
+                types.append(obj.shape.value)
+                colors.append(obj.color.value)
+            elif isinstance(obj, Buoy):
+                types.append("buoy")
+                colors.append(obj.color.value)
+            else:
+                types.append("course_object")
+                colors.append("none")
+
+        msg.x = x
+        msg.y = y
+        msg.types = types
+        msg.colors = colors
+        
+        self.map_publisher.publish(msg)
     
     def _get_translation_matrix(self, odom_data: Imu) -> np.ndarray:
         """
