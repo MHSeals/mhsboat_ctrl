@@ -5,10 +5,13 @@ import yaml
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Hide annoying prompt
 import pygame 
+from typing import TYPE_CHECKING
 
 from mhsboat_ctrl.course_objects import Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
-from mhsboat_ctrl.utils.thruster_controller import SimulatedController
+
+if TYPE_CHECKING:
+    from mhsboat_ctrl.utils.thruster_controller import SimulatedController
 
 # Constants
 FONT_SIZE = 40
