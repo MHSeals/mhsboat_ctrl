@@ -24,7 +24,8 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main"
+            "mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main",
+            "display_map = mhsboat_ctrl.testgui:main"
         ],
     },
 )
