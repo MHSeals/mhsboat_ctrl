@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from typing import Tuple
 
 from mhsboat_ctrl.utils.custom_types import numeric
 from mhsboat_ctrl.course_objects import Buoy
@@ -19,7 +20,7 @@ def distance(x1: numeric, y1: numeric, x2: numeric, y2: numeric) -> float:
     """
     return math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
-def midpoint(x1: numeric, y1: numeric, x2: numeric, y2: numeric) -> tuple[numeric, numeric]:
+def midpoint(x1: numeric, y1: numeric, x2: numeric, y2: numeric) -> Tuple[numeric, numeric]:
     """
     Calcualte the midpoints between two points in 2d space
     """
