@@ -25,7 +25,8 @@ setup(
     entry_points={
         "console_scripts": [
             "mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main",
-            "display_map = mhsboat_ctrl.testgui:main"
+            "display_map = mhsboat_ctrl.testgui:main",
+            "buoy_recognition = mhsboat_ctrl.buoy_recognition:main",
         ],
     },
 )
