@@ -11,6 +11,7 @@ find_package(rosidl_default_generators REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/AiOutput.msg"
     "msg/BuoyCoordinates.msg"
+    "msg/BuoyMap.msg"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
