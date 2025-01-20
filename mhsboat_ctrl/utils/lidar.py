@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Optional
 import struct
 import math
 from sensor_msgs.msg import PointCloud2, PointField
@@ -14,7 +14,7 @@ _DATATYPES[PointField.UINT32] = ("I", 4)
 _DATATYPES[PointField.FLOAT32] = ("f", 4)
 _DATATYPES[PointField.FLOAT64] = ("d", 8)
 
-def read_points(cloud: PointCloud2, field_names: Iterable | None = None, skip_nans: bool = False, uvs: Iterable = []):
+def read_points(cloud: PointCloud2, field_names: Optional[Iterable] = None, skip_nans: bool = False, uvs: Iterable = []):
     """
     Read points from a :class:`sensor_msgs.PointCloud2` message.
 
@@ -77,7 +77,7 @@ def read_points(cloud: PointCloud2, field_names: Iterable | None = None, skip_na
                     offset += point_step
 
 
-def _get_struct_fmt(is_bigendian: bool, fields: Iterable, field_names: Iterable | None = None):
+def _get_struct_fmt(is_bigendian: bool, fields: Iterable, field_names: Optional[Iterable] = None):
     """
     Get the struct format string for the given fields.
     
