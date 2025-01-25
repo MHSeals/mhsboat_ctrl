@@ -5,13 +5,11 @@ import yaml
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Hide annoying prompt
 import pygame 
-from typing import TYPE_CHECKING
 
 from mhsboat_ctrl.course_objects import Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
 
-if TYPE_CHECKING:
-    from mhsboat_ctrl.utils.thruster_controller import SimulatedController
+from mhsboat_ctrl.utils.thruster_controller import SimulatedController
 
 # Constants
 FONT_SIZE = 40
@@ -211,3 +209,16 @@ def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
     for i in range(3):
         new_color.append(max(color[i] - amount, 0))
     return pygame.Color(tuple(new_color))
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    gui = GUI(SimulatedController())
+
+    try:
+        rclpy.spin(gui)
+    except KeyboardInterrupt:
+        gui.get_logger().info("Shutting down")
+    finally:
+        gui.destroy_node()
+        rclpy.shutdown()
