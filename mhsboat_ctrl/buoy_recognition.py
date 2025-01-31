@@ -18,6 +18,7 @@ import numpy.typing as npt
 from collections import defaultdict
 import time
 import urllib.request
+from typing import Dict
 
 from mhsboat_ctrl.utils import rgb
 from mhsboat_ctrl.utils.image_tools import preprocess
@@ -52,7 +53,7 @@ overlay = cv2.putText(overlay, "Press ESC to exit",
 overlay = cv2.putText(overlay, "Press r to restart (video cap only)", (
     10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
-colors: dict[str, rgb] = {
+colors: Dict[str, rgb] = {
     "blue_buoy": rgb(33, 49, 255),
     "dock": rgb(132, 66, 0),
     "green_buoy": rgb(135, 255, 0),

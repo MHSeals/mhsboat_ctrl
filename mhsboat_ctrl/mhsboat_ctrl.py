@@ -4,13 +4,14 @@ from rclpy.executors import MultiThreadedExecutor
 import os
 import glob
 import importlib
+from typing import List
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 from mhsboat_ctrl.sensors import Sensors, SensorsSimulated
 from mhsboat_ctrl.task import Task
 
 class BoatController(Node):
-    tasks: list[Task] = []
+    tasks: List[Task] = []
 
     def __init__(self):
         super().__init__('mhsboat_ctrl')

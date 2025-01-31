@@ -8,13 +8,14 @@ import os
 import yaml
 import math
 import numpy as np
+from typing import Dict, List, Tuple
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
 from mhsboat_ctrl.utils.thruster_controller import ThrusterController, SimulatedController
 
-buoy_color_mapping: dict[str, BuoyColors] = {
+buoy_color_mapping: Dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,
     "blue": BuoyColors.BLUE,
     "green": BuoyColors.GREEN,
@@ -27,7 +28,7 @@ class Sensors(Node):
     def __init__(self):
         super().__init__('sensors')
 
-        self.map: list[CourseObject] = []
+        self.map: List[CourseObject] = []
 
         self.controller = ThrusterController()
 
@@ -35,9 +36,9 @@ class Sensors(Node):
         # this allows us to find the data that has the
         # smallest time difference, giving more accurate
         # results
-        self._camera_cache: list[tuple[AiOutput, float]] = []
-        self._lidar_cache: list[tuple[PointCloud2, float]] = []
-        self._imu_cache: list[tuple[Imu, float]] = []
+        self._camera_cache: List[Tuple[AiOutput, float]] = []
+        self._lidar_cache: List[Tuple[PointCloud2, float]] = []
+        self._imu_cache: List[Tuple[Imu, float]] = []
 
         self._ai_out_sub = self.create_subscription(
             AiOutput, "/AiOutput", self._camera_callback, 10
@@ -64,7 +65,7 @@ class Sensors(Node):
 
         # self.map_publisher = self.create_publisher(CourseObject, "/map", 10)
 
-        self.map: list[CourseObject] = []
+        self.map: List[CourseObject] = []
 
         self.get_logger().info("Sensors Node Initialized")
 
@@ -113,7 +114,7 @@ class Sensors(Node):
             x[1] - self.get_clock().now().nanoseconds))
         
         # static type checking jargon
-        assert type(camera_data.types) == list[str]
+        assert type(camera_data.types) == List[str]
         
         time_diff = max(camera_time, lidar_time, imu_time) - min(camera_time, lidar_time, imu_time)
 
@@ -125,7 +126,7 @@ class Sensors(Node):
             self.get_logger().warn("Camera data is not consistent")
             return
 
-        local_detected_objects: list[CourseObject] = []
+        local_detected_objects: List[CourseObject] = []
 
         for i in range(camera_data.num):
             # calculate the 3D angle of each buoy location
@@ -299,7 +300,7 @@ class Sensors(Node):
 
     # calculate the 3D angle of each buoy location
     # returns a list of the left/right angle (theta) and the up/down angle (phi)
-    def get_angle(self, camera_data: AiOutput, index: int) -> tuple[float, float]:
+    def get_angle(self, camera_data: AiOutput, index: int) -> Tuple[float, float]:
         """
         Calculate the 3D angle of a bounding box in the camera image relative to the camera
 
@@ -308,7 +309,7 @@ class Sensors(Node):
         :param index: The index of the bounding box
         :type  index: int
         :return: The left/right angle (theta) and the up/down angle (phi)
-        :rtype:  tuple[float, float]
+        :rtype:  Tuple[float, float]
         """
         # our camera is D435
         # https://www.intelrealsense.com/depth-camera-d435/
@@ -350,7 +351,7 @@ class Sensors(Node):
         :param name: The name of the buoy
         :type  name: str
         :return: The X, Y, Z coordinates of the buoy, or None if the buoy is not found
-        :rtype:  tuple[float, float, float] | None
+        :rtype:  Tuple[float, float, float] | None
         """
         points = np.array(list(read_points(pointCloud)))
         mask = np.empty(points.shape[0], dtype=bool)
@@ -411,7 +412,7 @@ class SensorsSimulated(Node):
         if not os.path.exists(map_file):
             raise FileNotFoundError(f"Map file {map_file} does not exist")
 
-        self.map: list[CourseObject] = []
+        self.map: List[CourseObject] = []
 
         with open(map_file, "r") as f:
             try:
