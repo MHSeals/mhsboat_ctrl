@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple
+from typing import Tuple, Union, Optional
 
 from mhsboat_ctrl.mhsboat_ctrl import BoatController
 from mhsboat_ctrl.task import Task
@@ -21,14 +21,14 @@ BOAT_Y = 0
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
 
-    def __init__(self, boat_controller: BoatController, sensors: Sensors | SensorsSimulated):
+    def __init__(self, boat_controller: BoatController, sensors: Union[Sensors, SensorsSimulated]):
         self.boat_controller = boat_controller
         self.sensors = sensors
         self._buoys = []
         self.red_pole_buoys = []
         self.green_pole_buoys = []
 
-    def search(self) -> None | Tuple[float, float]:
+    def search(self) -> Optional[Tuple[float, float]]:
         self.boat_controller.get_logger().info("Searching for TaskOne")
         """
         Search for the following pattern where R is a red pole buoy, and G is a green pole buoy

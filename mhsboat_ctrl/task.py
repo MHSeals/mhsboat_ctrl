@@ -1,5 +1,5 @@
 import abc
-from typing import Tuple
+from typing import Tuple, Optional
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 
@@ -18,7 +18,7 @@ class Task(abc.ABC):
                 )
 
     @abc.abstractmethod
-    def search(self) -> None | Tuple[float, float]:
+    def search(self) -> Optional[Tuple[float, float]]:
         ...
 
     @abc.abstractmethod
