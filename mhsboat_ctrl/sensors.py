@@ -8,7 +8,7 @@ import os
 import yaml
 import math
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -85,15 +85,15 @@ class Sensors(Node):
             self._imu_cache.pop(0)
 
     @property
-    def ai_output(self) -> AiOutput | None:
+    def ai_output(self) -> Optional[AiOutput]:
         return self._camera_cache[-1][0] if len(self._camera_cache) > 0 else None
 
     @property
-    def lidar_output(self) -> PointCloud2 | None:
+    def lidar_output(self) -> Optional[PointCloud2]:
         return self._lidar_cache[-1][0] if len(self._lidar_cache) > 0 else None
 
     @property
-    def imu_output(self) -> Imu | None:
+    def imu_output(self) -> Optional[Imu]:
         return self._imu_cache[-1][0] if len(self._imu_cache) > 0 else None
 
     def _process_sensor_data(self) -> None:

@@ -10,6 +10,7 @@ This guide will help you understand our code style, paradigms, and best practice
 - Keep lines under 80 characters.
 - Use meaningful variable and function names.
 - Add docstrings to all public modules, classes, and functions.
+- All code written must be compatible with python >= 3.8.
 
 ### Imports
 - Group imports into two sections: library imports and local imports.
