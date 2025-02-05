@@ -152,7 +152,7 @@ class CameraSubscriber(Node):
             original_frame, fps_disp, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
         
         if overlay.shape[:2] != original_frame.shape[:2]:
-            overlay = cv2.resize(overlay, (original_frame.shape[1], original_frame.shape[0]))
+            print(overlay.shape, original_frame.shape)
 
         original_frame = cv2.addWeighted(original_frame, 1, overlay, 0.5, 0)
 
