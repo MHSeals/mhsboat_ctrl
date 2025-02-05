@@ -53,6 +53,8 @@ overlay = cv2.putText(overlay, "Press ESC to exit",
 overlay = cv2.putText(overlay, "Press r to restart (video cap only)", (
     10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
+print("Overlay created")
+
 colors: Dict[str, rgb] = {
     "blue_buoy": rgb(33, 49, 255),
     "dock": rgb(132, 66, 0),
@@ -71,6 +73,7 @@ colors: Dict[str, rgb] = {
 
 class CameraSubscriber(Node):
     def __init__(self):
+        print("Initializing node")
         super().__init__("camera_subscriber")
 
         self.start_time = time.perf_counter()
@@ -104,6 +107,8 @@ class CameraSubscriber(Node):
         self.timer = self.create_timer(timer_period, self.timer_callback)
 
         self.output = AiOutput()
+
+        print("Node initialized")
 
     def timer_callback(self):
         self.publisher.publish(self.output)
