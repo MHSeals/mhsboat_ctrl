@@ -120,7 +120,7 @@ class CameraSubscriber(Node):
 
     def callback(self, data: Image):
         global overlay
-        
+
         x_scale_factor = data.width / DISP_SIZE[0]
         y_scale_factor = data.height / DISP_SIZE[1]
         x_original, y_original = data.width, data.height
@@ -158,13 +158,13 @@ class CameraSubscriber(Node):
             original_frame, fps_disp, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
         if overlay.shape[:2] != original_frame.shape[:2]:
-            print(overlay.shape, original_frame.shape)
-
+            print(f"Overlay shape: {overlay.shape}, Original frame shape: {original_frame.shape}")
             if overlay.shape[0] == original_frame.shape[1] and overlay.shape[1] == original_frame.shape[0]:
                 overlay = cv2.rotate(overlay, cv2.ROTATE_90_CLOCKWISE)
+                print("Rotated overlay by 90 degrees")
             else:
-                overlay = cv2.resize(
-                    overlay, (original_frame.shape[1], original_frame.shape[0]))
+                overlay = cv2.resize(overlay, (original_frame.shape[1], original_frame.shape[0]))
+                print("Resized overlay to match original frame")
 
         original_frame = cv2.addWeighted(original_frame, 1, overlay, 0.5, 0)
 
