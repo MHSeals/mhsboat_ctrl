@@ -1,27 +1,30 @@
 #!/usr/bin/env python3.10
 
-import rclpy
-from rclpy.node import Node
-from sensor_msgs.msg import Image
-import cv2
-from cv_bridge import CvBridge
-from ultralytics import YOLO
-from enum import Enum
-from boat_interfaces.msg import AiOutput
-from ultralytics import YOLO
-from ultralytics.utils.plotting import Annotator
-import os
-from os import path
-import time
-import numpy as np
-import numpy.typing as npt
-from collections import defaultdict
-import time
-import urllib.request
-from typing import Dict
-
-from mhsboat_ctrl.utils import rgb
 from mhsboat_ctrl.utils.image_tools import preprocess
+from mhsboat_ctrl.utils import rgb
+from typing import Dict
+import urllib.request
+from collections import defaultdict
+import numpy.typing as npt
+import numpy as np
+import time
+from os import path
+import os
+from ultralytics.utils.plotting import Annotator
+from boat_interfaces.msg import AiOutput
+from enum import Enum
+from ultralytics import YOLO
+from cv_bridge import CvBridge
+import cv2
+from sensor_msgs.msg import Image
+from rclpy.node import Node
+import rclpy
+print("Importing libraries...")
+
+
+print("Libraries imported")
+
+print("Checking for model...")
 
 MODEL_URL = "https://github.com/MHSeals/buoy-model/releases/download/V14/best.pt"
 
@@ -88,7 +91,8 @@ class CameraSubscriber(Node):
 
         self.track_history = defaultdict(lambda: [])
 
-        self.create_subscription(Image, "/camera/color/image_raw", self.callback, 10)
+        self.create_subscription(
+            Image, "/camera/color/image_raw", self.callback, 10)
         # self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
 
         # create publisher that publishes bounding box coordinates and size and buoy type
@@ -150,9 +154,15 @@ class CameraSubscriber(Node):
 
         original_frame = cv2.putText(
             original_frame, fps_disp, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-        
+
         if overlay.shape[:2] != original_frame.shape[:2]:
             print(overlay.shape, original_frame.shape)
+
+            if overlay.shape[0] == original_frame.shape[1] and overlay.shape[1] == original_frame.shape[0]:
+                overlay = cv2.rotate(overlay, cv2.ROTATE_90_CLOCKWISE)
+            else:
+                overlay = cv2.resize(
+                    overlay, (original_frame.shape[1], original_frame.shape[0]))
 
         original_frame = cv2.addWeighted(original_frame, 1, overlay, 0.5, 0)
 
