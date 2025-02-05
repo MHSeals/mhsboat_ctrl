@@ -119,6 +119,8 @@ class CameraSubscriber(Node):
         self.publisher.publish(self.output)
 
     def callback(self, data: Image):
+        global overlay
+        
         x_scale_factor = data.width / DISP_SIZE[0]
         y_scale_factor = data.height / DISP_SIZE[1]
         x_original, y_original = data.width, data.height
