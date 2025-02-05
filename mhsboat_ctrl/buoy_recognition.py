@@ -35,6 +35,7 @@ if not os.path.exists(model_path):
     urllib.request.urlretrieve(
         MODEL_URL, model_path)
 
+print("Loading model...")
 model = YOLO(model_path)
 print("Model loaded")
 
@@ -149,6 +150,9 @@ class CameraSubscriber(Node):
 
         original_frame = cv2.putText(
             original_frame, fps_disp, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+        
+        if overlay.shape[:2] != original_frame.shape[:2]:
+            overlay = cv2.resize(overlay, (original_frame.shape[1], original_frame.shape[0]))
 
         original_frame = cv2.addWeighted(original_frame, 1, overlay, 0.5, 0)
 
