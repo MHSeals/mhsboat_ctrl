@@ -23,6 +23,13 @@ BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+SCALE = 20
+
+def world_to_screen(x: float, y: float, scale: int = SCALE) -> tuple[int, int]:
+    # Translate world coordinates so that (0,0) is at the center of the screen
+    x_screen = SCREEN_WIDTH // 2 + int(x * scale)
+    y_screen = SCREEN_HEIGHT // 2 - int(y * scale)
+    return (x_screen, y_screen)
 
 
 class TESTGUI(Node):
@@ -73,19 +80,18 @@ class TESTGUI(Node):
             self.get_logger().info(f"Drawing buoy {buoy} at {buoy.x}, {buoy.y}")
             if isinstance(buoy, Buoy):
                 color = convert_color(buoy.color.value)
-                x = buoy.x
-                y = buoy.y
-
+                # Transform world coordinates to screen coordinates
+                x, y = world_to_screen(buoy.x, buoy.y)
+    
                 if isinstance(buoy, PoleBuoy):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
                     pygame.draw.circle(self.screen, darken_color(
-                        color, 80), (x, y), BUOY_RADIUS * 5 / 6)
-                    pygame.draw.circle(self.screen, color,
-                                       (x, y), BUOY_RADIUS * 2 / 5)
+                        color, 80), (x, y), int(BUOY_RADIUS * 5 / 6))
+                    pygame.draw.circle(self.screen, color, (x, y), int(BUOY_RADIUS * 2 / 5))
                 elif isinstance(buoy, BallBuoy):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
                     pygame.draw.circle(self.screen, darken_color(
-                        convert_color("blue"), 120), (x, y), BUOY_RADIUS / 2)
+                        convert_color("blue"), 120), (x, y), int(BUOY_RADIUS / 2))
                 else:
                     print("Buoy variation unspecified")
             else:
