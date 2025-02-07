@@ -56,10 +56,6 @@ class TESTGUI(Node):
             elif msg.types[i] == "ball":
                 self.buoys.append(BallBuoy(msg.x[i], msg.y[i], color))
 
-        self.get_logger().info(f"Received msg {msg}")
-        self.get_logger().info(f"Received map with {len(self.buoys)} buoys")
-        self.get_logger().info(f"Recieved data: {self.buoys}")
-
     def display_loop(self):
         # Event handler
         for event in pygame.event.get():
@@ -70,6 +66,7 @@ class TESTGUI(Node):
                 return
 
         self.draw_buoys()
+        pygame.display.update()
 
     def draw_buoys(self):
         for buoy in self.buoys:
