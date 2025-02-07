@@ -43,7 +43,7 @@ class TESTGUI(Node):
         self.run = True
 
         self.map_sub = self.create_subscription(
-            BuoyMap, "/map", self.map_callback, 10)
+            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10)
 
         self.display_timer = self.create_timer(0, self.display_loop)
 
