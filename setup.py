@@ -25,6 +25,7 @@ setup(
     entry_points={
         "console_scripts": [
             "mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main",
+            "sensors = mhsboat_ctrl.sensors:main",
             "simulated_map = mhsboat_ctrl.gui:main",
             "display_map = mhsboat_ctrl.testgui:main",
             "buoy_recognition = mhsboat_ctrl.buoy_recognition:main",

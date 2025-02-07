@@ -19,19 +19,6 @@ class BoatController(Node):
         self.declare_parameter("use_simulated_map", False)
         self.declare_parameter("map_file", "")
 
-        use_simulated_map = self.get_parameter("use_simulated_map").get_parameter_value().bool_value
-        map_file = self.get_parameter("map_file").get_parameter_value().string_value
-
-        if use_simulated_map:
-            if map_file == "":
-                self.get_logger().error("Simulated map requested, but no map file specified")
-                return
-            
-            self.get_logger().info("Using Simulated Map")
-            self.sensors = SensorsSimulated(map_file)
-        else:
-            self.sensors = Sensors(self.get_logger())
-
         for task_file in glob.glob(os.path.join(os.path.dirname(__file__), "tasks", "*.py")):
             if os.path.basename(task_file) == "__init__.py":
                 continue

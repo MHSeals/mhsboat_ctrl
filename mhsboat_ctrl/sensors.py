@@ -1,7 +1,6 @@
 import rclpy
 import rclpy.logging
 from rclpy.node import Node
-from rclpy.impl.rcutils_logger import RcutilsLogger
 from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
 from sensor_msgs.msg import PointCloud2, Imu, PointField
@@ -28,10 +27,8 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
 
 
 class Sensors(Node):
-    def __init__(self, logger: RcutilsLogger):
+    def __init__(self):
         super().__init__('sensors')
-
-        self.logger = logger
 
         self.map: List[CourseObject] = []
 
@@ -99,9 +96,6 @@ class Sensors(Node):
     @property
     def imu_output(self) -> Optional[Imu]:
         return self._imu_cache[-1][0] if len(self._imu_cache) > 0 else None
-    
-    def get_logger(self) -> RcutilsLogger:
-        return self.logger
 
     def _process_sensor_data(self) -> None:
         """
@@ -482,3 +476,16 @@ class SensorsSimulated(Node):
                 raise ValueError(f"Error parsing map file: {e}")
 
         self.get_logger().info("Simualted Sensors Node Initialized")
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    sensors = Sensors()
+
+    try:
+        rclpy.spin(sensors)
+    except KeyboardInterrupt:
+        sensors.get_logger().info("Shutting down")
+    finally:
+        sensors.destroy_node()
+        rclpy.shutdown()

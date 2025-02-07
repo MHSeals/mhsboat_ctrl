@@ -2,6 +2,8 @@
 
 This is the control system for the MHSeals boat.
 
+readme might be inaccurate as we make changes to the codebase
+
 ## Dependencies
 - ROS 2 Humble
 - Ubuntu 22.04
