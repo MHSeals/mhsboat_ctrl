@@ -166,10 +166,10 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
 def main(args=None):
     rclpy.init(args=args)
     publisher = center_of_clusters()
-    rclpy.spin(publisher)
 
     try:
         rclpy.spin(publisher)
+        publisher.get_logger().info("Starting")
     except KeyboardInterrupt:
         publisher.get_logger().info("Shutting down")
     finally:
