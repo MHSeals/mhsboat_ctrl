@@ -1,6 +1,6 @@
 # jetson
 ## realsense
-ros2 launch realsense2_camera rs_launch.py rgb_camera.color_profile:=1920x1080x30 enable_color:=true
+ros2 launch realsense2_camera rs_launch.py rgb_camera.color_profile:=1920x1080x30 enable_color:=true camera_namespaces:=/camera camera_name:=camera
 
 ## velodyne
 ros2 launch velodyne velodyne-all-nodes-VLP16-launch.py
