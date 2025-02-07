@@ -250,7 +250,7 @@ class Sensors(Node):
         """
         # Assuming odom_data contains orientation as quaternion and position as x, y, z
         orientation = odom_data.orientation
-        position = odom_data.position
+        position = odom_data.linear_acceleration
 
         # Convert quaternion to rotation matrix
         rotation_matrix = self._quaternion_to_rotation_matrix(orientation)
