@@ -225,8 +225,11 @@ class Sensors(Node):
             if isinstance(obj, Shape):
                 types.append(obj.shape.value)
                 colors.append(obj.color.value)
-            elif isinstance(obj, Buoy):
-                types.append("buoy")
+            elif isinstance(obj, PoleBuoy):
+                types.append("pole")
+                colors.append(obj.color.value)
+            elif isinstance(obj, BallBuoy):
+                types.append("ball")
                 colors.append(obj.color.value)
             else:
                 types.append("course_object")
