@@ -6,6 +6,7 @@ import rclpy
 from rclpy.node import Node
 import os
 from typing import Tuple
+from utils.custom_types import numeric
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Hide annoying prompt
 
 # BuoyMap.x float64[]
@@ -24,9 +25,9 @@ BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCALE = 20
+SCALE = 0.5
 
-def world_to_screen(x: float, y: float, scale: int = SCALE) -> Tuple[int, int]:
+def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, int]:
     # Translate world coordinates so that (0,0) is at the center of the screen
     x_screen = SCREEN_WIDTH // 2 + int(x * scale)
     y_screen = SCREEN_HEIGHT // 2 - int(y * scale)
