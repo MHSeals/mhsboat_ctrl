@@ -61,7 +61,6 @@ class Sensors(Node):
         )
 
         self._process_timer = self.create_timer(0.1, self._process_sensor_data)
-        super().__init__('sensors')
 
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
 
