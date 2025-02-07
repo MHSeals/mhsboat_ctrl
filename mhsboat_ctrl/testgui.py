@@ -69,6 +69,7 @@ class TESTGUI(Node):
 
     def draw_buoys(self):
         for buoy in self.buoys:
+            self.get_logger().info(f"Drawing buoy {buoy} at {buoy.x}, {buoy.y}")
             if isinstance(buoy, Buoy):
                 color = convert_color(buoy.color.value)
                 x = buoy.x
