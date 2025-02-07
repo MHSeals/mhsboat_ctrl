@@ -50,7 +50,7 @@ class TESTGUI(Node):
     def map_callback(self, msg: BuoyMap):
         self.buoys = []
         for i in range(len(msg.x)):
-            color = BuoyColors(msg.colors[i].upper())
+            color = BuoyColors(msg.colors[i].lower())
             if msg.types[i] == "pole":
                 self.buoys.append(PoleBuoy(msg.x[i], msg.y[i], color))
             elif msg.types[i] == "ball":
