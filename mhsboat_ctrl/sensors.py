@@ -71,16 +71,19 @@ class Sensors(Node):
         self.get_logger().info("Sensors Node Initialized")
 
     def _camera_callback(self, msg: AiOutput):
+        self.get_logger().info("Received camera data")
         self._camera_cache.append((msg, self.get_clock().now().nanoseconds))
         if len(self._camera_cache) > 3:
             self._camera_cache.pop(0)
 
     def _lidar_callback(self, msg: PointCloud2):
+        self.get_logger().info("Received lidar data")
         self._lidar_cache.append((msg, self.get_clock().now().nanoseconds))
         if len(self._lidar_cache) > 3:
             self._lidar_cache.pop(0)
 
     def _imu_callback(self, msg: Imu):
+        self.get_logger().info("Received imu data")
         self._imu_cache.append((msg, self.get_clock().now().nanoseconds))
         if len(self._imu_cache) > 3:
             self._imu_cache.pop(0)
@@ -113,9 +116,6 @@ class Sensors(Node):
             x[1] - self.get_clock().now().nanoseconds))
         imu_data, imu_time = min(self._imu_cache, key=lambda x: abs(
             x[1] - self.get_clock().now().nanoseconds))
-        
-        # static type checking jargon
-        assert type(camera_data.types) == List[str]
         
         time_diff = max(camera_time, lidar_time, imu_time) - min(camera_time, lidar_time, imu_time)
         self.get_logger().info(f"Data time difference: {time_diff} ns")
