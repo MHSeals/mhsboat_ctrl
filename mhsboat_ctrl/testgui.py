@@ -6,7 +6,7 @@ import rclpy
 from rclpy.node import Node
 import os
 from typing import Tuple
-from utils.custom_types import numeric
+from mhsboat_ctrl.utils.custom_types import numeric
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Hide annoying prompt
 
 # BuoyMap.x float64[]
