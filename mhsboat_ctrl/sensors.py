@@ -117,13 +117,14 @@ class Sensors(Node):
         assert type(camera_data.types) == List[str]
         
         time_diff = max(camera_time, lidar_time, imu_time) - min(camera_time, lidar_time, imu_time)
+        self.get_logger().info(f"Data time difference: {time_diff} ns")
 
         # TODO: find a good average value to base this off of
         if time_diff > 1e9:
             self.get_logger().warn(f"Data time difference is large: {time_diff} ns")
 
         if camera_data.num != len(camera_data.lefts) or camera_data.num != len(camera_data.tops) or camera_data.num != len(camera_data.types):
-            self.get_logger().warn("Camera data is not consistent")
+            self.get_logger().warn("Camera data is not consistent; skipping data frame")
             return
 
         local_detected_objects: List[CourseObject] = []
@@ -132,6 +133,7 @@ class Sensors(Node):
             # calculate the 3D angle of each buoy location
             # returns a list of the left/right angle (theta) and the up/down angle (phi) relative to boat
             theta, phi = self.get_angle(camera_data, i)
+            self.get_logger().info(f"Buoy {i}: Theta: {theta}, Phi: {phi}")
 
             # Use angle to get the XYZ coordinates of each buoy
             # returns X, Y, Z
@@ -146,6 +148,8 @@ class Sensors(Node):
             # skip point if no associated lidar points
             if x == 0 and y == 0 and z == 0:
                 continue
+
+            self.get_logger().info(f"Buoy {i}: X: {x}, Y: {y}, Z: {z}")
 
             # latitudes.append(x)
             # longitudes.append(y)
@@ -182,6 +186,8 @@ class Sensors(Node):
                 pass
 
             local_detected_objects[-1].last_seen = self.get_clock().now().nanoseconds
+
+        self.get_logger().info(f"Detected objects: {local_detected_objects}")
         
         # Get change in position and orientation from odometry
         if imu_data is None:
