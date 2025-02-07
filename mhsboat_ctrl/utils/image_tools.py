@@ -18,27 +18,18 @@ def preprocess(image: np.ndarray) -> np.ndarray:
     image = simple_wb.balanceWhite(image)
 
     # equalize histogram
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
-    channels = cv2.split(image)
-    cv2.equalizeHist(channels[0], channels[0])
-    cv2.merge(channels, image)
-    image = cv2.cvtColor(image, cv2.COLOR_YCrCb2BGR)
+    # image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
+    # channels = cv2.split(image)
+    # cv2.equalizeHist(channels[0], channels[0])
+    # cv2.merge(channels, image)
+    # image = cv2.cvtColor(image, cv2.COLOR_YCrCb2BGR)
 
+    # constrast and brightness
     image_brightness = np.average(norm(image, axis=2)) / np.sqrt(3)
 
     beta = 130 - image_brightness
 
-    # constrast and brightness
     image = cv2.convertScaleAbs(image, alpha=1.05, beta=beta)
-
-    hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
-
-    # increase saturation
-    hsv[...,1] = hsv[...,1] * 1.1
-
-    hsv[...,1] = np.clip(hsv[...,1],0,255)
-
-    image = cv2.cvtColor(hsv,cv2.COLOR_HSV2BGR)
 
     # sharpen
     blurred = cv2.GaussianBlur(image, (0, 0), 3)

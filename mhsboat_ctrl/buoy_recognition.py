@@ -42,11 +42,12 @@ print("Loading model...")
 model = YOLO(model_path)
 print("Model loaded")
 
-DISP_SIZE = (1280, 720)
-IN_SIZE = (1080, 1080)
+DISPLAY_RESOLUTION = (1280, 720)
+MODEL_INPUT_DIMENSIONS = (1080, 1080)
 
+# We make a premade overlay for the OSD because it's faster than drawing it every frame
 print("Creating overlay...")
-overlay = np.zeros_like(np.zeros(DISP_SIZE, dtype=np.uint8))
+overlay = np.zeros_like(np.zeros((DISPLAY_RESOLUTION[1], DISPLAY_RESOLUTION[0], 3), dtype=np.uint8))
 
 overlay = cv2.putText(overlay, "Press k to pause",
                       (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
@@ -85,14 +86,16 @@ class CameraSubscriber(Node):
         self.fc = 0
         self.FPS = 0
         self.total_frames = 0
+        self.processing_times = []
         self.prog_start = time.perf_counter()
+        self.last_callback_time = time.perf_counter()
 
         self.cvbridge = CvBridge()
 
         self.track_history = defaultdict(lambda: [])
 
         self.create_subscription(
-            Image, "/camera/color/image_raw", self.callback, 10)
+            Image, "/camera/camera/color/image_raw", self.callback, 10)
         # self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
 
         # create publisher that publishes bounding box coordinates and size and buoy type
@@ -116,14 +119,13 @@ class CameraSubscriber(Node):
         print("Node initialized")
 
     def timer_callback(self):
+        if time.perf_counter() - self.last_callback_time > 1:
+            print("No frames received in the last second")
+        
         self.publisher.publish(self.output)
 
     def callback(self, data: Image):
-        global overlay
-
-        x_scale_factor = data.width / DISP_SIZE[0]
-        y_scale_factor = data.height / DISP_SIZE[1]
-        x_original, y_original = data.width, data.height
+        self.last_callback_time = time.perf_counter()
 
         frame_start_time = time.perf_counter()
         self.total_frames += 1
@@ -131,13 +133,23 @@ class CameraSubscriber(Node):
 
         frame = self.cvbridge.imgmsg_to_cv2(data, "bgr8")
 
-        frame = cv2.resize(src=frame, dsize=DISP_SIZE)
+        # Resize the frame to the display resolution
+        frame = cv2.resize(src=frame, dsize=DISPLAY_RESOLUTION)
 
+        # Run some preprocessing on the frame to improve the model's performance
         frame = preprocess(frame)
 
+        # Save the original frame for drawing bounding boxes
         original_frame = frame.copy()
 
-        frame = cv2.resize(frame, IN_SIZE)
+        # Get the scale factor from the original image to the model input dimensions
+        # This is used to scale the bounding box coordinates back to the original image
+        x_scale_factor = original_frame.shape[1] / MODEL_INPUT_DIMENSIONS[0]
+        y_scale_factor = original_frame.shape[0] / MODEL_INPUT_DIMENSIONS[1]
+        x_original, y_original = frame.shape[1], frame.shape[0]
+
+        # Resize the frame to the model input dimensions
+        frame = cv2.resize(frame, MODEL_INPUT_DIMENSIONS)
 
         frame_area = frame.shape[0] * frame.shape[1]
 
@@ -157,7 +169,7 @@ class CameraSubscriber(Node):
         original_frame = cv2.putText(
             original_frame, fps_disp, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
-        # original_frame = cv2.addWeighted(original_frame, 1, overlay, 0.5, 0)
+        original_frame = cv2.add(original_frame, overlay)
 
         self.output.num = len(results)
         self.output.img_width = x_original
@@ -236,6 +248,16 @@ class CameraSubscriber(Node):
                                         color=color.as_bgr(), txt_color=color.text_color().as_bgr())
 
                     original_frame = annotator.result()
+
+        frame_processing_time = time.perf_counter() - frame_start_time
+
+        self.processing_times.append(frame_processing_time)
+
+        self.processing_times = self.processing_times[-100:]
+
+        print(f"Frame processing time: {frame_processing_time * 1000}ms")
+        print(
+            f"Average processing time: {np.mean(self.processing_times) * 1000}ms")
 
         cv2.imshow("result", original_frame)
         c = cv2.waitKey(1)
