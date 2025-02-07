@@ -28,6 +28,7 @@ setup(
             "simulated_map = mhsboat_ctrl.gui:main",
             "display_map = mhsboat_ctrl.testgui:main",
             "buoy_recognition = mhsboat_ctrl.buoy_recognition:main",
+            "center_of_clusters = mhsboat_ctrl.center_of_clusters:main"
         ],
     },
 )

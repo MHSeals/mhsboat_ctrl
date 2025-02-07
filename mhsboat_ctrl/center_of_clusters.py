@@ -168,6 +168,14 @@ def main(args=None):
     publisher = center_of_clusters()
     rclpy.spin(publisher)
 
+    try:
+        rclpy.spin(publisher)
+    except KeyboardInterrupt:
+        publisher.get_logger().info("Shutting down")
+    finally:
+        publisher.sensors.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()
