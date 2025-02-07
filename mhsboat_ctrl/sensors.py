@@ -1,6 +1,9 @@
 import rclpy
+import rclpy.logging
 from rclpy.node import Node
+from rclpy.impl.rcutils_logger import RcutilsLogger
 from boat_interfaces.msg import AiOutput, BuoyMap
+import rclpy.utilities
 from sensor_msgs.msg import PointCloud2, Imu, PointField
 from geometry_msgs.msg import Quaternion
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
@@ -25,8 +28,10 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
 
 
 class Sensors(Node):
-    def __init__(self):
+    def __init__(self, logger: RcutilsLogger):
         super().__init__('sensors')
+
+        self.logger = logger
 
         self.map: List[CourseObject] = []
 
@@ -94,6 +99,9 @@ class Sensors(Node):
     @property
     def imu_output(self) -> Optional[Imu]:
         return self._imu_cache[-1][0] if len(self._imu_cache) > 0 else None
+    
+    def get_logger(self) -> RcutilsLogger:
+        return self.logger
 
     def _process_sensor_data(self) -> None:
         """

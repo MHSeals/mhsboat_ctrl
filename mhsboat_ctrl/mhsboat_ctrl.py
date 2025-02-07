@@ -30,7 +30,7 @@ class BoatController(Node):
             self.get_logger().info("Using Simulated Map")
             self.sensors = SensorsSimulated(map_file)
         else:
-            self.sensors = Sensors()
+            self.sensors = Sensors(self.get_logger())
 
         for task_file in glob.glob(os.path.join(os.path.dirname(__file__), "tasks", "*.py")):
             if os.path.basename(task_file) == "__init__.py":
