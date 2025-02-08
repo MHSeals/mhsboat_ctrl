@@ -194,16 +194,6 @@ class Sensors(Node):
         if imu_data is None:
             self.get_logger().warn("No odometry data available")
             return
-        
-        # Cluster really close buoys together to avoid duplicates
-        epsilon = 0.5
-        for i in range(len(local_detected_objects)):
-            for j in range(i + 1, len(local_detected_objects)):
-                if np.sqrt((local_detected_objects[i].x - local_detected_objects[j].x) ** 2 + (local_detected_objects[i].y - local_detected_objects[j].y) ** 2) < epsilon:
-                    local_detected_objects[i].x = (local_detected_objects[i].x + local_detected_objects[j].x) / 2
-                    local_detected_objects[i].y = (local_detected_objects[i].y + local_detected_objects[j].y) / 2
-                    del local_detected_objects[j]
-                    break
 
         # Translate the map based on odometry
         translation_matrix = self._get_translation_matrix(imu_data)
@@ -314,7 +304,7 @@ class Sensors(Node):
         :return: True if the objects match, False otherwise
         :rtype:  bool
         """
-        distance_threshold = 1.0  # Define a threshold for matching objects
+        distance_threshold = 5.0  # Define a threshold for matching objects
         distance = np.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
         return distance < distance_threshold
 
