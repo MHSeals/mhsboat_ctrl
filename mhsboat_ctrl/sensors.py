@@ -305,7 +305,9 @@ class Sensors(Node):
         :rtype:  bool
         """
         distance_threshold = 5.0  # Define a threshold for matching objects
+        self.get_logger().info(f"Checking if {detected_obj} matches {map_obj}")
         distance = np.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
+        self.get_logger().info(f"Distance: {distance}")
         return distance < distance_threshold
 
     # calculate the 3D angle of each buoy location
