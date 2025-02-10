@@ -173,7 +173,7 @@ def main(args=None):
     except KeyboardInterrupt:
         publisher.get_logger().info("Shutting down")
     finally:
-        publisher.sensors.destroy_node()
+        publisher.destroy_node()
         rclpy.shutdown()
 
 

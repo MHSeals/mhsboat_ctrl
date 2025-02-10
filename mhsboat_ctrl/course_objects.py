@@ -3,9 +3,10 @@ from typing import Literal
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 
 class CourseObject:
-    def __init__(self, x: int, y: int):
+    def __init__(self, x: int, y: int, z: int):
         self.x = x
         self.y = y
+        self.z = z
         self.last_seen = 0
 
     def __str__(self):
@@ -13,9 +14,10 @@ class CourseObject:
 
 
 class Shape(CourseObject):
-    def __init__(self, x: int, y: int, shape: Shapes, color: BuoyColors):
+    def __init__(self, x: int, y: int, z: int, shape: Shapes, color: BuoyColors):
         self.x = x
         self.y = y
+        self.z = z
         self.shape = shape
         self.color = color
         self.last_seen = 0
@@ -25,9 +27,10 @@ class Shape(CourseObject):
 
 
 class Buoy(CourseObject):
-    def __init__(self, x: int, y: int, color: BuoyColors):
+    def __init__(self, x: int, y: int, z: int, color: BuoyColors):
         self.x = x
         self.y = y
+        self.z = z
         self.color = color
         self.last_seen = 0
 
@@ -36,9 +39,10 @@ class Buoy(CourseObject):
 
 
 class PoleBuoy(Buoy):
-    def __init__(self, x: int, y: int, color: Literal[BuoyColors.RED, BuoyColors.GREEN]):
+    def __init__(self, x: int, y: int, z: int, color: Literal[BuoyColors.RED, BuoyColors.GREEN]):
         self.x = x
         self.y = y
+        self.z = z
         self.color = color
         self.last_seen = 0
 
@@ -47,9 +51,10 @@ class PoleBuoy(Buoy):
 
 
 class BallBuoy(Buoy):
-    def __init__(self, x: int, y: int, color: BuoyColors):
+    def __init__(self, x: int, y: int, z: int, color: BuoyColors):
         self.x = x
         self.y = y
+        self.z = z
         self.color = color
         self.last_seen = 0
 

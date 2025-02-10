@@ -61,9 +61,9 @@ class TESTGUI(Node):
         for i in range(len(msg.x)):
             color = BuoyColors(msg.colors[i].lower())
             if msg.types[i] == "pole":
-                self.buoys.append(PoleBuoy(msg.x[i], msg.y[i], color))
+                self.buoys.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color)) # type: ignore color will always only be red or green
             elif msg.types[i] == "ball":
-                self.buoys.append(BallBuoy(msg.x[i], msg.y[i], color))
+                self.buoys.append(BallBuoy(msg.x[i], msg.y[i], msg.z[i], color))
 
     def display_loop(self):
         # Event handler

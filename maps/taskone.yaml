@@ -1,17 +1,21 @@
 objects:
   - pole_buoy:
-      x: 10.0
-      y: 0.0
-      color: 'RED'
+        x: 10.0
+        y: 0.0
+        z: 0.0
+        color: 'RED'
   - pole_buoy:
-      x: 13.0
-      y: 0.0
-      color: 'GREEN'
+        x: 13.0
+        y: 0.0
+        z: 0.0
+        color: 'GREEN'
   - pole_buoy:
-      x: 10.0
-      y: 15.0
-      color: 'RED'
+        x: 10.0
+        y: 15.0
+        z: 0.0
+        color: 'RED'
   - pole_buoy:
-      x: 13.0
-      y: 15.0
-      color: 'GREEN'
+        x: 13.0
+        y: 15.0
+        z: 0.0
+        color: 'GREEN'

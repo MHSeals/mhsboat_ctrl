@@ -30,8 +30,6 @@ class BoatController(Node):
 
         self.run()
 
-        self.sensors.destroy_node()
-
     def add_task(self, task: Task):
         """
         Add a task to the controller
@@ -80,6 +78,5 @@ def main(args=None):
     except KeyboardInterrupt:
         boat_controller.get_logger().info("Shutting down")
     finally:
-        boat_controller.sensors.destroy_node()
         boat_controller.destroy_node()
         rclpy.shutdown()

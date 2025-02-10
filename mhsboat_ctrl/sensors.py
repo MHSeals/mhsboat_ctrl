@@ -162,26 +162,26 @@ class Sensors(Node):
 
             if camera_data.types[i].endswith("pole_buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(PoleBuoy(x, y, buoy_color)) # type: ignore - this will always be either red or green
+                local_detected_objects.append(PoleBuoy(x, y, z, buoy_color)) # type: ignore - this will always be either red or green
             elif camera_data.types[i].endswith("buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(BallBuoy(x, y, buoy_color))
+                local_detected_objects.append(BallBuoy(x, y, z, buoy_color))
             elif camera_data.types[i].endswith("racquet_ball"):
                 # TODO: can we effectively track racquet balls given that they are so small?
                 # Do we need to track them?
                 pass
             elif camera_data.types[i].endswith("circle"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, Shapes.CIRCLE, shape_color))
+                local_detected_objects.append(Shape(x, y, z, Shapes.CIRCLE, shape_color))
             elif camera_data.types[i].endswith("triangle"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, Shapes.TRIANGLE, shape_color))
+                local_detected_objects.append(Shape(x, y, z, Shapes.TRIANGLE, shape_color))
             elif camera_data.types[i].endswith("cross"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, Shapes.CROSS, shape_color))
+                local_detected_objects.append(Shape(x, y, z, Shapes.CROSS, shape_color))
             elif camera_data.types[i].endswith("square"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, Shapes.SQUARE, shape_color))
+                local_detected_objects.append(Shape(x, y, z, Shapes.SQUARE, shape_color))
             elif camera_data.types[i].endswith("duck_image"):
                 # TODO: do we need to track duck images?
                 pass
@@ -214,13 +214,38 @@ class Sensors(Node):
                 ...
             if not matched:
                 self.map.append(detected_obj)
+        
+        # Check for objects that aren't seen by camera, but are seen by lidar
+        for map_obj in self.map:
+            theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
+            phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
+
+            coords = self.get_XYZ_coordinates(theta, phi, lidar_data, "lidar")
+            if coords is None:
+                continue
+
+            x, y, z = coords
+
+            if x == 0 and y == 0 and z == 0:
+                continue
+
+            map_obj.x = x
+            map_obj.y = y
+            map_obj.z = z
+            map_obj.last_seen = self.get_clock().now().nanoseconds
+
+        # Handle other objects that havent been seen in for 1 second
+        for map_obj in self.map:
+            if self.get_clock().now().nanoseconds - map_obj.last_seen > 1e9:
+                self.map.remove(map_obj)
 
         # Publish the map
         msg = BuoyMap()
-        x, y, types, colors = [], [], [], []
+        x, y, z, types, colors = [], [], [], [], []
         for obj in self.map:
             x.append(obj.x)
             y.append(obj.y)
+            z.append(obj.z)
             
             if isinstance(obj, Shape):
                 types.append(obj.shape.value)
@@ -237,6 +262,7 @@ class Sensors(Node):
 
         msg.x = x
         msg.y = y
+        msg.z = z
         msg.types = types
         msg.colors = colors
         
@@ -448,6 +474,7 @@ class SensorsSimulated(Node):
                             BallBuoy(
                                 obj['ball_buoy']['x'],
                                 obj['ball_buoy']['y'],
+                                obj['ball_buoy']['z'],
                                 BuoyColors[obj['ball_buoy']['color'].upper()]
                             )
                         )
@@ -456,6 +483,7 @@ class SensorsSimulated(Node):
                             Buoy(
                                 obj['buoy']['x'],
                                 obj['buoy']['y'],
+                                obj['buoy']['z'],
                                 BuoyColors[obj['buoy']['color'].upper()]
                             )
                         )
@@ -464,6 +492,7 @@ class SensorsSimulated(Node):
                             Shape(
                                 obj['shape']['x'],
                                 obj['shape']['y'],
+                                obj['shape']['z'],
                                 Shapes[obj['shape']['shape'].upper()],
                                 BuoyColors[obj['shape']['color'].upper()]
                             )
@@ -472,7 +501,8 @@ class SensorsSimulated(Node):
                         self.map.append(
                             CourseObject(
                                 obj['course_object']['x'],
-                                obj['course_object']['y']
+                                obj['course_object']['y'],
+                                obj['course_object']['z']
                             )
                         )
                     else:
