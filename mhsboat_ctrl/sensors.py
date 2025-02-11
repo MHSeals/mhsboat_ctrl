@@ -410,7 +410,7 @@ class Sensors(Node):
     # Use angle to get the XYZ coordinates of each buoy
     # returns X, Y, Z
 
-    def get_XYZ_coordinates(self, theta: float, phi: float, pointCloud: PointCloud2, name: str) -> Tuple[float, float, float] | None:
+    def get_XYZ_coordinates(self, theta: float, phi: float, pointCloud: PointCloud2, name: str) -> Optional[Tuple[float, float, float]]:
         """
         Get the XYZ coordinates of a buoy based on the angle from the camera
 
