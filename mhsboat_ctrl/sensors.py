@@ -135,10 +135,30 @@ class Sensors(Node):
         if time_diff > 1e9:
             self.get_logger().warn(f"Data time difference is large: {time_diff} ns")
 
-        if camera_data.num != len(camera_data.lefts) or camera_data.num != len(camera_data.tops) or camera_data.num != len(camera_data.types):
-            self.get_logger().warn("Camera data is not consistent; skipping data frame")
-            return
-
+        if camera_data.num != len(camera_data.lefts):
+            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match lefts")
+            self.get_logger().warn(f"Num: {camera_data.num}, Lefts: {len(camera_data.lefts)}")
+        
+        if camera_data.num != len(camera_data.tops):
+            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match tops")
+            self.get_logger().warn(f"Num: {camera_data.num}, Tops: {len(camera_data.tops)}")
+        
+        if camera_data.num != len(camera_data.widths):
+            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match widths")
+            self.get_logger().warn(f"Num: {camera_data.num}, Widths: {len(camera_data.widths)}")
+        
+        if camera_data.num != len(camera_data.heights):
+            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match heights")
+            self.get_logger().warn(f"Num: {camera_data.num}, Heights: {len(camera_data.heights)}")
+        
+        if camera_data.num != len(camera_data.types):
+            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match types")
+            self.get_logger().warn(f"Num: {camera_data.num}, Types: {len(camera_data.types)}")
+        
+        if camera_data.num != len(camera_data.confidences):
+            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match confidences")
+            self.get_logger().warn(f"Num: {camera_data.num}, Confidences: {len(camera_data.confidences)}")
+        
         local_detected_objects: List[CourseObject] = []
 
         for i in range(camera_data.num):
