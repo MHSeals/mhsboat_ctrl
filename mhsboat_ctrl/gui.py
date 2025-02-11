@@ -6,10 +6,11 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide" # Hide annoying prompt
 import pygame 
 
-from mhsboat_ctrl.course_objects import Buoy, PoleBuoy, BallBuoy
+from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
 
 from mhsboat_ctrl.utils.thruster_controller import SimulatedController
+from boat_interfaces.msg import BuoyMap
 
 # Constants
 FONT_SIZE = 40
@@ -26,6 +27,8 @@ SCREEN_HEIGHT = 600
 class GUI(Node):
     def __init__(self, controller: SimulatedController):
         super().__init__("boat_gui")
+
+        self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
 
         # Start Pygame window
         pygame.init()
@@ -110,8 +113,34 @@ class GUI(Node):
         # Update the display and save current time for delta time
         self.prev_time = self.time
         pygame.display.update()
+
+        msg = BuoyMap()
+        x, y, z, types, colors = [], [], [], [], []
+        for obj in self.buoys:
+            x.append(float(obj.x))
+            y.append(float(obj.y))
+            z.append(0.0)
+            
+            if isinstance(obj, Shape):
+                types.append(obj.shape.value)
+                colors.append(obj.color.value)
+            elif isinstance(obj, PoleBuoy):
+                types.append("pole")
+                colors.append(obj.color.value)
+            elif isinstance(obj, BallBuoy):
+                types.append("ball")
+                colors.append(obj.color.value)
+            else:
+                types.append("course_object")
+                colors.append("none")
+
+        msg.x = x
+        msg.y = y
+        msg.z = z
+        msg.types = types
+        msg.colors = colors
         
-        self.get_logger().info(f"{self.buoys}")
+        self.map_publisher.publish(msg)
 
     def draw_boat(self, points):
         pygame.draw.polygon(self.screen, self.boat.color, points)

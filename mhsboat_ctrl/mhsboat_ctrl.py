@@ -7,7 +7,6 @@ import importlib
 from typing import List
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
-from mhsboat_ctrl.sensors import Sensors, SensorsSimulated
 from mhsboat_ctrl.task import Task
 
 class BoatController(Node):
