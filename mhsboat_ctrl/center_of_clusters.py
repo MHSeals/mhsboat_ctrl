@@ -79,7 +79,7 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     # print("after: "+str(len(points)))
 
     # cluster the points
-    db = DBSCAN(eps=0.05, min_samples=10).fit(points)
+    db = DBSCAN(eps=0.09, min_samples=10).fit(points)
     labels = db.labels_
     max = np.max(labels)
 
