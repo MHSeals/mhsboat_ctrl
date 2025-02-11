@@ -441,11 +441,6 @@ class Sensors(Node):
             )
             phiPoint = math.degrees(
                 math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
-            
-            self.get_logger().info(f"Point {index}: Theta: {theta}, Phi: {phi}")
-            self.get_logger().info(f"Point {index}: ThetaPoint: {thetaPoint}, PhiPoint: {phiPoint}")
-            self.get_logger().info(f"Point {index}: Theta-ThetaPoint: {math.fabs(thetaPoint - theta)}")
-            self.get_logger().info(f"Point {index}: Phi-PhiPoint: {math.fabs(phiPoint - phi)}")
 
             # max angle difference to consider a point a match
             degrees = 5
