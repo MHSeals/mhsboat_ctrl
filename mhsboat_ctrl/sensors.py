@@ -3,7 +3,8 @@ import rclpy.logging
 from rclpy.node import Node
 from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
-from sensor_msgs.msg import PointCloud2, Imu, PointField
+from sensor_msgs.msg import PointCloud2
+from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
 import os
@@ -40,7 +41,7 @@ class Sensors(Node):
         # results
         self._camera_cache: List[Tuple[AiOutput, float]] = []
         self._lidar_cache: List[Tuple[PointCloud2, float]] = []
-        self._imu_cache: List[Tuple[Imu, float]] = []
+        self._odom_cache: List[Tuple[Odometry, float]] = []
 
         self._ai_out_sub = self.create_subscription(
             AiOutput, "/AiOutput", self._camera_callback, 10
@@ -58,8 +59,8 @@ class Sensors(Node):
             liveliness=QoSLivelinessPolicy.AUTOMATIC,
         )
 
-        self._imu_out_sub = self.create_subscription(
-            Imu, "/mavros/imu/data", self._imu_callback, self._qos_profile
+        self._odom_out_sub = self.create_subscription(
+            Odometry, "/mavros/local_position/odom", self._odom_callback, self._qos_profile
         )
 
         self._process_timer = self.create_timer(0.1, self._process_sensor_data)
@@ -82,11 +83,11 @@ class Sensors(Node):
         if len(self._lidar_cache) > 3:
             self._lidar_cache.pop(0)
 
-    def _imu_callback(self, msg: Imu):
-        self.get_logger().info("Received imu data")
-        self._imu_cache.append((msg, self.get_clock().now().nanoseconds))
-        if len(self._imu_cache) > 3:
-            self._imu_cache.pop(0)
+    def _odom_callback(self, msg: Odometry):
+        self.get_logger().info("Received odometry data")
+        self._odom_cache.append((msg, self.get_clock().now().nanoseconds))
+        if len(self._odom_cache) > 3:
+            self._odom_cache.pop(0)
 
     @property
     def ai_output(self) -> Optional[AiOutput]:
@@ -97,14 +98,14 @@ class Sensors(Node):
         return self._lidar_cache[-1][0] if len(self._lidar_cache) > 0 else None
 
     @property
-    def imu_output(self) -> Optional[Imu]:
-        return self._imu_cache[-1][0] if len(self._imu_cache) > 0 else None
+    def odom_output(self) -> Optional[Odometry]:
+        return self._odom_cache[-1][0] if len(self._odom_cache) > 0 else None
 
     def _process_sensor_data(self) -> None:
         """
         Process the sensor data
         """
-        if len(self._camera_cache) == 0 or len(self._lidar_cache) == 0 or len(self._imu_cache) == 0:
+        if len(self._camera_cache) == 0 or len(self._lidar_cache) == 0 or len(self._odom_cache) == 0:
             self.get_logger().info("Not enough data to process; waiting for more data")
             return
 
@@ -114,20 +115,20 @@ class Sensors(Node):
             x[1] - self.get_clock().now().nanoseconds))
         lidar_data, lidar_time = min(self._lidar_cache, key=lambda x: abs(
             x[1] - self.get_clock().now().nanoseconds))
-        imu_data, imu_time = min(self._imu_cache, key=lambda x: abs(
+        odom_data, odom_time = min(self._odom_cache, key=lambda x: abs(
             x[1] - self.get_clock().now().nanoseconds))
         
-        time_diff = max(camera_time, lidar_time, imu_time) - min(camera_time, lidar_time, imu_time)
+        time_diff = max(camera_time, lidar_time, odom_time) - min(camera_time, lidar_time, odom_time)
         self.get_logger().info(f"Data time difference: {time_diff} ns")
 
         # Get which data is laggging behind
         if time_diff > 1e9:
-            if camera_time < lidar_time and camera_time < imu_time:
+            if camera_time < lidar_time and camera_time < odom_time:
                 self.get_logger().warn("Camera data is lagging behind")
-            elif lidar_time < camera_time and lidar_time < imu_time:
+            elif lidar_time < camera_time and lidar_time < odom_time:
                 self.get_logger().warn("Lidar data is lagging behind")
-            elif imu_time < camera_time and imu_time < lidar_time:
-                self.get_logger().warn("IMU data is lagging behind")
+            elif odom_time < camera_time and odom_time < lidar_time:
+                self.get_logger().warn("Odometry data is lagging behind")
             else:
                 self.get_logger().warn("Unknown data is lagging behind")
 
@@ -224,12 +225,12 @@ class Sensors(Node):
         self.get_logger().info(f"Detected objects in this frame: {local_detected_objects}")
         
         # Get change in position and orientation from odometry
-        if imu_data is None:
+        if odom_data is None:
             self.get_logger().warn("No odometry data available")
             return
 
         # Translate the map based on odometry
-        translation_matrix = self._get_translation_matrix(imu_data)
+        translation_matrix = self._get_translation_matrix(odom_data)
         self._translate_map(translation_matrix)
 
         # Check if the detected objects match with the map objects
@@ -304,18 +305,21 @@ class Sensors(Node):
         
         self.map_publisher.publish(msg)
     
-    def _get_translation_matrix(self, odom_data: Imu) -> np.ndarray:
+    def _get_translation_matrix(self, odom_data: Odometry) -> np.ndarray:
         """
         Get the translation matrix based on odometry data
 
         :param odom_data: The odometry data
-        :type  odom_data: class:`sensor_msgs.msg.Imu`
+        :type  odom_data: class:`nav_msgs.msg.Odometry`
         :return: The translation matrix
         :rtype:  numpy.ndarray
         """
         # Assuming odom_data contains orientation as quaternion and position as x, y, z
-        orientation = odom_data.orientation
-        position = odom_data.linear_acceleration
+        orientation = odom_data.pose.pose.orientation
+        linear_acceleration = odom_data.pose.pose.position
+
+        self.get_logger().info(f"Orientation: {orientation}")
+        self.get_logger().info(f"Position: {linear_acceleration}")
 
         # Convert quaternion to rotation matrix
         rotation_matrix = self._quaternion_to_rotation_matrix(orientation)
@@ -323,7 +327,7 @@ class Sensors(Node):
         # Create translation matrix
         translation_matrix = np.eye(4)
         translation_matrix[:3, :3] = rotation_matrix
-        translation_matrix[:3, 3] = [position.x, position.y, position.z]
+        translation_matrix[:3, 3] = [linear_acceleration.x, linear_acceleration.y, linear_acceleration.z]
 
         return translation_matrix
 
@@ -366,7 +370,7 @@ class Sensors(Node):
         :return: True if the objects match, False otherwise
         :rtype:  bool
         """
-        distance_threshold = 1.0  # Define a threshold for matching objects
+        distance_threshold = 12.0  # Define a threshold for matching objects
         self.get_logger().info(f"Checking if {detected_obj} matches {map_obj}")
         distance = math.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
         self.get_logger().info(f"Distance: {distance}")
