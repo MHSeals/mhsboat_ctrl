@@ -80,9 +80,9 @@ class GUI(Node):
             elif event.type == pygame.MOUSEBUTTONUP:
                 pos = pygame.mouse.get_pos()
                 if self.buoy_type == PoleBuoy and self.buoy_color != BuoyColors.RED and self.buoy_color != BuoyColors.GREEN:
-                    print("Buoy color not available for type")
+                    self.get_logger().info("Buoy color not available for type")
                 else:
-                    self.buoys.append(self.buoy_type(*pos, self.buoy_color)) # type: ignore
+                    self.buoys.append(self.buoy_type(*pos, 0, self.buoy_color)) # type: ignore
             elif event.type == pygame.QUIT or not self.run:
                 self.quit()
                 return
@@ -110,6 +110,8 @@ class GUI(Node):
         # Update the display and save current time for delta time
         self.prev_time = self.time
         pygame.display.update()
+        
+        self.get_logger().info(f"{self.buoys}")
 
     def draw_boat(self, points):
         pygame.draw.polygon(self.screen, self.boat.color, points)
@@ -133,9 +135,9 @@ class GUI(Node):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
                     pygame.draw.circle(self.screen, darken_color(convert_color("blue"), 120), (x, y), BUOY_RADIUS / 2)
                 else:
-                    print("Buoy variation unspecified")
+                    self.get_logger().info("Buoy variation unspecified")
             else:
-                print("Buoy type error")
+                self.get_logger().info("Buoy type error")
 
     def write_map(self):
         ...
@@ -146,7 +148,7 @@ class GUI(Node):
     def quit(self):
         self.run = False
         pygame.quit()
-        print("GUI Quit")
+        self.get_logger().info("GUI Quit")
         
 
 class Boat():
