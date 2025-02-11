@@ -171,7 +171,7 @@ class CameraSubscriber(Node):
 
         original_frame = cv2.add(original_frame, overlay)
 
-        self.output.num = len(results)
+        self.output.num = 0
         self.output.img_width = x_original
         self.output.img_height = y_original
         self.output.types = []
@@ -212,6 +212,7 @@ class CameraSubscriber(Node):
                     x, y = bounding_box[:2]
                     w, h = bounding_box[2] - x, bounding_box[3] - y
 
+                    self.output.num += 1
                     self.output.types.append(name)
                     self.output.confidences.append(int(confidence*100))
                     self.output.lefts.append(int(x))
