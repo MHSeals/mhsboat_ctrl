@@ -18,7 +18,7 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Hide annoying prompt
 FONT_SIZE = 40
 FONT = "Segoe UI Medium"
 FONT_COLOR = "black"
-BUOY_RADIUS = 10
+BUOY_RADIUS = 20
 BOAT_WIDTH = 40
 BOAT_HEIGHT = 70
 BOAT_COLOR = "gray12"
@@ -32,7 +32,6 @@ def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, in
     x_screen = SCREEN_WIDTH // 2 + int(x * scale)
     y_screen = SCREEN_HEIGHT // 2 - int(y * scale)
     return (x_screen, y_screen)
-
 
 class TESTGUI(Node):
     def __init__(self):
@@ -75,12 +74,14 @@ class TESTGUI(Node):
                 self.get_logger().info("Quit GUI")
                 return
 
-        self.draw_buoys()
-        # self.get_logger().info(f"Displayed frame: {self.get_clock().now()}")
         self.screen.fill(BACKGROUND_COLOR)
+        self.draw_buoys()
         pygame.display.update()
 
     def draw_buoys(self):
+        
+        self.buoys.append(BallBuoy(0, 0, 0, BuoyColors.GREEN))
+
         for buoy in self.buoys:
             self.get_logger().info(f"Drawing buoy {buoy} at {buoy.x}, {buoy.y}")
             if isinstance(buoy, Buoy):
