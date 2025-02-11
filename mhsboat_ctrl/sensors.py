@@ -120,6 +120,17 @@ class Sensors(Node):
         time_diff = max(camera_time, lidar_time, imu_time) - min(camera_time, lidar_time, imu_time)
         self.get_logger().info(f"Data time difference: {time_diff} ns")
 
+        # Get which data is laggging behind
+        if time_diff > 1e9:
+            if camera_time < lidar_time and camera_time < imu_time:
+                self.get_logger().warn("Camera data is lagging behind")
+            elif lidar_time < camera_time and lidar_time < imu_time:
+                self.get_logger().warn("Lidar data is lagging behind")
+            elif imu_time < camera_time and imu_time < lidar_time:
+                self.get_logger().warn("IMU data is lagging behind")
+            else:
+                self.get_logger().warn("Unknown data is lagging behind")
+
         # TODO: find a good average value to base this off of
         if time_diff > 1e9:
             self.get_logger().warn(f"Data time difference is large: {time_diff} ns")

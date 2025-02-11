@@ -16,6 +16,8 @@ class center_of_clusters(Node):
     def __init__(self):
         super().__init__("center_of_clusters")
 
+        self.get_logger().info("Starting")
+
         self.pcd_publisher = self.create_publisher(
             PointCloud2, "center_of_clusters", 10
         )
@@ -33,6 +35,8 @@ class center_of_clusters(Node):
         timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.timer_callback)
         self.pcd = PointCloud2()
+
+        self.get_logger().info("Started")
 
     def timer_callback(self):
         self.pcd_publisher.publish(self.pcd)
