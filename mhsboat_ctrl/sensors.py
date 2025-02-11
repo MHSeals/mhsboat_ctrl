@@ -273,6 +273,8 @@ class Sensors(Node):
                 self.get_logger().info(f"Removing {map_obj} from map as it hasn't been seen in 1 seconds")
                 self.map.remove(map_obj)
 
+        self.get_logger().info(f"Map: {self.map}")
+
         # Publish the map
         msg = BuoyMap()
         x, y, z, types, colors = [], [], [], [], []
@@ -368,6 +370,7 @@ class Sensors(Node):
         self.get_logger().info(f"Checking if {detected_obj} matches {map_obj}")
         distance = np.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
         self.get_logger().info(f"Distance: {distance}")
+        self.get_logger().info(f"Match: {distance < distance_threshold}")
         return distance < distance_threshold
 
     # calculate the 3D angle of each buoy location
