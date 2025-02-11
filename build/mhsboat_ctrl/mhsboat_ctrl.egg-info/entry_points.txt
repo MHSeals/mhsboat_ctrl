@@ -1,0 +1,8 @@
+[console_scripts]
+buoy_recognition = mhsboat_ctrl.buoy_recognition:main
+center_of_clusters = mhsboat_ctrl.center_of_clusters:main
+display_map = mhsboat_ctrl.testgui:main
+mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main
+sensors = mhsboat_ctrl.sensors:main
+simulated_map = mhsboat_ctrl.gui:main
+

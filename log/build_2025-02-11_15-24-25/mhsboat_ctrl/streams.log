@@ -1,0 +1,108 @@
+[1.161s] Invoking command in '/home/liam-bray/roboboat_ws/src/mhsboat_ctrl': PYTHONPATH=/home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/mhsboat_ctrl build --build-base /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build install --record /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/install.log --single-version-externally-managed install_data
+[1.616s] running egg_info
+[1.616s] creating build/mhsboat_ctrl/mhsboat_ctrl.egg-info
+[1.616s] writing build/mhsboat_ctrl/mhsboat_ctrl.egg-info/PKG-INFO
+[1.617s] writing dependency_links to build/mhsboat_ctrl/mhsboat_ctrl.egg-info/dependency_links.txt
+[1.617s] writing entry points to build/mhsboat_ctrl/mhsboat_ctrl.egg-info/entry_points.txt
+[1.617s] writing requirements to build/mhsboat_ctrl/mhsboat_ctrl.egg-info/requires.txt
+[1.617s] writing top-level names to build/mhsboat_ctrl/mhsboat_ctrl.egg-info/top_level.txt
+[1.617s] writing manifest file 'build/mhsboat_ctrl/mhsboat_ctrl.egg-info/SOURCES.txt'
+[1.619s] reading manifest file 'build/mhsboat_ctrl/mhsboat_ctrl.egg-info/SOURCES.txt'
+[1.619s] adding license file 'LICENSE'
+[1.620s] writing manifest file 'build/mhsboat_ctrl/mhsboat_ctrl.egg-info/SOURCES.txt'
+[1.620s] running build
+[1.620s] running build_py
+[1.620s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build
+[1.620s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib
+[1.620s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.620s] copying mhsboat_ctrl/gui.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.620s] copying mhsboat_ctrl/testgui.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.620s] copying mhsboat_ctrl/buoy_recognition.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.620s] copying mhsboat_ctrl/task.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.620s] copying mhsboat_ctrl/mhsboat_ctrl.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.620s] copying mhsboat_ctrl/center_of_clusters.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.621s] copying mhsboat_ctrl/__init__.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.621s] copying mhsboat_ctrl/course_objects.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.621s] copying mhsboat_ctrl/enums.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.621s] copying mhsboat_ctrl/sensors.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl
+[1.621s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks
+[1.621s] copying mhsboat_ctrl/tasks/taskone.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks
+[1.621s] copying mhsboat_ctrl/tasks/tasktwo.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks
+[1.621s] copying mhsboat_ctrl/tasks/__init__.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks
+[1.621s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.621s] copying mhsboat_ctrl/utils/thruster_controller.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.621s] copying mhsboat_ctrl/utils/tempCodeRunnerFile.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.621s] copying mhsboat_ctrl/utils/image_tools.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.621s] copying mhsboat_ctrl/utils/math_util.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.621s] copying mhsboat_ctrl/utils/custom_types.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.621s] copying mhsboat_ctrl/utils/rgb.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.622s] copying mhsboat_ctrl/utils/__init__.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.622s] copying mhsboat_ctrl/utils/lidar.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils
+[1.622s] running install
+[1.622s] running install_lib
+[1.623s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.623s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/gui.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.623s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/testgui.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.623s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/buoy_recognition.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.623s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/task.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.623s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/mhsboat_ctrl.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.623s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/center_of_clusters.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/__init__.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.624s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks/taskone.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks/tasktwo.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/tasks/__init__.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/course_objects.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.624s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/thruster_controller.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/tempCodeRunnerFile.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/image_tools.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/math_util.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/custom_types.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/rgb.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/__init__.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/utils/lidar.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/enums.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.624s] copying /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build/lib/mhsboat_ctrl/sensors.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl
+[1.626s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/gui.py to gui.cpython-310.pyc
+[1.628s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/testgui.py to testgui.cpython-310.pyc
+[1.629s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/buoy_recognition.py to buoy_recognition.cpython-310.pyc
+[1.630s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/task.py to task.cpython-310.pyc
+[1.631s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/mhsboat_ctrl.py to mhsboat_ctrl.cpython-310.pyc
+[1.631s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/center_of_clusters.py to center_of_clusters.cpython-310.pyc
+[1.632s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/__init__.py to __init__.cpython-310.pyc
+[1.632s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks/taskone.py to taskone.cpython-310.pyc
+[1.633s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks/tasktwo.py to tasktwo.cpython-310.pyc
+[1.634s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/tasks/__init__.py to __init__.cpython-310.pyc
+[1.634s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/course_objects.py to course_objects.cpython-310.pyc
+[1.635s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/thruster_controller.py to thruster_controller.cpython-310.pyc
+[1.635s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/tempCodeRunnerFile.py to tempCodeRunnerFile.cpython-310.pyc
+[1.635s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/image_tools.py to image_tools.cpython-310.pyc
+[1.636s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/math_util.py to math_util.cpython-310.pyc
+[1.636s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/custom_types.py to custom_types.cpython-310.pyc
+[1.636s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/rgb.py to rgb.cpython-310.pyc
+[1.636s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/__init__.py to __init__.cpython-310.pyc
+[1.637s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/utils/lidar.py to lidar.cpython-310.pyc
+[1.637s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/enums.py to enums.cpython-310.pyc
+[1.637s] byte-compiling /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl/sensors.py to sensors.cpython-310.pyc
+[1.640s] running install_data
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index/resource_index
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index/resource_index/packages
+[1.641s] copying resource/mhsboat_ctrl -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index/resource_index/packages
+[1.641s] copying package.xml -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/launch
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/description
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/rviz
+[1.641s] creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/config
+[1.641s] running install_egg_info
+[1.644s] Copying build/mhsboat_ctrl/mhsboat_ctrl.egg-info to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat_ctrl-0.1-py3.10.egg-info
+[1.645s] running install_scripts
+[1.677s] Installing buoy_recognition script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+[1.677s] Installing center_of_clusters script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+[1.677s] Installing display_map script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+[1.677s] Installing mhsboat_ctrl script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+[1.677s] Installing sensors script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+[1.677s] Installing simulated_map script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+[1.678s] writing list of installed files to '/home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/install.log'
+[1.703s] Invoked command in '/home/liam-bray/roboboat_ws/src/mhsboat_ctrl' returned '0': PYTHONPATH=/home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base build/mhsboat_ctrl build --build-base /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/build install --record /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/install.log --single-version-externally-managed install_data

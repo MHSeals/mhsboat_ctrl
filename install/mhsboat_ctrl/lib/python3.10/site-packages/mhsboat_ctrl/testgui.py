@@ -22,7 +22,7 @@ BUOY_RADIUS = 10
 BOAT_WIDTH = 40
 BOAT_HEIGHT = 70
 BOAT_COLOR = "gray12"
-BACKGROUND_COLOR = "white"
+BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCALE = 0.5
@@ -52,8 +52,7 @@ class TESTGUI(Node):
         self.run = True
 
         self.map_sub = self.create_subscription(
-            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10
-        )
+            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10)
 
         self.display_timer = self.create_timer(0, self.display_loop)
 
@@ -72,12 +71,10 @@ class TESTGUI(Node):
             if event.type == pygame.QUIT or not self.run:
                 self.run = False
                 pygame.quit()
-                self.get_logger().info("Quit GUI")
+                print("GUI Quit")
                 return
 
         self.draw_buoys()
-        # self.get_logger().info(f"Displayed frame: {self.get_clock().now()}")
-        self.screen.fill(BACKGROUND_COLOR)
         pygame.display.update()
 
     def draw_buoys(self):
