@@ -39,12 +39,15 @@ class center_of_clusters(Node):
         self.get_logger().info("Started")
 
     def timer_callback(self):
+        self.get_logger().info("Publishing cluster centers")
         self.pcd_publisher.publish(self.pcd)
 
     def listener_callback(self, msg: PointCloud2):
+        self.get_logger().info("Processing new point cloud")
         self.pcd = point_cloud(msg, self)
 
     def mypublishAllPoints(self, data: PointCloud2):
+        self.get_logger().info("Publishing all points")
         self.allPointsPublisher.publish(data)
 
 
@@ -59,6 +62,7 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     :return: list of points
     :rtype: class:`sensor_msgs.msg.PointCloud2`
     """
+
     points = np.array(list(read_points(msg)))
 
     # get red of infinite points
