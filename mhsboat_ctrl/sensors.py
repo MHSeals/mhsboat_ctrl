@@ -247,29 +247,29 @@ class Sensors(Node):
                 self.map.append(detected_obj)
         
         # Check for objects that aren't seen by camera, but are seen by lidar
-        for map_obj in self.map:
-            theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
-            phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
+        # for map_obj in self.map:
+        #     theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
+        #     phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
 
-            coords = self.get_XYZ_coordinates(theta, phi, lidar_data, "lidar")
-            if coords is None:
-                continue
+        #     coords = self.get_XYZ_coordinates(theta, phi, lidar_data, "lidar")
+        #     if coords is None:
+        #         continue
 
-            x, y, z = coords
+        #     x, y, z = coords
 
-            if x == 0 and y == 0 and z == 0:
-                continue
+        #     if x == 0 and y == 0 and z == 0:
+        #         continue
 
-            map_obj.x = x
-            map_obj.y = y
-            map_obj.z = z
-            map_obj.last_seen = self.get_clock().now().nanoseconds
+        #     map_obj.x = x
+        #     map_obj.y = y
+        #     map_obj.z = z
+        #     map_obj.last_seen = self.get_clock().now().nanoseconds
 
-        # Handle other objects that havent been seen in for 5 seconds
-        for map_obj in self.map:
-            if self.get_clock().now().nanoseconds - map_obj.last_seen > 5e9:
-                self.get_logger().info(f"Removing {map_obj} from map as it hasn't been seen in 1 seconds")
-                self.map.remove(map_obj)
+        # # Handle other objects that havent been seen in for 5 seconds
+        # for map_obj in self.map:
+        #     if self.get_clock().now().nanoseconds - map_obj.last_seen > 5e9:
+        #         self.get_logger().info(f"Removing {map_obj} from map as it hasn't been seen in 1 seconds")
+        #         self.map.remove(map_obj)
 
         # Publish the map
         msg = BuoyMap()
