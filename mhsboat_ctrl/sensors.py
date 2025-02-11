@@ -410,7 +410,7 @@ class Sensors(Node):
     # Use angle to get the XYZ coordinates of each buoy
     # returns X, Y, Z
 
-    def get_XYZ_coordinates(self, theta: float, phi: float, pointCloud: PointCloud2, name: str):
+    def get_XYZ_coordinates(self, theta: float, phi: float, pointCloud: PointCloud2, name: str) -> Tuple[float, float, float] | None:
         """
         Get the XYZ coordinates of a buoy based on the angle from the camera
 
@@ -431,7 +431,6 @@ class Sensors(Node):
             x = point[0]
             y = point[1]
             z = point[2]
-            r = math.sqrt(x**2 + y**2 + z**2)
 
             # calculate angle from x axis, the camera always points towards the x axis so we only care about lidar points near the x axis
             # might have to change if camera doesn't point towards real lidar's x asix
@@ -443,21 +442,19 @@ class Sensors(Node):
             phiPoint = math.degrees(
                 math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
 
-            # if theta and phi are in list by some closeness
-            # keep point, else delete point
+            # max angle difference to consider a point a match
             degrees = 5
             if (
                 math.fabs(thetaPoint - theta) <= degrees
                 or math.fabs(phiPoint - phi) <= degrees
             ):
-                # print("theta: "+str(theta))
-                # print("thetaPoint: "+str(thetaPoint))
-                # print("theta-theta: "+str(math.fabs(thetaPoint-theta)))
-                # print()
-                # print("phi: "+str(phi))
-                # print("phiPoint: "+str(phiPoint))
-                # print("phi-phi: "+str(math.fabs(phiPoint-phi)))
-                # print("\n")
+                print("theta: "+str(theta))
+                print("thetaPoint: "+str(thetaPoint))
+                print("theta-theta: "+str(math.fabs(thetaPoint-theta)))
+                print()
+                print("phi: "+str(phi))
+                print("phiPoint: "+str(phiPoint))
+                print("phi-phi: "+str(math.fabs(phiPoint-phi)))
                 pass
             mask[index] = not (
                 math.fabs(thetaPoint - theta) <= degrees
@@ -471,6 +468,7 @@ class Sensors(Node):
             return rp[0], rp[1], rp[2]
         if len(points) == 0:
             return None
+        
         return (points[0][0], points[0][1], points[0][2])
 
 # TODO: Make SensorsSimulated relative to the boat
