@@ -206,7 +206,7 @@ class CameraSubscriber(Node):
 
                     # Disregard large bounding boxes
 
-                    if area / frame_area > 0.20:
+                    if area / frame_area > 0.50:
                         continue
 
                     x, y = bounding_box[:2]

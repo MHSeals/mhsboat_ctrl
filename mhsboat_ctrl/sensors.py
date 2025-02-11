@@ -265,9 +265,10 @@ class Sensors(Node):
             map_obj.z = z
             map_obj.last_seen = self.get_clock().now().nanoseconds
 
-        # Handle other objects that havent been seen in for 1 second
+        # Handle other objects that havent been seen in for 5 seconds
         for map_obj in self.map:
-            if self.get_clock().now().nanoseconds - map_obj.last_seen > 1e9:
+            if self.get_clock().now().nanoseconds - map_obj.last_seen > 5e9:
+                self.get_logger().info(f"Removing {map_obj} from map as it hasn't been seen in 1 seconds")
                 self.map.remove(map_obj)
 
         # Publish the map
