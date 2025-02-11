@@ -79,9 +79,6 @@ class TESTGUI(Node):
         pygame.display.update()
 
     def draw_buoys(self):
-        
-        self.buoys.append(BallBuoy(0, 0, 0, BuoyColors.GREEN))
-
         for buoy in self.buoys:
             self.get_logger().info(f"Drawing buoy {buoy} at {buoy.x}, {buoy.y}")
             if isinstance(buoy, Buoy):
