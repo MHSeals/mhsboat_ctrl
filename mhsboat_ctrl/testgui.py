@@ -84,40 +84,37 @@ class TESTGUI(Node):
         for buoy in self.buoys:
             self.get_logger().info(f"Drawing buoy {buoy} at {buoy.x}, {buoy.y}")
             if isinstance(buoy, Buoy):
-                color = convert_color(buoy.color.value)
+                color = self.convert_color(buoy.color.value)
                 # Transform world coordinates to screen coordinates
                 x, y = world_to_screen(buoy.x, buoy.y)
     
                 if isinstance(buoy, PoleBuoy):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
-                    pygame.draw.circle(self.screen, darken_color(
+                    pygame.draw.circle(self.screen, self.darken_color(
                         color, 80), (x, y), int(BUOY_RADIUS * 5 / 6))
                     pygame.draw.circle(self.screen, color, (x, y), int(BUOY_RADIUS * 2 / 5))
                 elif isinstance(buoy, BallBuoy):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
-                    pygame.draw.circle(self.screen, darken_color(
-                        convert_color("blue"), 120), (x, y), int(BUOY_RADIUS / 2))
+                    pygame.draw.circle(self.screen, self.darken_color(
+                        self.convert_color("blue"), 120), (x, y), int(BUOY_RADIUS / 2))
                 else:
-                    print("Buoy variation unspecified")
+                    self.get_logger().info("Buoy variation unspecified")
             else:
-                print("Buoy type error")
+                self.get_logger().info("Buoy type error")
 
-
-def convert_color(color: str) -> pygame.Color:
-    try:
-        return pygame.Color(color)
-    except ValueError as e:
-        print(f"Color not defined in colordict: {e}")
-        return pygame.Color("pink")  # Default color to indicate error
-
-# Function that darkens any given color by subtracting a certain amount from the color value
-
-
-def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
-    new_color = []
-    for i in range(3):
-        new_color.append(max(color[i] - amount, 0))
-    return pygame.Color(tuple(new_color))
+    def convert_color(self, color: str) -> pygame.Color:
+        try:
+            return pygame.Color(color)
+        except ValueError as e:
+            self.get_logger().info(f"Color not defined in colordict: {e}")
+            return pygame.Color("pink")  # Default color to indicate error
+    
+    # Function that darkens any given color by subtracting a certain amount from the color value
+    def darken_color(self, color: pygame.Color, amount: int) -> pygame.Color:
+        new_color = []
+        for i in range(3):
+            new_color.append(max(color[i] - amount, 0))
+        return pygame.Color(tuple(new_color))
 
 
 def main(args=None):
