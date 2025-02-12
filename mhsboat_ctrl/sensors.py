@@ -444,7 +444,11 @@ class Sensors(Node):
                 math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
             
             # if this works im a genius
-            thetaPoint -= math.pi
+            thetaPoint -= 180
+
+            # normalize theta and phi to be between 0 and 360
+            thetaPoint = (thetaPoint + 360) % 360
+            phiPoint = (phiPoint + 360) % 360
 
             # max angle difference to consider a point a match
             degrees = 5
