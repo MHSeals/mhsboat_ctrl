@@ -4,7 +4,8 @@ from rclpy.node import Node
 from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
 from sensor_msgs.msg import PointCloud2
-from geometry_msgs.msg import Quaternion, PoseStamped
+from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Quaternion
 from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
 import os
 import yaml
@@ -40,7 +41,7 @@ class Sensors(Node):
         # results
         self._camera_cache: List[Tuple[AiOutput, float]] = []
         self._lidar_cache: List[Tuple[PointCloud2, float]] = []
-        self._odom_cache: List[Tuple[PoseStamped, float]] = []
+        self._odom_cache: List[Tuple[Odometry, float]] = []
 
         self._ai_out_sub = self.create_subscription(
             AiOutput, "/AiOutput", self._camera_callback, 10
@@ -59,7 +60,7 @@ class Sensors(Node):
         )
 
         self._odom_out_sub = self.create_subscription(
-            PoseStamped(), "/mavros/local_position/pose", self._odom_callback, self._qos_profile
+            Odometry(), "/kiss/odometry", self._odom_callback, self._qos_profile
         )
 
         self._process_timer = self.create_timer(0.1, self._process_sensor_data)
@@ -82,7 +83,7 @@ class Sensors(Node):
         if len(self._lidar_cache) > 3:
             self._lidar_cache.pop(0)
 
-    def _odom_callback(self, msg: PoseStamped):
+    def _odom_callback(self, msg: Odometry):
         self.get_logger().info("Received odometry data")
         self._odom_cache.append((msg, self.get_clock().now().nanoseconds))
         if len(self._odom_cache) > 3:
@@ -97,7 +98,7 @@ class Sensors(Node):
         return self._lidar_cache[-1][0] if len(self._lidar_cache) > 0 else None
 
     @property
-    def odom_output(self) -> Optional[PoseStamped]:
+    def odom_output(self) -> Optional[Odometry]:
         return self._odom_cache[-1][0] if len(self._odom_cache) > 0 else None
 
     def _process_sensor_data(self) -> None:
@@ -304,12 +305,12 @@ class Sensors(Node):
         
         self.map_publisher.publish(msg)
     
-    def _get_translation_matrix(self, pose: PoseStamped) -> np.ndarray:
+    def _get_translation_matrix(self, odom: Odometry) -> np.ndarray:
         """
         Create a translation matrix from a PoseStamped message.
         """
-        orientation = pose.pose.orientation
-        position = pose.pose.position
+        orientation = odom.pose.pose.orientation
+        position = odom.pose.pose.position
 
         self.get_logger().info(f"Orientation: {orientation}")
         self.get_logger().info(f"Position: {position}")
