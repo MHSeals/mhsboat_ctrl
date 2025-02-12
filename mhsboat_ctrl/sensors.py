@@ -364,7 +364,7 @@ class Sensors(Node):
         :return: True if the objects match, False otherwise
         :rtype:  bool
         """
-        distance_threshold = 12.0  # Define a threshold for matching objects
+        distance_threshold = 0.01 # Define a threshold for matching objects
         self.get_logger().info(f"Checking if {detected_obj} matches {map_obj}")
         distance = math.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
         self.get_logger().info(f"Distance: {distance}")
