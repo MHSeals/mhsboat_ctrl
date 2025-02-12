@@ -25,7 +25,7 @@ BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "white"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCALE = 1
+SCALE = 0.1
 
 def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, int]:
     # Translate world coordinates so that (0,0) is at the center of the screen
