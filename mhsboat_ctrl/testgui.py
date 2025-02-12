@@ -18,14 +18,14 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Hide annoying prompt
 FONT_SIZE = 40
 FONT = "Segoe UI Medium"
 FONT_COLOR = "black"
-BUOY_RADIUS = 20
+BUOY_RADIUS = 4
 BOAT_WIDTH = 40
 BOAT_HEIGHT = 70
 BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "white"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCALE = 0.5
+SCALE = 1
 
 def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, int]:
     # Translate world coordinates so that (0,0) is at the center of the screen
