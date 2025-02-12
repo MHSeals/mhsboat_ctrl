@@ -6,16 +6,14 @@ from mhsboat_ctrl.mhsboat_ctrl import BoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import BallBuoy
-from mhsboat_ctrl.sensors import Sensors, SensorsSimulated
 from mhsboat_ctrl.utils.math_util import distance, midpoint, calculate_buoy_angle
 
 class TaskTwo(Task):
     status = TaskStatus.NOT_STARTED
 
-    def __init__(self, boat_controller: BoatController, sensors: Union[Sensors, SensorsSimulated]):
+    def __init__(self, boat_controller: BoatController):
         self.boat_controller = boat_controller
-        self.sensors = sensors
-        self._buoys = []
+        self._buoy_map = boat_controller.buoy_map 
         self.red_ball_buoys = []
         self.green_ball_buoys = []
         self.yellow_ball_buoys = []
@@ -44,9 +42,9 @@ class TaskTwo(Task):
         
         completion_status = TaskCompletionStatus.NOT_STARTED
         
-        self.red_ball_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.RED]
-        self.green_ball_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.GREEN]
-        self.yellow_ball_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW]
+        self.red_ball_buoys = [buoy for buoy in self.buoy_map if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.RED]
+        self.green_ball_buoys = [buoy for buoy in self.buoy_map if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.GREEN]
+        self.yellow_ball_buoys = [buoy for buoy in self.buoy_map if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW]
         
         while not completion_status == TaskCompletionStatus.SUCCESS or not completion_status == TaskCompletionStatus.FAILURE:
             """
@@ -64,7 +62,7 @@ class TaskTwo(Task):
         return completion_status
         
 def main(controller: BoatController):
-    controller.add_task(TaskTwo(controller, controller.sensors))
+    controller.add_task(TaskTwo(controller))
 
 """
 Steps to solve:

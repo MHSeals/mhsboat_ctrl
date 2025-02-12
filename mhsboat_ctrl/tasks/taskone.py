@@ -5,7 +5,6 @@ from mhsboat_ctrl.mhsboat_ctrl import BoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import PoleBuoy
-from mhsboat_ctrl.sensors import Sensors, SensorsSimulated
 from mhsboat_ctrl.utils.math_util import distance, midpoint, calculate_buoy_angle
 
 # TODO: What is a good value for these?
@@ -21,9 +20,9 @@ BOAT_Y = 0
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
 
-    def __init__(self, boat_controller: BoatController, sensors: Union[Sensors, SensorsSimulated]):
+    def __init__(self, boat_controller: BoatController):
         self.boat_controller = boat_controller
-        self.sensors = sensors
+        self.buoy_map = self.boat_controller.buoy_map
         self._buoys = []
         self.red_pole_buoys = []
         self.green_pole_buoys = []
@@ -39,8 +38,8 @@ class TaskOne(Task):
         R   G
         """
 
-        self.red_pole_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.RED]
-        self.green_pole_buoys = [buoy for buoy in self.sensors.map if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.GREEN]
+        self.red_pole_buoys = [buoy for buoy in self.buoy_map if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.RED]
+        self.green_pole_buoys = [buoy for buoy in self.buoy_map if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.GREEN]
 
         if len(self.red_pole_buoys) < 2 or len(self.green_pole_buoys) < 2:
             return None
@@ -129,7 +128,6 @@ class TaskOne(Task):
                 closest_green_buoy = (self.green_pole_buoys[0].x, self.green_pole_buoys[0].y)
             else:
                 closest_green_buoy = (self.green_pole_buoys[1].x, self.green_pole_buoys[1].y)
-            
             # Get the midpoint
             mid = midpoint(closest_red_buoy[0], closest_red_buoy[1], closest_green_buoy[0], closest_green_buoy[1])
             # 
