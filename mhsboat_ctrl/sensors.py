@@ -318,6 +318,8 @@ class Sensors(Node):
         # Convert quaternion to rotation matrix
         rotation_matrix = self._quaternion_to_rotation_matrix(orientation)
 
+        self.get_logger().info(f"Rotation matrix: {rotation_matrix}")
+
         # Build the translation matrix with position data
         translation_matrix = np.eye(4)
         translation_matrix[:3, :3] = rotation_matrix
