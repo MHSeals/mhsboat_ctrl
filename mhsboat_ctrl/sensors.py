@@ -33,8 +33,6 @@ class Sensors(Node):
 
         self.map: List[CourseObject] = []
 
-        self.controller = ThrusterController()
-
         # cache for the sensors, limited to 3 items
         # this allows us to find the data that has the
         # smallest time difference, giving more accurate
@@ -477,13 +475,11 @@ class Sensors(Node):
         
         return (points[0][0], points[0][1], points[0][2])
 
-# TODO: Make SensorsSimulated relative to the boat
-# TODO: Move buoy locations according to fake odometry
+# TODO: rewrite this class as its own node
 class SensorsSimulated(Node):
+    # TODO: fix this class
     def __init__(self, map_file: str):
         super().__init__('sensors')
-
-        self.controller = SimulatedController()
 
         if not os.path.exists(map_file):
             raise FileNotFoundError(f"Map file {map_file} does not exist")
