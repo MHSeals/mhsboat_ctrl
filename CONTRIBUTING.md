@@ -35,6 +35,9 @@ from mhsboat_ctrl.tasks import Task
 - Use comments to explain the purpose of complex code blocks.
 - Use `# TODO:` to indicate areas that need improvement or additional features.
 
+### IF YOU ARE THINKING ABOUT COPY AND PASTING CODE FROM SOMEWHERE ELSE IN THE PROJECT
+- Don't. If you find yourself copying and pasting code, it's a sign that you should refactor the code into a function or class.
+
 ## Paradigms
 
 ### Object-Oriented Programming
