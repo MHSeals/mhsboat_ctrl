@@ -6,7 +6,13 @@ import rclpy.utilities
 from sensor_msgs.msg import PointCloud2
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import Quaternion
-from rclpy.qos import QoSProfile, QoSHistoryPolicy, QoSReliabilityPolicy, QoSDurabilityPolicy, QoSLivelinessPolicy
+from rclpy.qos import (
+    QoSProfile,
+    QoSHistoryPolicy,
+    QoSReliabilityPolicy,
+    QoSDurabilityPolicy,
+    QoSLivelinessPolicy,
+)
 import os
 import yaml
 import math
@@ -16,7 +22,10 @@ from typing import Dict, List, Tuple, Optional
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
-from mhsboat_ctrl.utils.thruster_controller import ThrusterController, SimulatedController
+from mhsboat_ctrl.utils.thruster_controller import (
+    ThrusterController,
+    SimulatedController,
+)
 
 buoy_color_mapping: Dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,
@@ -29,7 +38,7 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
 
 class Sensors(Node):
     def __init__(self):
-        super().__init__('sensors')
+        super().__init__("sensors")
 
         self.map: List[CourseObject] = []
 
@@ -103,20 +112,32 @@ class Sensors(Node):
         """
         Process the sensor data
         """
-        if len(self._camera_cache) == 0 or len(self._lidar_cache) == 0 or len(self._odom_cache) == 0:
+        if (
+            len(self._camera_cache) == 0
+            or len(self._lidar_cache) == 0
+            or len(self._odom_cache) == 0
+        ):
             self.get_logger().info("Not enough data to process; waiting for more data")
             return
 
         # find the data that has the smallest time difference
         # and process it
-        camera_data, camera_time = min(self._camera_cache, key=lambda x: abs(
-            x[1] - self.get_clock().now().nanoseconds))
-        lidar_data, lidar_time = min(self._lidar_cache, key=lambda x: abs(
-            x[1] - self.get_clock().now().nanoseconds))
-        odom_data, odom_time = min(self._odom_cache, key=lambda x: abs(
-            x[1] - self.get_clock().now().nanoseconds))
-        
-        time_diff = max(camera_time, lidar_time, odom_time) - min(camera_time, lidar_time, odom_time)
+        camera_data, camera_time = min(
+            self._camera_cache,
+            key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
+        )
+        lidar_data, lidar_time = min(
+            self._lidar_cache,
+            key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
+        )
+        odom_data, odom_time = min(
+            self._odom_cache,
+            key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
+        )
+
+        time_diff = max(camera_time, lidar_time, odom_time) - min(
+            camera_time, lidar_time, odom_time
+        )
         self.get_logger().info(f"Data time difference: {time_diff} ns")
 
         # Get which data is laggging behind
@@ -135,29 +156,53 @@ class Sensors(Node):
             self.get_logger().warn(f"Data time difference is large: {time_diff} ns")
 
         if camera_data.num != len(camera_data.lefts):
-            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match lefts")
-            self.get_logger().warn(f"Num: {camera_data.num}, Lefts: {len(camera_data.lefts)}")
-        
+            self.get_logger().warn(
+                "Inconsistent camera data: number of bounding boxes does not match lefts"
+            )
+            self.get_logger().warn(
+                f"Num: {camera_data.num}, Lefts: {len(camera_data.lefts)}"
+            )
+
         if camera_data.num != len(camera_data.tops):
-            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match tops")
-            self.get_logger().warn(f"Num: {camera_data.num}, Tops: {len(camera_data.tops)}")
-        
+            self.get_logger().warn(
+                "Inconsistent camera data: number of bounding boxes does not match tops"
+            )
+            self.get_logger().warn(
+                f"Num: {camera_data.num}, Tops: {len(camera_data.tops)}"
+            )
+
         if camera_data.num != len(camera_data.widths):
-            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match widths")
-            self.get_logger().warn(f"Num: {camera_data.num}, Widths: {len(camera_data.widths)}")
-        
+            self.get_logger().warn(
+                "Inconsistent camera data: number of bounding boxes does not match widths"
+            )
+            self.get_logger().warn(
+                f"Num: {camera_data.num}, Widths: {len(camera_data.widths)}"
+            )
+
         if camera_data.num != len(camera_data.heights):
-            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match heights")
-            self.get_logger().warn(f"Num: {camera_data.num}, Heights: {len(camera_data.heights)}")
-        
+            self.get_logger().warn(
+                "Inconsistent camera data: number of bounding boxes does not match heights"
+            )
+            self.get_logger().warn(
+                f"Num: {camera_data.num}, Heights: {len(camera_data.heights)}"
+            )
+
         if camera_data.num != len(camera_data.types):
-            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match types")
-            self.get_logger().warn(f"Num: {camera_data.num}, Types: {len(camera_data.types)}")
-        
+            self.get_logger().warn(
+                "Inconsistent camera data: number of bounding boxes does not match types"
+            )
+            self.get_logger().warn(
+                f"Num: {camera_data.num}, Types: {len(camera_data.types)}"
+            )
+
         if camera_data.num != len(camera_data.confidences):
-            self.get_logger().warn("Inconsistent camera data: number of bounding boxes does not match confidences")
-            self.get_logger().warn(f"Num: {camera_data.num}, Confidences: {len(camera_data.confidences)}")
-        
+            self.get_logger().warn(
+                "Inconsistent camera data: number of bounding boxes does not match confidences"
+            )
+            self.get_logger().warn(
+                f"Num: {camera_data.num}, Confidences: {len(camera_data.confidences)}"
+            )
+
         local_detected_objects: List[CourseObject] = []
 
         for i in range(camera_data.num):
@@ -169,10 +214,11 @@ class Sensors(Node):
             # Use angle to get the XYZ coordinates of each buoy
             # returns X, Y, Z
             coords = self.get_XYZ_coordinates(
-                theta, phi, lidar_data, camera_data.types[i])
-            
+                theta, phi, lidar_data, camera_data.types[i]
+            )
+
             self.get_logger().info(f"Buoy {i}: Coords: {coords}")
-            
+
             if coords is None:
                 continue
 
@@ -194,7 +240,8 @@ class Sensors(Node):
 
             if camera_data.types[i].endswith("pole_buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(PoleBuoy(x, y, z, buoy_color)) # type: ignore - this will always be either red or green
+                # type: ignore - this will always be either red or green
+                local_detected_objects.append(PoleBuoy(x, y, z, buoy_color))
             elif camera_data.types[i].endswith("buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 local_detected_objects.append(BallBuoy(x, y, z, buoy_color))
@@ -204,24 +251,32 @@ class Sensors(Node):
                 pass
             elif camera_data.types[i].endswith("circle"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, z, Shapes.CIRCLE, shape_color))
+                local_detected_objects.append(
+                    Shape(x, y, z, Shapes.CIRCLE, shape_color)
+                )
             elif camera_data.types[i].endswith("triangle"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, z, Shapes.TRIANGLE, shape_color))
+                local_detected_objects.append(
+                    Shape(x, y, z, Shapes.TRIANGLE, shape_color)
+                )
             elif camera_data.types[i].endswith("cross"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 local_detected_objects.append(Shape(x, y, z, Shapes.CROSS, shape_color))
             elif camera_data.types[i].endswith("square"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, z, Shapes.SQUARE, shape_color))
+                local_detected_objects.append(
+                    Shape(x, y, z, Shapes.SQUARE, shape_color)
+                )
             elif camera_data.types[i].endswith("duck_image"):
                 # TODO: do we need to track duck images?
                 pass
 
             local_detected_objects[-1].last_seen = self.get_clock().now().nanoseconds
 
-        self.get_logger().info(f"Detected objects in this frame: {local_detected_objects}")
-        
+        self.get_logger().info(
+            f"Detected objects in this frame: {local_detected_objects}"
+        )
+
         # Get change in position and orientation from odometry
         if odom_data is None:
             self.get_logger().warn("No odometry data available")
@@ -246,7 +301,7 @@ class Sensors(Node):
                 ...
             if not matched:
                 self.map.append(detected_obj)
-        
+
         # Check for objects that aren't seen by camera, but are seen by lidar
         for map_obj in self.map:
             theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
@@ -267,10 +322,11 @@ class Sensors(Node):
             map_obj.last_seen = self.get_clock().now().nanoseconds
 
         # Handle other objects that havent been seen in for 5 seconds
-        for map_obj in self.map:
-            if self.get_clock().now().nanoseconds - map_obj.last_seen > 5e9:
-                self.get_logger().info(f"Removing {map_obj} from map as it hasn't been seen in 1 seconds")
-                self.map.remove(map_obj)
+        self.map = [
+            obj
+            for obj in self.map
+            if self.get_clock().now().nanoseconds - obj.last_seen < 5e9
+        ]
 
         self.get_logger().info(f"Map: {self.map}")
 
@@ -281,7 +337,7 @@ class Sensors(Node):
             x.append(obj.x)
             y.append(obj.y)
             z.append(obj.z)
-            
+
             if isinstance(obj, Shape):
                 types.append(obj.shape.value)
                 colors.append(obj.color.value)
@@ -300,9 +356,9 @@ class Sensors(Node):
         msg.z = z
         msg.types = types
         msg.colors = colors
-        
+
         self.map_publisher.publish(msg)
-    
+
     def _get_translation_matrix(self, odom: Odometry) -> np.ndarray:
         """
         Create a translation matrix from a PoseStamped message.
@@ -335,11 +391,13 @@ class Sensors(Node):
         :rtype:  numpy.ndarray
         """
         x, y, z, w = q.x, q.y, q.z, q.w
-        return np.array([
-            [1 - 2 * (y ** 2 + z ** 2), 2 * (x * y - z * w), 2 * (x * z + y * w)],
-            [2 * (x * y + z * w), 1 - 2 * (x ** 2 + z ** 2), 2 * (y * z - x * w)],
-            [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x ** 2 + y ** 2)]
-        ])
+        return np.array(
+            [
+                [1 - 2 * (y**2 + z**2), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+                [2 * (x * y + z * w), 1 - 2 * (x**2 + z**2), 2 * (y * z - x * w)],
+                [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x**2 + y**2)],
+            ]
+        )
 
     def _translate_map(self, translation_matrix: np.ndarray) -> None:
         """
@@ -364,9 +422,11 @@ class Sensors(Node):
         :return: True if the objects match, False otherwise
         :rtype:  bool
         """
-        distance_threshold = 0.01 # Define a threshold for matching objects
+        distance_threshold = 0.01  # TODO: tune this value
         self.get_logger().info(f"Checking if {detected_obj} matches {map_obj}")
-        distance = math.sqrt((detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2)
+        distance = math.sqrt(
+            (detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2
+        )
         self.get_logger().info(f"Distance: {distance}")
         self.get_logger().info(f"Match: {distance < distance_threshold}")
         return distance < distance_threshold
@@ -398,20 +458,17 @@ class Sensors(Node):
         deltaX = pointX - centerX
         deltaY = pointY - centerY
 
-        fX = camera_data.img_width / \
-            (2.0 * math.tan(math.radians(FOV_H / 2.0)))
-        fY = camera_data.img_height / \
-            (2.0 * math.tan(math.radians(FOV_V / 2.0)))
+        fX = camera_data.img_width / (2.0 * math.tan(math.radians(FOV_H / 2.0)))
+        fY = camera_data.img_height / (2.0 * math.tan(math.radians(FOV_V / 2.0)))
 
-        theta = math.degrees(math.atan(deltaX / fX))
-        phi = math.degrees(math.atan(deltaY / fY))
+        theta = math.degrees(math.atan2(deltaX, fX))
+        phi = math.degrees(math.atan2(deltaY, fY))
 
         return theta, phi
 
-    # Use angle to get the XYZ coordinates of each buoy
-    # returns X, Y, Z
-
-    def get_XYZ_coordinates(self, theta: float, phi: float, pointCloud: PointCloud2, name: str) -> Optional[Tuple[float, float, float]]:
+    def get_XYZ_coordinates(
+        self, theta: float, phi: float, pointCloud: PointCloud2, name: str
+    ) -> Optional[Tuple[float, float, float]]:
         """
         Get the XYZ coordinates of a buoy based on the angle from the camera
 
@@ -437,12 +494,10 @@ class Sensors(Node):
             # might have to change if camera doesn't point towards real lidar's x asix
 
             thetaPoint = (
-                math.degrees(math.acos(x / math.sqrt(x**2 + y**2))
-                             ) * y / abs(y) * -1
+                math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
             )
-            phiPoint = math.degrees(
-                math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
-            
+            phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+
             # if this works im a genius
             thetaPoint -= 180
 
@@ -452,18 +507,6 @@ class Sensors(Node):
 
             # max angle difference to consider a point a match
             degrees = 5
-            if (
-                math.fabs(thetaPoint - theta) <= degrees
-                or math.fabs(phiPoint - phi) <= degrees
-            ):
-                # print("theta: "+str(theta))
-                # print("thetaPoint: "+str(thetaPoint))
-                # print("theta-theta: "+str(math.fabs(thetaPoint-theta)))
-                # print()
-                # print("phi: "+str(phi))
-                # print("phiPoint: "+str(phiPoint))
-                # print("phi-phi: "+str(math.fabs(phiPoint-phi)))
-                pass
             mask[index] = not (
                 math.fabs(thetaPoint - theta) <= degrees
                 and math.fabs(phiPoint - phi) <= degrees
@@ -476,14 +519,17 @@ class Sensors(Node):
             return rp[0], rp[1], rp[2]
         if len(points) == 0:
             return None
-        
+
         return (points[0][0], points[0][1], points[0][2])
 
+
 # TODO: rewrite this class as its own node
+
+
 class SensorsSimulated(Node):
     # TODO: fix this class
     def __init__(self, map_file: str):
-        super().__init__('sensors')
+        super().__init__("sensors")
 
         if not os.path.exists(map_file):
             raise FileNotFoundError(f"Map file {map_file} does not exist")
@@ -495,52 +541,55 @@ class SensorsSimulated(Node):
                 map_data = yaml.safe_load(f)
 
                 for obj in map_data["objects"]:
-                    if obj.get('pole_buoy') is not None:
-                        if obj['pole_buoy']['color'].upper() not in ["RED", "GREEN"]:
-                            raise ValueError(f"Invalid color for pole buoy: {obj['pole_buoy']['color']} at {obj['pole_buoy']['x']}, {obj['pole_buoy']['y']}")
-                        
+                    if obj.get("pole_buoy") is not None:
+                        if obj["pole_buoy"]["color"].upper() not in ["RED", "GREEN"]:
+                            raise ValueError(
+                                f"Invalid color for pole buoy: {obj['pole_buoy']['color']} at {obj['pole_buoy']['x']}, {obj['pole_buoy']['y']}"
+                            )
+
                         self.map.append(
                             PoleBuoy(
-                                obj['pole_buoy']['x'],
-                                obj['pole_buoy']['y'],
+                                obj["pole_buoy"]["x"],
+                                obj["pole_buoy"]["y"],
                                 # type: ignore
-                                BuoyColors[obj['pole_buoy']['color'].upper()] # type: ignore - this will always be either red or green
+                                # type: ignore - this will always be either red or green
+                                BuoyColors[obj["pole_buoy"]["color"].upper()],
                             )
                         )
-                    elif obj.get('ball_buoy') is not None:
+                    elif obj.get("ball_buoy") is not None:
                         self.map.append(
                             BallBuoy(
-                                obj['ball_buoy']['x'],
-                                obj['ball_buoy']['y'],
-                                obj['ball_buoy']['z'],
-                                BuoyColors[obj['ball_buoy']['color'].upper()]
+                                obj["ball_buoy"]["x"],
+                                obj["ball_buoy"]["y"],
+                                obj["ball_buoy"]["z"],
+                                BuoyColors[obj["ball_buoy"]["color"].upper()],
                             )
                         )
-                    elif obj.get('buoy') is not None:
+                    elif obj.get("buoy") is not None:
                         self.map.append(
                             Buoy(
-                                obj['buoy']['x'],
-                                obj['buoy']['y'],
-                                obj['buoy']['z'],
-                                BuoyColors[obj['buoy']['color'].upper()]
+                                obj["buoy"]["x"],
+                                obj["buoy"]["y"],
+                                obj["buoy"]["z"],
+                                BuoyColors[obj["buoy"]["color"].upper()],
                             )
                         )
-                    elif obj.get('shape') is not None:
+                    elif obj.get("shape") is not None:
                         self.map.append(
                             Shape(
-                                obj['shape']['x'],
-                                obj['shape']['y'],
-                                obj['shape']['z'],
-                                Shapes[obj['shape']['shape'].upper()],
-                                BuoyColors[obj['shape']['color'].upper()]
+                                obj["shape"]["x"],
+                                obj["shape"]["y"],
+                                obj["shape"]["z"],
+                                Shapes[obj["shape"]["shape"].upper()],
+                                BuoyColors[obj["shape"]["color"].upper()],
                             )
                         )
-                    elif obj.get('course_object') is not None:
+                    elif obj.get("course_object") is not None:
                         self.map.append(
                             CourseObject(
-                                obj['course_object']['x'],
-                                obj['course_object']['y'],
-                                obj['course_object']['z']
+                                obj["course_object"]["x"],
+                                obj["course_object"]["y"],
+                                obj["course_object"]["z"],
                             )
                         )
                     else:
@@ -549,6 +598,7 @@ class SensorsSimulated(Node):
                 raise ValueError(f"Error parsing map file: {e}")
 
         self.get_logger().info("Simualted Sensors Node Initialized")
+
 
 def main(args=None):
     rclpy.init(args=args)
