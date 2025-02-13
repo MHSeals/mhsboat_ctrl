@@ -8,6 +8,7 @@ from std_msgs.msg import Header
 import numpy as np
 import struct
 from sklearn.cluster import DBSCAN
+import traceback
 
 from mhsboat_ctrl.utils.lidar import read_points
 
@@ -44,12 +45,29 @@ class center_of_clusters(Node):
 
     def listener_callback(self, msg: PointCloud2):
         self.get_logger().info("Processing new point cloud")
-        self.pcd = point_cloud(msg, self)
+        self.pcd = safe_point_cloud(msg, self)
 
     def mypublishAllPoints(self, data: PointCloud2):
         self.get_logger().info("Publishing all points")
         self.allPointsPublisher.publish(data)
 
+def safe_point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
+    """
+    Wraps the point_cloud function in a try/except block to catch any errors
+
+    Args:
+        msg (PointCloud2): PointCloud2 message
+        node (center_of_clusters): Node that will publish the point cloud
+
+    Returns:
+        PointCloud2: _description_
+    """
+    try:
+        return point_cloud(msg, node)
+    except Exception as e:
+        print("Error processing point cloud: ")
+        traceback.print_exc()
+        return msg
 
 def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     """
