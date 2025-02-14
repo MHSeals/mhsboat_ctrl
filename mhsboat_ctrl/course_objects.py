@@ -10,7 +10,7 @@ class CourseObject:
         self.last_seen = 0
 
     def __str__(self):
-        return f"CourseObject({self.x}, {self.y})"
+        return f"CourseObject({self.x}, {self.y}, {self.z})"
 
 
 class Shape(CourseObject):
@@ -23,7 +23,7 @@ class Shape(CourseObject):
         self.last_seen = 0
 
     def __str__(self):
-        return f"Shape({self.x}, {self.y}, {self.shape}, {self.color})"
+        return f"Shape({self.x}, {self.y}, {self.z}, {self.shape}, {self.color})"
 
 
 class Buoy(CourseObject):
@@ -35,7 +35,7 @@ class Buoy(CourseObject):
         self.last_seen = 0
 
     def __str__(self):
-        return f"Buoy({self.x}, {self.y})"
+        return f"Buoy({self.x}, {self.y}, {self.z})"
 
 
 class PoleBuoy(Buoy):
@@ -47,7 +47,7 @@ class PoleBuoy(Buoy):
         self.last_seen = 0
 
     def __str__(self):
-        return f"PoleBuoy({self.x}, {self.y}, {self.color})"
+        return f"PoleBuoy({self.x}, {self.y}, {self.z}, {self.color})"
 
 
 class BallBuoy(Buoy):
@@ -59,4 +59,4 @@ class BallBuoy(Buoy):
         self.last_seen = 0
 
     def __str__(self):
-        return f"BallBuoy({self.x}, {self.y}, {self.color})"
+        return f"BallBuoy({self.x}, {self.y}, {self.z}, {self.color})"

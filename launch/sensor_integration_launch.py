@@ -33,4 +33,12 @@ def generate_launch_description():
             output='screen',
             parameters=[ekf_config],
         ),
+        # RTAB-Map Node for Visual Odometry & Mapping
+        Node(
+            package='rtabmap_ros',
+            executable='rgbd_odometry',
+            name='rgbd_odometry',
+            output='screen',
+            parameters=[{'frame_id': 'camera_link'}]
+        ),
     ])
