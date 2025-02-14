@@ -22,7 +22,8 @@ def generate_launch_description():
             executable='imu_filter_madgwick_node',
             name='imu_filter_madgwick',
             output='screen',
-            parameters=[{'use_mag': False}]
+            parameters=[{'use_mag': False}],
+            remappings=[('imu/data_raw', '/mavros/imu/data_raw')]),
         ),
         # Launch Robot Localization Node
         Node(
