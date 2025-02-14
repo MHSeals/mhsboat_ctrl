@@ -67,7 +67,7 @@ class Sensors(Node):
         )
 
         self._odom_out_sub = self.create_subscription(
-            Odometry(), "/kiss/odometry", self._odom_callback, self._qos_profile
+            Odometry(), "/odometry/filtered", self._odom_callback, self._qos_profile
         )
 
         self._process_timer = self.create_timer(0.1, self._process_sensor_data)
