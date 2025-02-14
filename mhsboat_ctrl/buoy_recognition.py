@@ -95,7 +95,7 @@ class CameraSubscriber(Node):
         self.track_history = defaultdict(lambda: [])
 
         self.create_subscription(
-            Image, "/camera/color/image_raw", self.callback, 10)
+            Image, "/color/image_raw", self.callback, 10)
         # self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
 
         # create publisher that publishes bounding box coordinates and size and buoy type
