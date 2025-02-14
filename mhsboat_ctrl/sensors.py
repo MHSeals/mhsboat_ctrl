@@ -502,8 +502,8 @@ class Sensors(Node):
             # thetaPoint -= 180
 
             # normalize theta and phi to be between 0 and 360
-            thetaPoint = (thetaPoint + 360) % 360
-            phiPoint = (phiPoint + 360) % 360
+            # thetaPoint = (thetaPoint + 360) % 360
+            # phiPoint = (phiPoint + 360) % 360
 
             # max angle difference to consider a point a match
             degrees = 5
