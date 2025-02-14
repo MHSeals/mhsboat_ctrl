@@ -407,9 +407,11 @@ class Sensors(Node):
         :type  translation_matrix: numpy.ndarray
         """
         for obj in self.map:
+            self.get_logger().info(f"Translating {obj}")
             point = np.array([obj.x, obj.y, 0, 1])
             translated_point = translation_matrix @ point
             obj.x, obj.y = translated_point[:2]
+            self.get_logger().info(f"Translated point: {translated_point}")
 
     def _is_match(self, detected_obj: CourseObject, map_obj: CourseObject) -> bool:
         """
@@ -423,7 +425,7 @@ class Sensors(Node):
         :rtype:  bool
         """
         distance_threshold = 0.01  # TODO: tune this value
-        self.get_logger().info(f"Checking if {detected_obj} matches {map_obj}")
+        self.get_logger().info(f"Checking if {detected_obj} matches original {map_obj}")
         distance = math.sqrt(
             (detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2
         )
