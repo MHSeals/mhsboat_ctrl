@@ -7,7 +7,7 @@ def generate_launch_description():
     pkg_share = get_package_share_directory('mhsboat_ctrl')
     ekf_config = os.path.join(pkg_share, 'config', 'ekf.yaml')
 
-    return LaunchDescription([
+    return LaunchDescription([(
         # Launch RealSense Camera Node
         Node(
             package='realsense2_camera',
