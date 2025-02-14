@@ -54,6 +54,12 @@ def generate_launch_description():
                     'depth_topic': '/depth/image_rect_raw',
                     'camera_info_topic': '/color/camera_info'
                 }],
+                remappings=[
+                    ('rgb/image', '/color/image_raw'),
+                    ('depth/image', '/depth/image_rect_raw'),
+                    ('rgb/camera_info', '/color/camera_info'),
+                    ('odom', '/odom')
+                ],
             ),
         ]
     )
