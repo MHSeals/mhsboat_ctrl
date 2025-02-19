@@ -18,8 +18,7 @@ import yaml
 import math
 import numpy as np
 from typing import Dict, List, Tuple, Optional
-from tf2_ros import TransformStamped
-from tf2_geometry_msgs import do_transform_point, PointStamped
+import tf_transformations
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -285,32 +284,34 @@ class Sensors(Node):
             return
 
         # Translate the map based on odometry
-        transform_stamped = TransformStamped()
-        transform_stamped.header.stamp = odom_data.header.stamp
-        transform_stamped.header.frame_id = "odom"
-        transform_stamped.child_frame_id = "base_link"
-        transform_stamped.transform.translation.x = odom_data.pose.pose.position.x
-        transform_stamped.transform.translation.y = odom_data.pose.pose.position.y
-        transform_stamped.transform.translation.z = odom_data.pose.pose.position.z
-        transform_stamped.transform.rotation = odom_data.pose.pose.orientation
+        trans = [
+            odom_data.pose.pose.position.x,
+            odom_data.pose.pose.position.y,
+            odom_data.pose.pose.position.z,
+        ]
+
+        quat = [
+            odom_data.pose.pose.orientation.x,
+            odom_data.pose.pose.orientation.y,
+            odom_data.pose.pose.orientation.z,
+            odom_data.pose.pose.orientation.w,
+        ]
+
+        transformation_matrix = tf_transformations.quaternion_matrix(quat)
+        transformation_matrix[0:3, 3] = trans
 
         # Check if the detected objects match with the map objects
         # TODO: Is there a more efficient way to do this?
         for detected_obj in local_detected_objects:
             matched = False
             for map_obj in self.map:
-                point_stamped = PointStamped()
-                point_stamped.header.frame_id = "base_link"
-                point_stamped.point.x = map_obj.x
-                point_stamped.point.y = map_obj.y
-                point_stamped.point.z = map_obj.z
+                point_hom = np.array([detected_obj.x, detected_obj.y, detected_obj.z, 1])
+                point_trans = np.dot(transformation_matrix, point_hom)
 
-                transformed_point = do_transform_point(point_stamped, transform_stamped)
+                detected_obj.x = point_trans[0]
+                detected_obj.y = point_trans[1]
+                detected_obj.z = point_trans[2]
 
-                map_obj.x = transformed_point.point.x
-                map_obj.y = transformed_point.point.y
-                map_obj.z = transformed_point.point.z
-                
                 if self._is_match(detected_obj, map_obj):
                     map_obj.x = detected_obj.x
                     map_obj.y = detected_obj.y
