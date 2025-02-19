@@ -33,19 +33,16 @@ class center_of_clusters(Node):
 
         self.allPointsPublisher = self.create_publisher(
             PointCloud2, "/all_points", 10)
-        timer_period = 0.5
-        self.timer = self.create_timer(timer_period, self.timer_callback)
+        
         self.pcd = PointCloud2()
 
         self.get_logger().info("Started")
 
-    def timer_callback(self):
-        self.get_logger().info("Publishing cluster centers")
-        self.pcd_publisher.publish(self.pcd)
-
     def listener_callback(self, msg: PointCloud2):
         self.get_logger().info("Processing new point cloud")
         self.pcd = safe_point_cloud(msg, self)
+        self.get_logger().info("Publishing center of clusters")
+        self.pcd_publisher.publish(self.pcd)
 
     def mypublishAllPoints(self, data: PointCloud2):
         self.get_logger().info("Publishing all points")
