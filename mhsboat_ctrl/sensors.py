@@ -513,7 +513,7 @@ class Sensors(Node):
 
         points = np.delete(points, mask, axis=0)
 
-        print(len(points))
+        self.get_logger().info(len(points))
         if len(points) > 1:
             rp = np.mean(points, axis=0)
             return rp[0], rp[1], rp[2]
