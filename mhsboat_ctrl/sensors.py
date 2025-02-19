@@ -500,8 +500,6 @@ class Sensors(Node):
             )
             phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
 
-            thetaPoint += 180
-
             # make sure angles are between 0 and 360
             thetaPoint = thetaPoint % 360
             phiPoint = phiPoint % 360
