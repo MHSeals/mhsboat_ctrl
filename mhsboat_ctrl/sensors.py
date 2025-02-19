@@ -18,6 +18,8 @@ import yaml
 import math
 import numpy as np
 from typing import Dict, List, Tuple, Optional
+from tf2_ros import TransformStamped
+from tf2_geometry_msgs import do_transform_point, PointStamped
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -283,14 +285,32 @@ class Sensors(Node):
             return
 
         # Translate the map based on odometry
-        translation_matrix = self._get_homogenous_transform(odom_data)
-        self._translate_map(translation_matrix)
+        transform_stamped = TransformStamped()
+        transform_stamped.header.stamp = odom_data.header.stamp
+        transform_stamped.header.frame_id = "odom"
+        transform_stamped.child_frame_id = "base_link"
+        transform_stamped.transform.translation.x = odom_data.pose.pose.position.x
+        transform_stamped.transform.translation.y = odom_data.pose.pose.position.y
+        transform_stamped.transform.translation.z = odom_data.pose.pose.position.z
+        transform_stamped.transform.rotation = odom_data.pose.pose.orientation
 
         # Check if the detected objects match with the map objects
         # TODO: Is there a more efficient way to do this?
         for detected_obj in local_detected_objects:
             matched = False
             for map_obj in self.map:
+                point_stamped = PointStamped()
+                point_stamped.header.frame_id = "base_link"
+                point_stamped.point.x = map_obj.x
+                point_stamped.point.y = map_obj.y
+                point_stamped.point.z = map_obj.z
+
+                transformed_point = do_transform_point(point_stamped, transform_stamped)
+
+                map_obj.x = transformed_point.point.x
+                map_obj.y = transformed_point.point.y
+                map_obj.z = transformed_point.point.z
+                
                 if self._is_match(detected_obj, map_obj):
                     map_obj.x = detected_obj.x
                     map_obj.y = detected_obj.y
@@ -360,59 +380,6 @@ class Sensors(Node):
         self.map_publisher.publish(msg)
 
     # ! BEGINNING OF OUR PROBLEMS
-    def _get_homogenous_transform(self, odom: Odometry) -> np.ndarray:
-        """
-        Create a translation matrix from a PoseStamped message.
-        """
-        orientation = odom.pose.pose.orientation
-        position = odom.pose.pose.position
-
-        self.get_logger().info(f"Orientation: {orientation}")
-        self.get_logger().info(f"Position: {position}")
-
-        # Convert quaternion to rotation matrix
-        rotation_matrix = self._quaternion_to_rotation_matrix(orientation)
-
-        self.get_logger().info(f"Rotation matrix: {rotation_matrix}")
-
-        # Build the translation matrix with position data
-        translation_matrix = np.eye(4)
-        translation_matrix[:3, :3] = rotation_matrix
-        translation_matrix[:3, 3] = [position.x, position.y, position.z]
-
-        return translation_matrix
-
-    def _quaternion_to_rotation_matrix(self, q: Quaternion) -> np.ndarray:
-        """
-        Convert a quaternion to a rotation matrix
-
-        :param q: The quaternion
-        :type  q: class:`geometry_msgs.msg.Quaternion`
-        :return: The rotation matrix
-        :rtype:  numpy.ndarray
-        """
-        x, y, z, w = q.x, q.y, q.z, q.w
-        return np.array(
-            [
-                [1 - 2 * (y**2 + z**2), 2 * (x * y - z * w), 2 * (x * z + y * w)],
-                [2 * (x * y + z * w), 1 - 2 * (x**2 + z**2), 2 * (y * z - x * w)],
-                [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x**2 + y**2)],
-            ]
-        )
-
-    def _translate_map(self, translation_matrix: np.ndarray) -> None:
-        """
-        Translate the map based on the translation matrix
-
-        :param translation_matrix: The translation matrix
-        :type  translation_matrix: numpy.ndarray
-        """
-        for obj in self.map:
-            self.get_logger().info(f"Translating {obj}")
-            point = np.array([obj.x, obj.y, obj.z, 1])
-            translated_point = translation_matrix @ point
-            obj.x, obj.y, obj.z = translated_point[:3]
-            self.get_logger().info(f"Translated point: {translated_point}")
     # ! END OF OUR PROBLEMS
 
     def _is_match(self, detected_obj: CourseObject, map_obj: CourseObject) -> bool:
