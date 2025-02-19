@@ -24,6 +24,7 @@
   <depend>matplotlib</depend>
   <depend>scikit-learn</depend>
   <depend>opencv-contrib-python</depend>
+  <depend>python3-transforms3d</depend>
 
   <!-- Custom Messages -->
   <depend>boat_interfaces</depend>
