@@ -508,7 +508,7 @@ class Sensors(Node):
             # phiPoint = (phiPoint + 360) % 360
 
             # max angle difference to consider a point a match
-            degrees = 3
+            degrees = 4
             mask[index] = not (
                 math.fabs(thetaPoint - theta) <= degrees
                 and math.fabs(phiPoint - phi) <= degrees
