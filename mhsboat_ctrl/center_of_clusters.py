@@ -89,8 +89,8 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
 
     # get rid of points above the lidar
     # can be configured in hardware rather than software for the actual lidar
-    high_points_mask = points[:, 2] < 0
-    points = points[high_points_mask]
+    # high_points_mask = points[:, 2] < 0
+    # points = points[high_points_mask]
     # print("after: "+str(len(points)))
 
     # cluster the points
