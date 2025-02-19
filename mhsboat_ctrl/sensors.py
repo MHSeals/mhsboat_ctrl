@@ -500,15 +500,12 @@ class Sensors(Node):
             )
             phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
 
-            # if this works im a genius
-            # thetaPoint -= 180
-
             # normalize theta and phi to be between 0 and 360
             # thetaPoint = (thetaPoint + 360) % 360
             # phiPoint = (phiPoint + 360) % 360
 
             # max angle difference to consider a point a match
-            degrees = 4
+            degrees = 5
             mask[index] = not (
                 math.fabs(thetaPoint - theta) <= degrees
                 and math.fabs(phiPoint - phi) <= degrees
@@ -516,6 +513,7 @@ class Sensors(Node):
 
         points = np.delete(points, mask, axis=0)
 
+        print(len(points))
         if len(points) > 1:
             rp = np.mean(points, axis=0)
             return rp[0], rp[1], rp[2]
