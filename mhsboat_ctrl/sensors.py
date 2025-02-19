@@ -505,6 +505,12 @@ class Sensors(Node):
                 mask[index] = True
                 continue
 
+            thetaPoint += 180
+
+            # make sure angles are between 0 and 360
+            thetaPoint = thetaPoint % 360
+            phiPoint = phiPoint % 360
+
             # max angle difference to consider a point a match
             degrees = 5
             mask[index] = not (
