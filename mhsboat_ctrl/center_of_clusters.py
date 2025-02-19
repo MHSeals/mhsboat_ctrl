@@ -93,6 +93,14 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     points = points[high_points_mask]
     # print("after: "+str(len(points)))
 
+    # ! TESTING: only look at cone of vision
+    # Convert the point coordinates to angles in degrees.
+    angles = np.degrees(np.arctan2(points[:, 1], points[:, 0]))
+    # Create a mask for angles between -45 and 45 degrees.
+    angle_mask = (angles >= -45) & (angles <= 45)
+    # Filter the points based on the angle mask.
+    points = points[angle_mask]
+
     # cluster the points
     db = DBSCAN(eps=0.09, min_samples=10).fit(points)
     labels = db.labels_

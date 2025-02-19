@@ -500,11 +500,6 @@ class Sensors(Node):
             )
             phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
 
-            # TODO: limit angle to be smaller for testing
-            if thetaPoint < -45 or thetaPoint > 45:
-                mask[index] = True
-                continue
-
             thetaPoint += 180
 
             # make sure angles are between 0 and 360
