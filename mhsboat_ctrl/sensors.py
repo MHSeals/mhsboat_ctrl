@@ -359,6 +359,7 @@ class Sensors(Node):
 
         self.map_publisher.publish(msg)
 
+    # ! BEGINNING OF OUR PROBLEMS
     def _get_homogenous_transform(self, odom: Odometry) -> np.ndarray:
         """
         Create a translation matrix from a PoseStamped message.
@@ -412,6 +413,7 @@ class Sensors(Node):
             translated_point = translation_matrix @ point
             obj.x, obj.y, obj.z = translated_point[:3]
             self.get_logger().info(f"Translated point: {translated_point}")
+    # ! END OF OUR PROBLEMS
 
     def _is_match(self, detected_obj: CourseObject, map_obj: CourseObject) -> bool:
         """
