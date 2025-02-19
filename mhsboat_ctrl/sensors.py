@@ -283,7 +283,7 @@ class Sensors(Node):
             return
 
         # Translate the map based on odometry
-        translation_matrix = self._get_translation_matrix(odom_data)
+        translation_matrix = self._get_homogenous_transform(odom_data)
         self._translate_map(translation_matrix)
 
         # Check if the detected objects match with the map objects
@@ -359,7 +359,7 @@ class Sensors(Node):
 
         self.map_publisher.publish(msg)
 
-    def _get_translation_matrix(self, odom: Odometry) -> np.ndarray:
+    def _get_homogenous_transform(self, odom: Odometry) -> np.ndarray:
         """
         Create a translation matrix from a PoseStamped message.
         """
@@ -408,9 +408,9 @@ class Sensors(Node):
         """
         for obj in self.map:
             self.get_logger().info(f"Translating {obj}")
-            point = np.array([obj.x, obj.y, 0, 1])
+            point = np.array([obj.x, obj.y, obj.z, 1])
             translated_point = translation_matrix @ point
-            obj.x, obj.y = translated_point[:2]
+            obj.x, obj.y, obj.z = translated_point[:3]
             self.get_logger().info(f"Translated point: {translated_point}")
 
     def _is_match(self, detected_obj: CourseObject, map_obj: CourseObject) -> bool:
@@ -424,7 +424,7 @@ class Sensors(Node):
         :return: True if the objects match, False otherwise
         :rtype:  bool
         """
-        distance_threshold = 0.01  # TODO: tune this value
+        distance_threshold = 0.3  # TODO: tune this value
         self.get_logger().info(f"Checking if {detected_obj} matches original {map_obj}")
         distance = math.sqrt(
             (detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2
