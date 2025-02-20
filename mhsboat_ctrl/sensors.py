@@ -77,6 +77,8 @@ class Sensors(Node):
 
         self.map: List[CourseObject] = []
 
+        self.previous_odom_data = None
+
         self.get_logger().info("Sensors Node Initialized")
 
     def _camera_callback(self, msg: AiOutput):
@@ -135,6 +137,10 @@ class Sensors(Node):
             self._odom_cache,
             key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
         )
+
+        if self.previous_odom_data is None:
+            self.previous_odom_data = odom_data
+            return
 
         time_diff = max(camera_time, lidar_time, odom_time) - min(
             camera_time, lidar_time, odom_time
@@ -283,16 +289,16 @@ class Sensors(Node):
 
         # Translate the map based on odometry
         trans = [
-            odom_data.pose.pose.position.x,
-            odom_data.pose.pose.position.y,
-            odom_data.pose.pose.position.z,
+            odom_data.pose.pose.position.x - self.previous_odom_data.pose.pose.position.x,
+            odom_data.pose.pose.position.y - self.previous_odom_data.pose.pose.position.y,
+            odom_data.pose.pose.position.z - self.previous_odom_data.pose.pose.position.z,
         ]
 
         quat = [
-            odom_data.pose.pose.orientation.x,
-            odom_data.pose.pose.orientation.y,
-            odom_data.pose.pose.orientation.z,
-            odom_data.pose.pose.orientation.w,
+            odom_data.pose.pose.orientation.x - self.previous_odom_data.pose.pose.orientation.x,
+            odom_data.pose.pose.orientation.y - self.previous_odom_data.pose.pose.orientation.y,
+            odom_data.pose.pose.orientation.z - self.previous_odom_data.pose.pose.orientation.z,
+            odom_data.pose.pose.orientation.w - self.previous_odom_data.pose.pose.orientation.w,
         ]
 
         self.get_logger().info(f"Odometry translation: {trans}")
@@ -385,6 +391,8 @@ class Sensors(Node):
         msg.colors = colors
 
         self.map_publisher.publish(msg)
+
+        self.previous_odom_data = odom_data
 
     # ! BEGINNING OF OUR PROBLEMS
     # ! END OF OUR PROBLEMS
