@@ -218,8 +218,6 @@ class Sensors(Node):
                 theta, phi, lidar_data, camera_data.types[i]
             )
 
-            self.get_logger().info(f"Buoy {i}: Coords: {coords}")
-
             if coords is None:
                 continue
 
