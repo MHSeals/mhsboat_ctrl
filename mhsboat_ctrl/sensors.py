@@ -298,13 +298,17 @@ class Sensors(Node):
         transformation_matrix = tf_transformations.quaternion_matrix(quat)
         transformation_matrix[0:3, 3] = trans
 
+        self.get_logger().info(f"Transformation matrix: {transformation_matrix}")
+
         # Check if the detected objects match with the map objects
         # TODO: Is there a more efficient way to do this?
         for detected_obj in local_detected_objects:
             matched = False
             for map_obj in self.map:
+                self.get_logger().info(f"Transforming X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
                 point_hom = np.array([detected_obj.x, detected_obj.y, detected_obj.z, 1])
                 point_trans = np.dot(transformation_matrix, point_hom)
+                self.get_logger().info(f"Transformed X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
 
                 detected_obj.x = point_trans[0]
                 detected_obj.y = point_trans[1]
