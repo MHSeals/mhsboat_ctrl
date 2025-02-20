@@ -295,16 +295,27 @@ class Sensors(Node):
         ]
 
         quat = [
-            odom_data.pose.pose.orientation.x - self.previous_odom_data.pose.pose.orientation.x,
-            odom_data.pose.pose.orientation.y - self.previous_odom_data.pose.pose.orientation.y,
-            odom_data.pose.pose.orientation.z - self.previous_odom_data.pose.pose.orientation.z,
-            odom_data.pose.pose.orientation.w - self.previous_odom_data.pose.pose.orientation.w,
+            odom_data.pose.pose.orientation.x,
+            odom_data.pose.pose.orientation.y,
+            odom_data.pose.pose.orientation.z,
+            odom_data.pose.pose.orientation.w,
         ]
 
-        self.get_logger().info(f"Odometry translation: {trans}")
-        self.get_logger().info(f"Odometry quaternion: {quat}")
+        previous_quat = [
+            self.previous_odom_data.pose.pose.orientation.x,
+            self.previous_odom_data.pose.pose.orientation.y,
+            self.previous_odom_data.pose.pose.orientation.z,
+            self.previous_odom_data.pose.pose.orientation.w,
+        ]
 
-        transformation_matrix = tf_transformations.quaternion_matrix(quat)
+        delta_quat = tf_transformations.quaternion_multiply(
+            tf_transformations.quaternion_inverse(previous_quat), quat
+        )
+
+        self.get_logger().info(f"Odometry translation: {trans}")
+        self.get_logger().info(f"Odometry quaternion: {delta_quat}")
+
+        transformation_matrix = tf_transformations.quaternion_matrix(delta_quat)
         transformation_matrix[0:3, 3] = trans
 
         self.get_logger().info(f"Transformation matrix: \n{transformation_matrix}")
