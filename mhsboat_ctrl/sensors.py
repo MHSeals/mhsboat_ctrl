@@ -295,6 +295,9 @@ class Sensors(Node):
             odom_data.pose.pose.orientation.w,
         ]
 
+        self.get_logger().info(f"Odometry translation: {trans}")
+        self.get_logger().info(f"Odometry quaternion: {quat}")
+
         transformation_matrix = tf_transformations.quaternion_matrix(quat)
         transformation_matrix[0:3, 3] = trans
 
@@ -400,7 +403,9 @@ class Sensors(Node):
         distance_threshold = 0.3  # TODO: tune this value
         self.get_logger().info(f"Checking if {detected_obj} matches original {map_obj}")
         distance = math.sqrt(
-            (detected_obj.x - map_obj.x) ** 2 + (detected_obj.y - map_obj.y) ** 2
+            (detected_obj.x - map_obj.x)**2
+            + (detected_obj.y - map_obj.y)**2
+            + (detected_obj.z - map_obj.z)**2
         )
         self.get_logger().info(f"Distance: {distance}")
         self.get_logger().info(f"Match: {distance < distance_threshold}")
