@@ -308,11 +308,12 @@ class Sensors(Node):
                 self.get_logger().info(f"Transforming X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
                 point_hom = np.array([detected_obj.x, detected_obj.y, detected_obj.z, 1])
                 point_trans = np.dot(transformation_matrix, point_hom)
-                self.get_logger().info(f"Transformed X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
 
                 detected_obj.x = point_trans[0]
                 detected_obj.y = point_trans[1]
                 detected_obj.z = point_trans[2]
+
+                self.get_logger().info(f"Transformed X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
 
                 if self._is_match(detected_obj, map_obj):
                     map_obj.x = detected_obj.x
