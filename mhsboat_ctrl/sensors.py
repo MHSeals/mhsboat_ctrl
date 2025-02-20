@@ -298,7 +298,7 @@ class Sensors(Node):
         transformation_matrix = tf_transformations.quaternion_matrix(quat)
         transformation_matrix[0:3, 3] = trans
 
-        self.get_logger().info(f"Transformation matrix: {transformation_matrix}")
+        self.get_logger().info(f"Transformation matrix: \n{transformation_matrix}")
 
         # Check if the detected objects match with the map objects
         # TODO: Is there a more efficient way to do this?
