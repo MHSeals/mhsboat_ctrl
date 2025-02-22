@@ -462,6 +462,12 @@ class Sensors(Node):
 
         theta = math.degrees(math.atan2(deltaX, fX))
         phi = math.degrees(math.atan2(deltaY, fY))
+        
+        # translates negative angles on the circle. hopefully this solves your error alec
+        if theta < 0:
+            theta += 360
+        if phi < 0:
+            phi += 360
 
         return theta, phi
 
