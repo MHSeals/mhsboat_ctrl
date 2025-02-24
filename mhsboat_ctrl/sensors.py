@@ -521,20 +521,20 @@ class Sensors(Node):
             # might have to change if camera doesn't point towards real lidar's x asix
 
             # why did jonathan make this complicated mess?
-            thetaPoint = (
+            pointTheta = (
                 math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
             )
-            phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+            pointPhi = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
 
             # make sure angles are between 0 and 360
-            thetaPoint = pointTheta % 360
-            phiPoint = pointPhi % 360
+            pointTheta = pointTheta % 360
+            pointPhi = pointPhi % 360
 
             # max angle difference to consider a point a match
             degrees = 5
             mask[index] = not (
-                math.fabs(thetaPoint - theta) <= degrees
-                and math.fabs(phiPoint - phi) <= degrees
+                math.fabs(pointTheta - theta) <= degrees
+                and math.fabs(pointPhi - phi) <= degrees
             )
 
         points = np.delete(points, mask, axis=0)
