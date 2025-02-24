@@ -145,41 +145,30 @@ class CameraSubscriber(Node):
         self.total_frames += 1
         TIME = time.perf_counter() - self.start_time
 
-        frame = self.cvbridge.imgmsg_to_cv2(data, "bgr8")
+        # Convert and resize frame for display
+        raw_frame = self.cvbridge.imgmsg_to_cv2(data, "bgr8")
+        display_frame = cv2.resize(raw_frame, DISPLAY_RESOLUTION)
+        original_frame = display_frame.copy()
 
-        # Resize the frame to the display resolution
-        frame = cv2.resize(src=frame, dsize=DISPLAY_RESOLUTION)
+        # Prepare frame for model prediction
+        model_frame = cv2.resize(display_frame, MODEL_INPUT_DIMENSIONS)
+        model_frame = preprocess(model_frame)
 
-        # Run some preprocessing on the frame to improve the model's performance
-        frame = preprocess(frame)
-
-        # Save the original frame for drawing bounding boxes
-        original_frame = frame.copy()
-
-        # Get the scale factor from the original image to the model input dimensions
-        # This is used to scale the bounding box coordinates back to the original image
+        # Get scale factor to convert predictions back to display
         x_scale_factor = original_frame.shape[1] / MODEL_INPUT_DIMENSIONS[0]
         y_scale_factor = original_frame.shape[0] / MODEL_INPUT_DIMENSIONS[1]
-        x_original, y_original = frame.shape[1], frame.shape[0]
-
-        # Resize the frame to the model input dimensions
-        frame = cv2.resize(frame, MODEL_INPUT_DIMENSIONS)
-
-        frame_area = frame.shape[0] * frame.shape[1]
+        x_original, y_original = original_frame.shape[1], original_frame.shape[0]
+        frame_area = MODEL_INPUT_DIMENSIONS[0] * MODEL_INPUT_DIMENSIONS[1]
 
         self.fc += 1
-
-        if (TIME) >= self.display_time:
-            self.FPS = self.fc / (TIME)
+        if TIME >= self.display_time:
+            self.FPS = self.fc / TIME
             self.fc = 0
             self.start_time = time.perf_counter()
 
         fps_disp = "FPS: " + str(self.FPS)[:5]
-
-        frame = preprocess(frame)
-
-        results = model.track(frame, persist=True, tracker="bytetrack.yaml")
-
+        results = model.track(model_frame, persist=True, tracker="bytetrack.yaml")
+        
         original_frame = cv2.putText(
             original_frame,
             fps_disp,
@@ -189,7 +178,6 @@ class CameraSubscriber(Node):
             (0, 255, 0),
             1,
         )
-
         original_frame = cv2.add(original_frame, overlay)
 
         self.output.num = 0
