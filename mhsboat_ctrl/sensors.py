@@ -521,10 +521,13 @@ class Sensors(Node):
             # might have to change if camera doesn't point towards real lidar's x asix
 
             # why did jonathan make this complicated mess?
-            pointTheta = (
-                math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
-            )
-            pointPhi = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+            # pointTheta = (
+            #     math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
+            # )
+            # pointPhi = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+
+            pointTheta = math.degrees(math.atan2(y, x))
+            pointPhi = math.degrees(math.atan2(z, x))
 
             # make sure angles are between 0 and 360
             pointTheta = pointTheta % 360
