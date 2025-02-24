@@ -487,9 +487,9 @@ class Sensors(Node):
         theta = math.degrees(math.atan2(deltaX, fX))
         phi = math.degrees(math.atan2(deltaY, fY))
 
-        # translates negative angles on the circle. hopefully this solves your error alec
-        theta = (theta + 360) % 360
-        phi = (phi + 360) % 360
+        # make sure angles are between 0 and 360
+        theta = theta % 360
+        phi = phi % 360
 
         return theta, phi
 
@@ -520,14 +520,18 @@ class Sensors(Node):
             # calculate angle from x axis, the camera always points towards the x axis so we only care about lidar points near the x axis
             # might have to change if camera doesn't point towards real lidar's x asix
 
-            thetaPoint = (
-                math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
-            )
-            phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+            # why did jonathan make this complicated mess?
+            # thetaPoint = (
+            #     math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
+            # )
+            # phiPoint = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+
+            pointTheta = math.atan2(y, x)
+            pointPhi = math.atan2(z, x)
 
             # make sure angles are between 0 and 360
-            thetaPoint = (thetaPoint + 360) % 360
-            phiPoint = (phiPoint + 360) % 360
+            thetaPoint = pointTheta % 360
+            phiPoint = pointPhi % 360
 
             # max angle difference to consider a point a match
             degrees = 5
