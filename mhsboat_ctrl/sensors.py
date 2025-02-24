@@ -5,7 +5,6 @@ from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
 from sensor_msgs.msg import PointCloud2
 from nav_msgs.msg import Odometry
-from geometry_msgs.msg import Quaternion
 from rclpy.qos import (
     QoSProfile,
     QoSHistoryPolicy,
@@ -23,10 +22,6 @@ import tf_transformations
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 from mhsboat_ctrl.utils.lidar import read_points
-from mhsboat_ctrl.utils.thruster_controller import (
-    ThrusterController,
-    SimulatedController,
-)
 
 buoy_color_mapping: Dict[str, BuoyColors] = {
     "black": BuoyColors.BLACK,
@@ -359,8 +354,13 @@ class Sensors(Node):
             if not matched:
                 self.map.append(detected_obj)
 
+        items_to_remove = []
+
         # Check for objects that aren't seen by camera, but are seen by lidar
         for map_obj in self.map:
+            if map_obj in items_to_remove:
+                continue
+
             theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
             phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
 
@@ -377,6 +377,41 @@ class Sensors(Node):
             map_obj.y = y
             map_obj.z = z
             map_obj.last_seen = self.get_clock().now().nanoseconds
+
+            # check for objects that are really close to each other
+            for obj2 in self.map:
+                if obj2 in items_to_remove:
+                    continue
+
+                same = True
+
+                if isinstance(map_obj, Shape) and isinstance(obj2, Shape):
+                    if map_obj.shape != obj2.shape or map_obj.color != obj2.color:
+                        same = False
+                elif isinstance(map_obj, Buoy) and isinstance(obj2, Buoy):
+                    if map_obj.color != obj2.color:
+                        same = False
+                elif type(map_obj) != type(obj2):
+                    same = False
+
+                if same:
+                    distance = math.sqrt(
+                        (map_obj.x - obj2.x) ** 2
+                        + (map_obj.y - obj2.y) ** 2
+                        + (map_obj.z - obj2.z) ** 2
+                    )
+
+                    if distance < 0.5:
+                        # make position the average of the two
+                        map_obj.x = (map_obj.x + obj2.x) / 2
+                        map_obj.y = (map_obj.y + obj2.y) / 2
+                        map_obj.z = (map_obj.z + obj2.z) / 2
+
+                        # remove the other object
+                        items_to_remove.append(obj2)
+
+        # Remove objects that are really close to each other
+        self.map = [obj for obj in self.map if obj not in items_to_remove]
 
         # Handle other objects that havent been seen in for 5 seconds
         self.map = [
@@ -444,6 +479,7 @@ class Sensors(Node):
                 return False
 
         distance_threshold = 0.6  # TODO: tune this value
+
         self.get_logger().info(f"Checking if {detected_obj} matches original {map_obj}")
         distance = math.sqrt(
             (detected_obj.x - map_obj.x) ** 2
@@ -529,15 +565,11 @@ class Sensors(Node):
             pointTheta = math.degrees(math.atan2(y, x))
             pointPhi = math.degrees(math.atan2(z, x))
 
-            # make sure angles are between 0 and 360
-            pointTheta = pointTheta % 360
-            pointPhi = pointPhi % 360
-
             # max angle difference to consider a point a match
             degrees = 5
             mask[index] = not (
-                math.fabs(pointTheta - theta) <= degrees
-                and math.fabs(pointPhi - phi) <= degrees
+                math.fabs(pointTheta - theta) % 360 <= degrees
+                and math.fabs(pointPhi - phi) % 360 <= degrees
             )
 
         points = np.delete(points, mask, axis=0)
