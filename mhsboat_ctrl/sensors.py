@@ -115,12 +115,16 @@ class Sensors(Node):
         """
         Process the sensor data
         """
-        if (
-            len(self._camera_cache) == 0
-            or len(self._lidar_cache) == 0
-            or len(self._odom_cache) == 0
-        ):
-            self.get_logger().info("Not enough data to process; waiting for more data")
+        if len(self._camera_cache) == 0:
+            self.get_logger().warn("No camera data available")
+            return
+        
+        if len(self._lidar_cache) == 0:
+            self.get_logger().warn("No lidar data available")
+            return
+        
+        if len(self._odom_cache) == 0:
+            self.get_logger().warn("No odometry data available")
             return
 
         # find the data that has the smallest time difference
