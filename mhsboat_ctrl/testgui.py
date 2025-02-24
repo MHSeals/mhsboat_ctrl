@@ -7,7 +7,8 @@ from rclpy.node import Node
 import os
 from typing import Tuple
 from mhsboat_ctrl.utils.custom_types import numeric
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"  # Hide annoying prompt
+
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"  # Hide annoying prompt
 
 # BuoyMap.x float64[]
 # BuoyMap.y float64[]
@@ -27,11 +28,13 @@ SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 SCALE = 0.1
 
+
 def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, int]:
     # Translate world coordinates so that (0,0) is at the center of the screen
     x_screen = SCREEN_WIDTH // 2 + int(x * scale)
     y_screen = SCREEN_HEIGHT // 2 - int(y * scale)
     return (x_screen, y_screen)
+
 
 class TESTGUI(Node):
     def __init__(self):
@@ -61,7 +64,7 @@ class TESTGUI(Node):
         for i in range(len(msg.x)):
             color = BuoyColors(msg.colors[i].lower())
             if msg.types[i] == "pole":
-                self.buoys.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color)) # type: ignore color will always only be red or green
+                self.buoys.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color))  # type: ignore color will always only be red or green
             elif msg.types[i] == "ball":
                 self.buoys.append(BallBuoy(msg.x[i], msg.y[i], msg.z[i], color))
 
@@ -85,16 +88,26 @@ class TESTGUI(Node):
                 color = self.convert_color(buoy.color.value)
                 # Transform world coordinates to screen coordinates
                 x, y = world_to_screen(buoy.x, buoy.y)
-    
+
                 if isinstance(buoy, PoleBuoy):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
-                    pygame.draw.circle(self.screen, self.darken_color(
-                        color, 80), (x, y), int(BUOY_RADIUS * 5 / 6))
-                    pygame.draw.circle(self.screen, color, (x, y), int(BUOY_RADIUS * 2 / 5))
+                    pygame.draw.circle(
+                        self.screen,
+                        self.darken_color(color, 80),
+                        (x, y),
+                        int(BUOY_RADIUS * 5 / 6),
+                    )
+                    pygame.draw.circle(
+                        self.screen, color, (x, y), int(BUOY_RADIUS * 2 / 5)
+                    )
                 elif isinstance(buoy, BallBuoy):
                     pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
-                    pygame.draw.circle(self.screen, self.darken_color(
-                        self.convert_color("blue"), 120), (x, y), int(BUOY_RADIUS / 2))
+                    pygame.draw.circle(
+                        self.screen,
+                        self.darken_color(self.convert_color("blue"), 120),
+                        (x, y),
+                        int(BUOY_RADIUS / 2),
+                    )
                 else:
                     self.get_logger().info("Buoy variation unspecified")
             else:
@@ -106,7 +119,7 @@ class TESTGUI(Node):
         except ValueError as e:
             self.get_logger().info(f"Color not defined in colordict: {e}")
             return pygame.Color("pink")  # Default color to indicate error
-    
+
     # Function that darkens any given color by subtracting a certain amount from the color value
     def darken_color(self, color: pygame.Color, amount: int) -> pygame.Color:
         new_color = []

@@ -118,11 +118,11 @@ class Sensors(Node):
         if len(self._camera_cache) == 0:
             self.get_logger().warn("No camera data available")
             return
-        
+
         if len(self._lidar_cache) == 0:
             self.get_logger().warn("No lidar data available")
             return
-        
+
         if len(self._odom_cache) == 0:
             self.get_logger().warn("No odometry data available")
             return
@@ -293,9 +293,12 @@ class Sensors(Node):
 
         # Translate the map based on odometry
         trans = [
-            odom_data.pose.pose.position.x - self.previous_odom_data.pose.pose.position.x,
-            odom_data.pose.pose.position.y - self.previous_odom_data.pose.pose.position.y,
-            odom_data.pose.pose.position.z - self.previous_odom_data.pose.pose.position.z,
+            odom_data.pose.pose.position.x
+            - self.previous_odom_data.pose.pose.position.x,
+            odom_data.pose.pose.position.y
+            - self.previous_odom_data.pose.pose.position.y,
+            odom_data.pose.pose.position.z
+            - self.previous_odom_data.pose.pose.position.z,
         ]
 
         quat = [
@@ -329,15 +332,21 @@ class Sensors(Node):
         for detected_obj in local_detected_objects:
             matched = False
             for map_obj in self.map:
-                self.get_logger().info(f"Transforming X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
-                point_hom = np.array([detected_obj.x, detected_obj.y, detected_obj.z, 1])
+                self.get_logger().info(
+                    f"Transforming X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}"
+                )
+                point_hom = np.array(
+                    [detected_obj.x, detected_obj.y, detected_obj.z, 1]
+                )
                 point_trans = np.dot(transformation_matrix, point_hom)
 
                 detected_obj.x = point_trans[0]
                 detected_obj.y = point_trans[1]
                 detected_obj.z = point_trans[2]
 
-                self.get_logger().info(f"Transformed X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}")
+                self.get_logger().info(
+                    f"Transformed X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}"
+                )
 
                 if self._is_match(detected_obj, map_obj):
                     map_obj.x = detected_obj.x
@@ -409,9 +418,6 @@ class Sensors(Node):
 
         self.previous_odom_data = odom_data
 
-    # ! BEGINNING OF OUR PROBLEMS
-    # ! END OF OUR PROBLEMS
-
     def _is_match(self, detected_obj: CourseObject, map_obj: CourseObject) -> bool:
         """
         Check if the detected object matches with the map object
@@ -425,21 +431,24 @@ class Sensors(Node):
         """
         if type(detected_obj) != type(map_obj):
             return False
-        
+
         if isinstance(detected_obj, Buoy) and isinstance(map_obj, Buoy):
             if detected_obj.color != map_obj.color:
-               return False
-        
-        if isinstance(detected_obj, Shape) and isinstance(map_obj, Shape):
-            if detected_obj.shape != map_obj.shape or detected_obj.color != map_obj.color:
                 return False
-        
+
+        if isinstance(detected_obj, Shape) and isinstance(map_obj, Shape):
+            if (
+                detected_obj.shape != map_obj.shape
+                or detected_obj.color != map_obj.color
+            ):
+                return False
+
         distance_threshold = 0.6  # TODO: tune this value
         self.get_logger().info(f"Checking if {detected_obj} matches original {map_obj}")
         distance = math.sqrt(
-            (detected_obj.x - map_obj.x)**2
-            + (detected_obj.y - map_obj.y)**2
-            + (detected_obj.z - map_obj.z)**2
+            (detected_obj.x - map_obj.x) ** 2
+            + (detected_obj.y - map_obj.y) ** 2
+            + (detected_obj.z - map_obj.z) ** 2
         )
         self.get_logger().info(f"Distance: {distance}")
         self.get_logger().info(f"Match: {distance < distance_threshold}")
@@ -477,7 +486,7 @@ class Sensors(Node):
 
         theta = math.degrees(math.atan2(deltaX, fX))
         phi = math.degrees(math.atan2(deltaY, fY))
-        
+
         # translates negative angles on the circle. hopefully this solves your error alec
         theta = (theta + 360) % 360
         phi = (phi + 360) % 360

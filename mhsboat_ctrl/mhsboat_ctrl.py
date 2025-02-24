@@ -1,9 +1,5 @@
 import rclpy
 from rclpy.node import Node
-from rclpy.executors import MultiThreadedExecutor
-import os
-import glob
-import importlib
 from typing import List
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
@@ -11,11 +7,12 @@ from mhsboat_ctrl.task import Task
 from boat_interfaces.msg import BuoyMap
 from mhsboat_ctrl.course_objects import BallBuoy, PoleBuoy
 
+
 class BoatController(Node):
     tasks: List[Task] = []
 
     def __init__(self):
-        super().__init__('mhsboat_ctrl')
+        super().__init__("mhsboat_ctrl")
 
         # self.declare_parameter("map_file", "")
 
@@ -31,16 +28,16 @@ class BoatController(Node):
         )
 
         self.get_logger().info("Boat Controller Node Initialized")
-        
+
         self.buoy_map = []
 
         self.run()
-        
+
     def sensors_callback(self, msg: BuoyMap):
         for i in range(len(msg.x)):
             color = BuoyColors(msg.colors[i].lower())
             if msg.types[i] == "pole":
-                self.buoys_map.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color)) # type: ignore color will always only be red or green
+                self.buoys_map.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color))  # type: ignore color will always only be red or green
             elif msg.types[i] == "ball":
                 self.buoys_map.append(BallBuoy(msg.x[i], msg.y[i], msg.z[i], color))
 
@@ -81,6 +78,7 @@ class BoatController(Node):
                             task.status = TaskStatus.COMPLETED
                         else:
                             self.get_logger().error("Task failed")
+
 
 def main(args=None):
     rclpy.init(args=args)

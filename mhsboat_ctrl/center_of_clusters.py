@@ -31,9 +31,8 @@ class center_of_clusters(Node):
             PointCloud2, "/velodyne_points", self.listener_callback, 10
         )
 
-        self.allPointsPublisher = self.create_publisher(
-            PointCloud2, "/all_points", 10)
-        
+        self.allPointsPublisher = self.create_publisher(PointCloud2, "/all_points", 10)
+
         self.pcd = PointCloud2()
 
         self.get_logger().info("Started")
@@ -47,6 +46,7 @@ class center_of_clusters(Node):
     def mypublishAllPoints(self, data: PointCloud2):
         self.get_logger().info("Publishing all points")
         self.allPointsPublisher.publish(data)
+
 
 def safe_point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     """
@@ -65,6 +65,7 @@ def safe_point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
         print("Error processing point cloud: ")
         traceback.print_exc()
         return msg
+
 
 def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     """
@@ -93,13 +94,13 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
     points = points[high_points_mask]
     # print("after: "+str(len(points)))
 
-    # ! TESTING: only look at cone of vision
-    # Convert the point coordinates to angles in degrees.
-    angles = np.degrees(np.arctan2(points[:, 1], points[:, 0]))
-    # Create a mask for angles between -45 and 45 degrees.
-    angle_mask = (angles >= -45) & (angles <= 45)
-    # Filter the points based on the angle mask.
-    points = points[angle_mask]
+    # # ! TESTING: only look at cone of vision
+    # # Convert the point coordinates to angles in degrees.
+    # angles = np.degrees(np.arctan2(points[:, 1], points[:, 0]))
+    # # Create a mask for angles between -45 and 45 degrees.
+    # angle_mask = (angles >= -45) & (angles <= 45)
+    # # Filter the points based on the angle mask.
+    # points = points[angle_mask]
 
     # cluster the points
     db = DBSCAN(eps=0.09, min_samples=10).fit(points)
@@ -137,8 +138,7 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
         PointField(name="x", offset=0, datatype=PointField.FLOAT32, count=1),
         PointField(name="y", offset=4, datatype=PointField.FLOAT32, count=1),
         PointField(name="z", offset=8, datatype=PointField.FLOAT32, count=1),
-        PointField(name="rgba", offset=12,
-                   datatype=PointField.UINT32, count=1),
+        PointField(name="rgba", offset=12, datatype=PointField.UINT32, count=1),
     ]
 
     header = Header()
@@ -178,8 +178,7 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
 
     for i, point in enumerate(clusterCenters):
         point_struct.pack_into(
-            buffer, i *
-            point_struct.size, point[0], point[1], point[2], 0, 0, 0, 255
+            buffer, i * point_struct.size, point[0], point[1], point[2], 0, 0, 0, 255
         )
     return PointCloud2(
         header=header,

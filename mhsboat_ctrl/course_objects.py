@@ -2,6 +2,7 @@ from typing import Literal
 
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 
+
 class CourseObject:
     def __init__(self, x: int, y: int, z: int):
         self.x = x
@@ -39,7 +40,9 @@ class Buoy(CourseObject):
 
 
 class PoleBuoy(Buoy):
-    def __init__(self, x: int, y: int, z: int, color: Literal[BuoyColors.RED, BuoyColors.GREEN]):
+    def __init__(
+        self, x: int, y: int, z: int, color: Literal[BuoyColors.RED, BuoyColors.GREEN]
+    ):
         self.x = x
         self.y = y
         self.z = z

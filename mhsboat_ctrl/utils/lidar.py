@@ -14,7 +14,13 @@ _DATATYPES[PointField.UINT32] = ("I", 4)
 _DATATYPES[PointField.FLOAT32] = ("f", 4)
 _DATATYPES[PointField.FLOAT64] = ("d", 8)
 
-def read_points(cloud: PointCloud2, field_names: Optional[Iterable] = None, skip_nans: bool = False, uvs: Iterable = []):
+
+def read_points(
+    cloud: PointCloud2,
+    field_names: Optional[Iterable] = None,
+    skip_nans: bool = False,
+    uvs: Iterable = [],
+):
     """
     Read points from a :class:`sensor_msgs.PointCloud2` message.
 
@@ -77,10 +83,12 @@ def read_points(cloud: PointCloud2, field_names: Optional[Iterable] = None, skip
                     offset += point_step
 
 
-def _get_struct_fmt(is_bigendian: bool, fields: Iterable, field_names: Optional[Iterable] = None):
+def _get_struct_fmt(
+    is_bigendian: bool, fields: Iterable, field_names: Optional[Iterable] = None
+):
     """
     Get the struct format string for the given fields.
-    
+
     :param is_bigendian: Whether the data is big-endian.
     :type  is_bigendian: bool
     :param fields: The point fields to read.

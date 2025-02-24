@@ -5,6 +5,7 @@ import time
 
 simple_wb = cv2.xphoto.createSimpleWB()
 
+
 def preprocess(image: np.ndarray) -> np.ndarray:
     """
     Preprocesses an image for buoy recognition
@@ -37,6 +38,7 @@ def preprocess(image: np.ndarray) -> np.ndarray:
 
     return image
 
+
 if __name__ == "__main__":
     cap = cv2.VideoCapture("video.mp4")
 
@@ -62,10 +64,10 @@ if __name__ == "__main__":
 
         if c == 27:
             break
-        
+
         if cv2.getWindowProperty("result", cv2.WND_PROP_VISIBLE) < 1:
             break
 
-        time.sleep(1/5)
+        time.sleep(1 / 5)
 
     cap.release()

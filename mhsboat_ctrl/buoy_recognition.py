@@ -12,13 +12,13 @@ from os import path
 import os
 from ultralytics.utils.plotting import Annotator
 from boat_interfaces.msg import AiOutput
-from enum import Enum
 from ultralytics import YOLO
 from cv_bridge import CvBridge
 import cv2
 from sensor_msgs.msg import Image
 from rclpy.node import Node
 import rclpy
+
 print("Importing libraries...")
 
 
@@ -30,13 +30,11 @@ MODEL_URL = "https://github.com/MHSeals/buoy-model/releases/download/V14/best.pt
 
 file_name = path.basename(MODEL_URL)
 
-model_path = os.path.join(os.path.dirname(
-    os.path.realpath(__file__)), file_name)
+model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
 
 if not os.path.exists(model_path):
     print(f"Model not found; downloading {MODEL_URL}")
-    urllib.request.urlretrieve(
-        MODEL_URL, model_path)
+    urllib.request.urlretrieve(MODEL_URL, model_path)
 
 print("Loading model...")
 model = YOLO(model_path)
@@ -47,16 +45,33 @@ MODEL_INPUT_DIMENSIONS = (1080, 1080)
 
 # We make a premade overlay for the OSD because it's faster than drawing it every frame
 print("Creating overlay...")
-overlay = np.zeros_like(np.zeros((DISPLAY_RESOLUTION[1], DISPLAY_RESOLUTION[0], 3), dtype=np.uint8))
+overlay = np.zeros_like(
+    np.zeros((DISPLAY_RESOLUTION[1], DISPLAY_RESOLUTION[0], 3), dtype=np.uint8)
+)
 
-overlay = cv2.putText(overlay, "Press k to pause",
-                      (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+overlay = cv2.putText(
+    overlay, "Press k to pause", (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1
+)
 
-overlay = cv2.putText(overlay, "Press ESC to exit",
-                      (10, 75), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+overlay = cv2.putText(
+    overlay,
+    "Press ESC to exit",
+    (10, 75),
+    cv2.FONT_HERSHEY_SIMPLEX,
+    0.5,
+    (0, 255, 0),
+    1,
+)
 
-overlay = cv2.putText(overlay, "Press r to restart (video cap only)", (
-    10, 100), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+overlay = cv2.putText(
+    overlay,
+    "Press r to restart (video cap only)",
+    (10, 100),
+    cv2.FONT_HERSHEY_SIMPLEX,
+    0.5,
+    (0, 255, 0),
+    1,
+)
 
 print("Overlay created")
 
@@ -94,8 +109,7 @@ class CameraSubscriber(Node):
 
         self.track_history = defaultdict(lambda: [])
 
-        self.create_subscription(
-            Image, "/color/image_raw", self.callback, 10)
+        self.create_subscription(Image, "/color/image_raw", self.callback, 10)
         # self.create_subscription(Image, "/wamv/sensors/cameras/front_left_camera_sensor/optical/image_raw", self.callback, 10)
 
         # create publisher that publishes bounding box coordinates and size and buoy type
@@ -121,7 +135,7 @@ class CameraSubscriber(Node):
     def timer_callback(self):
         if time.perf_counter() - self.last_callback_time > 1:
             print("No frames received in the last second")
-        
+
         self.publisher.publish(self.output)
 
     def callback(self, data: Image):
@@ -167,7 +181,14 @@ class CameraSubscriber(Node):
         results = model.track(frame, persist=True, tracker="bytetrack.yaml")
 
         original_frame = cv2.putText(
-            original_frame, fps_disp, (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            original_frame,
+            fps_disp,
+            (10, 25),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.5,
+            (0, 255, 0),
+            1,
+        )
 
         original_frame = cv2.add(original_frame, overlay)
 
@@ -196,13 +217,14 @@ class CameraSubscriber(Node):
                         bounding_box[0] * x_scale_factor,
                         bounding_box[1] * y_scale_factor,
                         bounding_box[2] * x_scale_factor,
-                        bounding_box[3] * y_scale_factor
+                        bounding_box[3] * y_scale_factor,
                     ]
 
                     # Calculate area of bounding box
 
-                    area = (bounding_box[2] - bounding_box[0]) * \
-                        (bounding_box[3] - bounding_box[1])
+                    area = (bounding_box[2] - bounding_box[0]) * (
+                        bounding_box[3] - bounding_box[1]
+                    )
 
                     # Disregard large bounding boxes
 
@@ -214,7 +236,7 @@ class CameraSubscriber(Node):
 
                     self.output.num += 1
                     self.output.types.append(name)
-                    self.output.confidences.append(int(confidence*100))
+                    self.output.confidences.append(int(confidence * 100))
                     self.output.lefts.append(int(x))
                     self.output.tops.append(int(y))
                     self.output.widths.append(int(w))
@@ -236,17 +258,25 @@ class CameraSubscriber(Node):
                             track.pop(0)
 
                         # Draw the tracking lines
-                        points = np.hstack(track).astype(
-                            np.int32).reshape((-1, 1, 2))
+                        points = np.hstack(track).astype(np.int32).reshape((-1, 1, 2))
                         original_frame = cv2.polylines(
-                            original_frame, [points], isClosed=False, color=color.as_bgr(), thickness=2)
+                            original_frame,
+                            [points],
+                            isClosed=False,
+                            color=color.as_bgr(),
+                            thickness=2,
+                        )
 
                     print(f"{name} {int(confidence*100)}% {bounding_box}")
 
                     annotator = Annotator(original_frame, line_width=1)
 
-                    annotator.box_label((x, y, x+w, y+h), f"{id if id is not None else 'None'}: {name} ({int(confidence*100)})% {int(area)}px",
-                                        color=color.as_bgr(), txt_color=color.text_color().as_bgr())
+                    annotator.box_label(
+                        (x, y, x + w, y + h),
+                        f"{id if id is not None else 'None'}: {name} ({int(confidence*100)})% {int(area)}px",
+                        color=color.as_bgr(),
+                        txt_color=color.text_color().as_bgr(),
+                    )
 
                     original_frame = annotator.result()
 
@@ -257,8 +287,7 @@ class CameraSubscriber(Node):
         self.processing_times = self.processing_times[-100:]
 
         print(f"Frame processing time: {frame_processing_time * 1000}ms")
-        print(
-            f"Average processing time: {np.mean(self.processing_times) * 1000}ms")
+        print(f"Average processing time: {np.mean(self.processing_times) * 1000}ms")
 
         cv2.imshow("result", original_frame)
         c = cv2.waitKey(1)
