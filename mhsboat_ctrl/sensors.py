@@ -423,7 +423,18 @@ class Sensors(Node):
         :return: True if the objects match, False otherwise
         :rtype:  bool
         """
-        distance_threshold = 0.3  # TODO: tune this value
+        if type(detected_obj) != type(map_obj):
+            return False
+        
+        if isinstance(detected_obj, Buoy) and isinstance(map_obj, Buoy):
+            if detected_obj.color != map_obj.color:
+               return False
+        
+        if isinstance(detected_obj, Shape) and isinstance(map_obj, Shape):
+            if detected_obj.shape != map_obj.shape or detected_obj.color != map_obj.color:
+                return False
+        
+        distance_threshold = 0.6  # TODO: tune this value
         self.get_logger().info(f"Checking if {detected_obj} matches original {map_obj}")
         distance = math.sqrt(
             (detected_obj.x - map_obj.x)**2

@@ -25,7 +25,7 @@ ros2 launch velodyne velodyne-all-nodes-VLP16-launch.py
 Launch the odometry processing system which handles localization data:
 
 ```bash
-ros2 launch mhsboat_ctrl odom_stack.launch.py
+ros2 launch mhsboat_ctrl odometry.launch.py
 ```
 
 *Note:* The odometry stack configuration is defined in odometry.launch.py if you need to adjust parameters like sensor calibration.
