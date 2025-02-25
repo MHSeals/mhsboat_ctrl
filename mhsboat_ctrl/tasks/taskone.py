@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, Union, Optional
+from typing import Tuple, Optional
 
 from mhsboat_ctrl.mhsboat_ctrl import BoatController
 from mhsboat_ctrl.task import Task
@@ -149,7 +149,7 @@ class TaskOne(Task):
             not completion_status == TaskCompletionStatus.SUCCESS
             or not completion_status == TaskCompletionStatus.FAILURE
         ):
-            self.sensors.controller.set_forward_velocity(FORWARD_VELOCITY)
+            self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
 
             # if first red buoy is closer, set that to closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.
             if distance(
@@ -185,11 +185,11 @@ class TaskOne(Task):
             )
             #
             if abs(mid[0]) > ALLOWED_TURN_DEVIATION:
-                self.sensors.controller.set_angular_velocity(
+                self.boat_controller.set_angular_velocity(
                     -ANGULAR_VELOCITY if mid[0] > 0 else ANGULAR_VELOCITY
                 )
             else:
-                self.sensors.controller.set_angular_velocity(0)
+                self.boat_controller.set_angular_velocity(0)
 
             if (
                 self.green_pole_buoys[0].y < 0
@@ -203,4 +203,4 @@ class TaskOne(Task):
 
 
 def main(controller: BoatController):
-    controller.add_task(TaskOne(controller, controller.sensors))
+    controller.add_task(TaskOne(controller))

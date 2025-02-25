@@ -45,17 +45,17 @@ class TaskTwo(Task):
 
         self.red_ball_buoys = [
             buoy
-            for buoy in self.buoy_map
+            for buoy in self.boat_controller.buoy_map
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.RED
         ]
         self.green_ball_buoys = [
             buoy
-            for buoy in self.buoy_map
+            for buoy in self.boat_controller.buoy_map
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.GREEN
         ]
         self.yellow_ball_buoys = [
             buoy
-            for buoy in self.buoy_map
+            for buoy in self.boat_controller.buoy_map
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW
         ]
 

@@ -14,6 +14,9 @@ class TaskStatus(Enum):
     FOUND = 1
     IN_PROGRESS = 2
     COMPLETED = 3
+    CANCELLED = 4
+    FAILURE = 5
+    PARTIAL_COMPLETION = 6
 
 
 class BuoyColors(Enum):

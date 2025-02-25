@@ -69,7 +69,7 @@ class Sensors(Node):
             Odometry(), "/odometry/filtered", self._odom_callback, self._qos_profile
         )
 
-        self._process_timer = self.create_timer(0.1, self._process_sensor_data)
+        self._process_timer = self.create_timer(0.1, self._safe_process_sensor_data)
 
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
 
@@ -108,6 +108,12 @@ class Sensors(Node):
     @property
     def odom_output(self) -> Optional[Odometry]:
         return self._odom_cache[-1][0] if len(self._odom_cache) > 0 else None
+    
+    def _safe_process_sensor_data(self) -> None:
+        try:
+            self._process_sensor_data()
+        except Exception as e:
+            self.get_logger().error(f"Error processing sensor data: {e}")
 
     def _process_sensor_data(self) -> None:
         """
@@ -250,7 +256,7 @@ class Sensors(Node):
             if camera_data.types[i].endswith("pole_buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 # type: ignore - this will always be either red or green
-                local_detected_objects.append(PoleBuoy(x, y, z, buoy_color))
+                local_detected_objects.append(PoleBuoy(x, y, z, buoy_color)) # type: ignore
             elif camera_data.types[i].endswith("buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 local_detected_objects.append(BallBuoy(x, y, z, buoy_color))
