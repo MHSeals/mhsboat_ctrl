@@ -31,6 +31,9 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
     "yellow": BuoyColors.YELLOW,
 }
 
+BUOY_DUPLICATE_THRESHOLD = 0.1
+CLUSTER_DETECTION_THRESHOLD_ANGLE = 5
+
 
 class Sensors(Node):
     def __init__(self):
@@ -122,19 +125,21 @@ class Sensors(Node):
             self.get_logger().warn("No odometry data available")
             return
 
+        now = self.get_clock().now().nanoseconds
+
         # find the data that has the smallest time difference
         # and process it
         camera_data, camera_time = min(
             self._camera_cache,
-            key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
+            key=lambda x: abs(x[1] - now),
         )
         lidar_data, lidar_time = min(
             self._lidar_cache,
-            key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
+            key=lambda x: abs(x[1] - now),
         )
         odom_data, odom_time = min(
             self._odom_cache,
-            key=lambda x: abs(x[1] - self.get_clock().now().nanoseconds),
+            key=lambda x: abs(x[1] - now),
         )
 
         if self.previous_odom_data is None:
@@ -275,7 +280,7 @@ class Sensors(Node):
                 # TODO: do we need to track duck images?
                 pass
 
-            local_detected_objects[-1].last_seen = self.get_clock().now().nanoseconds
+            local_detected_objects[-1].last_seen = now
 
         self.get_logger().info(
             f"Detected objects in this frame: {local_detected_objects}"
@@ -322,44 +327,56 @@ class Sensors(Node):
 
         self.get_logger().info(f"Transformation matrix: \n{transformation_matrix}")
 
+        # this should not be necessary anymore
         # Check if the detected objects match with the map objects
         # TODO: Is there a more efficient way to do this?
-        for detected_obj in local_detected_objects:
-            matched = False
-            for map_obj in self.map:
-                self.get_logger().info(
-                    f"Transforming X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}"
-                )
-                point_hom = np.array(
-                    [detected_obj.x, detected_obj.y, detected_obj.z, 1]
-                )
-                point_trans = np.dot(transformation_matrix, point_hom)
+        # for detected_obj in local_detected_objects:
+        #     matched = False
+        #     for map_obj in self.map:
+        #         self.get_logger().info(
+        #             f"Transforming X: {map_obj.x}, Y: {map_obj.y}, Z: {map_obj.z}"
+        #         )
+        #         point_hom = np.array(
+        #             [map_obj.x, map_obj.y, map_obj.z, 1]
+        #         )
+        #         point_trans = np.dot(transformation_matrix, point_hom)
 
-                detected_obj.x = point_trans[0]
-                detected_obj.y = point_trans[1]
-                detected_obj.z = point_trans[2]
+        #         map_obj.x = point_trans[0]
+        #         map_obj.y = point_trans[1]
+        #         map_obj.z = point_trans[2]
 
-                self.get_logger().info(
-                    f"Transformed X: {detected_obj.x}, Y: {detected_obj.y}, Z: {detected_obj.z}"
-                )
+        #         self.get_logger().info(
+        #             f"Transformed X: {map_obj.x}, Y: {map_obj.y}, Z: {map_obj.z}"
+        #         )
 
-                if self._is_match(detected_obj, map_obj):
-                    map_obj.x = detected_obj.x
-                    map_obj.y = detected_obj.y
-                    map_obj.last_seen = detected_obj.last_seen
-                    matched = True
-                    break
-            else:
-                ...
-            if not matched:
-                self.map.append(detected_obj)
+        #         if self._is_match(detected_obj, map_obj):
+        #             map_obj.x = detected_obj.x
+        #             map_obj.y = detected_obj.y
+        #             map_obj.last_seen = detected_obj.last_seen
+        #             matched = True
+        #             break
+        #     else:
+        #         ...
+        #     if not matched:
+        #         self.map.append(detected_obj)
 
         items_to_remove = []
+
+        self.map += local_detected_objects
 
         # Check for objects that aren't seen by camera, but are seen by lidar
         for map_obj in self.map:
             if map_obj in items_to_remove:
                 continue
+
+            # Transform the map object based on the odometry
+            point_hom = np.array([map_obj.x, map_obj.y, map_obj.z, 1])
+
+            point_trans = np.dot(transformation_matrix, point_hom)
+
+            map_obj.x = point_trans[0]
+            map_obj.y = point_trans[1]
+            map_obj.z = point_trans[2]
 
             theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
             phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
@@ -376,7 +393,7 @@ class Sensors(Node):
             map_obj.x = x
             map_obj.y = y
             map_obj.z = z
-            map_obj.last_seen = self.get_clock().now().nanoseconds
+            map_obj.last_seen = now
 
             # check for objects that are really close to each other
             for obj2 in self.map:
@@ -395,13 +412,20 @@ class Sensors(Node):
                     same = False
 
                 if same:
+                    self.get_logger().info(
+                        f"Checking for duplicates: {map_obj} (original) and {obj2} (this frame)"
+                    )
+
                     distance = math.sqrt(
                         (map_obj.x - obj2.x) ** 2
                         + (map_obj.y - obj2.y) ** 2
                         + (map_obj.z - obj2.z) ** 2
                     )
 
-                    if distance < 0.5:
+                    self.get_logger().info(f"Distance: {distance}")
+
+                    if distance < BUOY_DUPLICATE_THRESHOLD:
+                        self.get_logger().info("Found duplicate; merging objects")
                         # make position the average of the two
                         map_obj.x = (map_obj.x + obj2.x) / 2
                         map_obj.y = (map_obj.y + obj2.y) / 2
@@ -414,11 +438,7 @@ class Sensors(Node):
         self.map = [obj for obj in self.map if obj not in items_to_remove]
 
         # Handle other objects that havent been seen in for 5 seconds
-        self.map = [
-            obj
-            for obj in self.map
-            if self.get_clock().now().nanoseconds - obj.last_seen < 5e9
-        ]
+        self.map = [obj for obj in self.map if now - obj.last_seen < 5e9]
 
         self.get_logger().info(f"Map: {self.map}")
 
@@ -523,65 +543,39 @@ class Sensors(Node):
         theta = math.degrees(math.atan2(deltaX, fX))
         phi = math.degrees(math.atan2(deltaY, fY))
 
-        # make sure angles are between 0 and 360
-        theta = theta % 360
-        phi = phi % 360
-
         return theta, phi
 
     def get_XYZ_coordinates(
         self, theta: float, phi: float, pointCloud: PointCloud2, name: str
     ) -> Optional[Tuple[float, float, float]]:
-        """
-        Get the XYZ coordinates of a buoy based on the angle from the camera
-
-        :param theta: The angle from the x-axis
-        :type  theta: float
-        :param phi: The angle from the z-axis
-        :type  phi: float
-        :param pointCloud: The point cloud data
-        :type  pointCloud: class:`sensor_msgs.msg.PointCloud2`
-        :param name: The name of the buoy
-        :type  name: str
-        :return: The X, Y, Z coordinates of the buoy, or None if the buoy is not found
-        :rtype:  Tuple[float, float, float] | None
-        """
+        # Convert point cloud to numpy array
         points = np.array(list(read_points(pointCloud)))
-        mask = np.empty(points.shape[0], dtype=bool)
-        for index, point in enumerate(points):
-            x = point[0]
-            y = point[1]
-            z = point[2]
-
-            # calculate angle from x axis, the camera always points towards the x axis so we only care about lidar points near the x axis
-            # might have to change if camera doesn't point towards real lidar's x asix
-
-            # why did jonathan make this complicated mess?
-            # pointTheta = (
-            #     math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
-            # )
-            # pointPhi = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
-
-            pointTheta = math.degrees(math.atan2(y, x))
-            pointPhi = math.degrees(math.atan2(z, x))
-
-            # max angle difference to consider a point a match
-            degrees = 5
-            mask[index] = not (
-                math.fabs(pointTheta - theta) % 360 <= degrees
-                and math.fabs(pointPhi - phi) % 360 <= degrees
-            )
-
-        points = np.delete(points, mask, axis=0)
-
-        self.get_logger().info("Number of clusters: " + str(len(points)))
-        if len(points) > 1:
-            rp = np.mean(points, axis=0)
-            return rp[0], rp[1], rp[2]
-        if len(points) == 0:
+        if points.size == 0:
             return None
 
-        return (points[0][0], points[0][1], points[0][2])
+        # Calculate angles for all points at once
+        x = points[:, 0]
+        y = points[:, 1]
+        z = points[:, 2]
+        pointTheta = np.degrees(np.arctan2(y, x))
+        pointPhi = np.degrees(np.arctan2(z, x))
+
+        # Compute the absolute difference accounting for angle wrapping
+        def angle_diff(a, b):
+            return np.abs((a - b) % 360)
+
+        # Create a boolean mask for points within a 5° threshold
+        mask = (angle_diff(pointTheta, theta) <= CLUSTER_DETECTION_THRESHOLD_ANGLE) & (angle_diff(pointPhi, phi) <= CLUSTER_DETECTION_THRESHOLD_ANGLE)
+
+        filtered_points = points[mask]
+        self.get_logger().info("Number of clusters: " + str(len(filtered_points)))
+
+        if filtered_points.shape[0] > 1:
+            rp = np.mean(filtered_points, axis=0)
+            return tuple(rp)
+        elif filtered_points.shape[0] == 1:
+            return tuple(filtered_points[0])
+        return None
 
 
 # TODO: rewrite this class as its own node
