@@ -19,21 +19,20 @@ os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"  # Hide annoying prompt
 FONT_SIZE = 40
 FONT = "Segoe UI Medium"
 FONT_COLOR = "black"
-BUOY_RADIUS = 4
+BUOY_RADIUS = 10
 BOAT_WIDTH = 40
 BOAT_HEIGHT = 70
 BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "white"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-SCALE = 0.1
+SCALE = 50
 
 
 def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, int]:
-    # Translate world coordinates so that (0,0) is at the center of the screen
-    x_screen = SCREEN_WIDTH // 2 + int(x * scale)
-    y_screen = SCREEN_HEIGHT // 2 - int(y * scale)
-    return (x_screen, y_screen)
+    screen_x = SCREEN_WIDTH // 2 + int(round(y * scale))
+    screen_y = SCREEN_HEIGHT // 2 - int(round(x * scale))
+    return (screen_x, screen_y)
 
 
 class TESTGUI(Node):
@@ -79,7 +78,31 @@ class TESTGUI(Node):
 
         self.screen.fill(BACKGROUND_COLOR)
         self.draw_buoys()
+        self.draw_boat((SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
         pygame.display.update()
+    
+    # python
+    def draw_boat(self, center: Tuple[int, int]):
+        x, y = center
+        # Define dimensions for the boat shape
+        width = 20      # width of the square (base)
+        roof_height = 10  # height of the triangular roof
+        half_width = width // 2
+        
+        # The square bottom is drawn with the given center as its center.
+        # Compute square vertices (clockwise)
+        top_left = (x - half_width, y - half_width)
+        top_right = (x + half_width, y - half_width)
+        bottom_right = (x + half_width, y + half_width)
+        bottom_left = (x - half_width, y + half_width)
+        
+        # Compute the roof apex (centered above the square)
+        roof_apex = (x, top_left[1] - roof_height)
+        
+        # Order vertices to form a house shape:
+        # bottom_left, bottom_right, top_right, roof_apex, top_left
+        points = [bottom_left, bottom_right, top_right, roof_apex, top_left]
+        pygame.draw.polygon(self.screen, BOAT_COLOR, points)
 
     def draw_buoys(self):
         for buoy in self.buoys:

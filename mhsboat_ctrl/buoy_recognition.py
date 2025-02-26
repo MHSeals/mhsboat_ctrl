@@ -98,7 +98,7 @@ class CameraSubscriber(Node):
         # Use deque with fixed maxlen for efficient tracking history updates
         self.track_history = defaultdict(lambda: deque(maxlen=30))
 
-        self.create_subscription(Image, "/color/image_raw", self.safe_callback, 10)
+        self.create_subscription(Image, "/color/image_raw", self.safe_image_callback, 10)
         self.publisher = self.create_publisher(AiOutput, "AiOutput", 10)
         self.timer = self.create_timer(0.5, self.timer_callback)
 
@@ -110,13 +110,13 @@ class CameraSubscriber(Node):
             print("No frames received in the last second")
         self.publisher.publish(self.output)
     
-    def safe_callback(self, data: Image):
+    def safe_image_callback(self, data: Image):
         try:
-            self.callback(data)
+            self.image_callback(data)
         except Exception as e:
             print(f"Error in callback: {e}")
 
-    def callback(self, data: Image):
+    def image_callback(self, data: Image):
         self.last_callback_time = time.perf_counter()
         frame_start_time = time.perf_counter()
         self.total_frames += 1

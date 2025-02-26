@@ -71,3 +71,6 @@ ros2 launch mavros apm.launch fcu_url:=/dev/ttyACM0:115200
   - No Camera Data/Camera Data Lagging Behind: Check the camera connection and make sure it is plugged into the Jetson.
   - No LiDAR Data/LiDAR Data Lagging Behind: Ensure the Velodyne sensor is powered on and connected to the Jetson. Make sure the IP in the web interface matches the IP of the Jetson.
   - No Odometry Data/Odometry Data Lagging Behind: Check the connection between the Cube Orange and the Odroid. Ensure the USB port is correct and that the device is powered on. Make sure that MAVROS is running and connected to the flight controller.
+
+- **No frames recieved in the last second:**
+  - Check the connection between the realsense and the Jetson. Make sure the realsense-ros node (launched with odom stack/odometry.launch.py) is running and hasn't crashed.

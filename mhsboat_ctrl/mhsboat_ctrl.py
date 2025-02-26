@@ -35,7 +35,12 @@ class BoatController(Node):
         self.cmd_vel_publisher = self.create_publisher(
             TwistStamped, "/mavros/setpoint_velocity/cmd_vel", 10
         )
+
         self.cmd_vel = TwistStamped()
+        self.cmd_vel.twist.linear.x = 0.0
+        self.cmd_vel.twist.linear.y = 0.0
+        self.cmd_vel.twist.angular.z = 0.0
+        self.cmd_vel_publisher.publish(self.cmd_vel)
 
         self.run()
 

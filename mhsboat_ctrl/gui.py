@@ -8,8 +8,8 @@ import pygame
 
 from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
+from mhsboat_ctrl.utils.simulated_controller import SimulatedController
 
-from mhsboat_ctrl.utils.thruster_controller import SimulatedController
 from boat_interfaces.msg import BuoyMap
 
 # Constants

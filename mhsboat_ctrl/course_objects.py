@@ -1,11 +1,13 @@
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
-from mhsboat_ctrl.utils.custom_types import numeric
+if TYPE_CHECKING:
+    from mhsboat_ctrl.utils.custom_types import numeric
+
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 
 
 class CourseObject:
-    def __init__(self, x: numeric, y: numeric, z: numeric):
+    def __init__(self, x: 'numeric', y: 'numeric', z: 'numeric'):
         self.x = x
         self.y = y
         self.z = z
@@ -16,7 +18,7 @@ class CourseObject:
 
 
 class Shape(CourseObject):
-    def __init__(self, x: numeric, y: numeric, z: numeric, shape: Shapes, color: BuoyColors):
+    def __init__(self, x: 'numeric', y: 'numeric', z: 'numeric', shape: Shapes, color: BuoyColors):
         self.x = x
         self.y = y
         self.z = z
@@ -29,7 +31,7 @@ class Shape(CourseObject):
 
 
 class Buoy(CourseObject):
-    def __init__(self, x: numeric, y: numeric, z: numeric, color: BuoyColors):
+    def __init__(self, x: 'numeric', y: 'numeric', z: 'numeric', color: BuoyColors):
         self.x = x
         self.y = y
         self.z = z
@@ -42,7 +44,7 @@ class Buoy(CourseObject):
 
 class PoleBuoy(Buoy):
     def __init__(
-        self, x: numeric, y: numeric, z: numeric, color: Literal[BuoyColors.RED, BuoyColors.GREEN]
+        self, x: 'numeric', y: 'numeric', z: 'numeric', color: Literal[BuoyColors.RED, BuoyColors.GREEN]
     ):
         self.x = x
         self.y = y
@@ -55,7 +57,7 @@ class PoleBuoy(Buoy):
 
 
 class BallBuoy(Buoy):
-    def __init__(self, x: numeric, y: numeric, z: numeric, color: BuoyColors):
+    def __init__(self, x: 'numeric', y: 'numeric', z: 'numeric', color: BuoyColors):
         self.x = x
         self.y = y
         self.z = z
