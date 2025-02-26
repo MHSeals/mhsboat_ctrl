@@ -17,7 +17,8 @@ import yaml
 import math
 import numpy as np
 from typing import Dict, List, Tuple, Optional
-import tf_transformations
+import tf_transformations]]
+from sensor_msgs.msg import PointField
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -74,6 +75,9 @@ class Sensors(Node):
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
 
         self.map: List[CourseObject] = []
+
+        # New publisher for buoy clusters
+        self.buoy_cluster_pub = self.create_publisher(PointCloud2, "/mhsboat_ctrl/buoy_clusters", 10)
 
         self.previous_odom_data = None
 
@@ -230,14 +234,14 @@ class Sensors(Node):
 
             # Use angle to get the XYZ coordinates of each buoy
             # returns X, Y, Z
-            coords = self.get_XYZ_coordinates(
+            result = self.get_XYZ_coordinates(
                 theta, phi, lidar_data, camera_data.types[i]
             )
 
-            if coords is None:
+            if result is None:
                 continue
 
-            x, y, z = coords
+            (x, y, z), cluster_points = result
 
             # skip point if no associated lidar points
             if x == 0 and y == 0 and z == 0:
@@ -245,13 +249,8 @@ class Sensors(Node):
 
             self.get_logger().info(f"Buoy {i}: X: {x}, Y: {y}, Z: {z}")
 
-            # latitudes.append(x)
-            # longitudes.append(y)
-            # buoy_types.append(camera_data.types[i])
-            # lefts.append(camera_data.lefts[i])
-            # tops.append(camera_data.tops[i])
-
-            # types: ['black_buoy', 'black_circle', 'black_cross', 'black_triangle', 'blue_buoy', 'blue_circle', 'blue_cross', 'blue_racquet_ball', 'blue_triangle', 'dock', 'duck_image', 'green_buoy', 'green_cross', 'green_pole_buoy', 'green_triangle', 'misc_buoy', 'red_buoy', 'red_circle', 'red_cross', 'red_pole_buoy', 'red_racquet_ball', 'red_square', 'rubber_duck', 'yellow_buoy', 'yellow_racquet_ball']
+            # Publish cluster points for detected objects for debugging
+            self._publish_cluster(cluster_points, lidar_data.header)
 
             if camera_data.types[i].endswith("pole_buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
@@ -553,7 +552,7 @@ class Sensors(Node):
 
     def get_XYZ_coordinates(
         self, theta: float, phi: float, pointCloud: PointCloud2, name: str
-    ) -> Optional[Tuple[float, float, float]]:
+    ) -> Optional[Tuple[Tuple[float, float, float], np.ndarray]]:
         # Convert point cloud to numpy array
         points = np.array(list(read_points(pointCloud)))
         if points.size == 0:
@@ -578,10 +577,34 @@ class Sensors(Node):
 
         if filtered_points.shape[0] > 1:
             rp = np.mean(filtered_points, axis=0)
-            return tuple(rp)
+            return (tuple(rp), filtered_points)
         elif filtered_points.shape[0] == 1:
-            return tuple(filtered_points[0])
+            return (tuple(filtered_points[0]), filtered_points)
         return None
+
+    # New helper function to publish cluster points as PointCloud2
+    def _publish_cluster(self, points: np.ndarray, header) -> None:
+        if points.size == 0:
+            return
+
+        fields = [
+            PointField('x', 0, PointField.FLOAT32, 1),
+            PointField('y', 4, PointField.FLOAT32, 1),
+            PointField('z', 8, PointField.FLOAT32, 1),
+        ]
+        cloud_msg = PointCloud2(
+            header=header,
+            height=1,
+            width=len(points),
+            is_dense=True,
+            is_bigendian=False,
+            fields=fields,
+            point_step=12,
+            row_step=12 * len(points),
+            data=points.tobytes(),
+        )
+
+        self.buoy_cluster_pub.publish(cloud_msg)
 
 
 # TODO: rewrite this class as its own node
