@@ -1,4 +1,5 @@
 # TODO: Test the functionality of this script and fix errors
+
 """ 
 NOTE: I think the most likely issue is going to have to do with message serialization
       since we're using a custom message. We also need to add a subscription to cmd_vel.
@@ -18,7 +19,7 @@ class BagRecorder(Node):
         self.writer = rosbag2_py.SequentialWriter()
 
         storage_options = rosbag2_py.StorageOptions(
-            uri='bag_log',
+            uri='bag_files', # Location of the bag directory
             storage_id='sqlite3')
         converter_options = rosbag2_py.ConverterOptions('', '')
         self.writer.open(storage_options, converter_options)
