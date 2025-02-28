@@ -45,8 +45,8 @@ class BagRecorder(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    sbr = SimpleBagRecorder()
-    rclpy.spin(sbr)
+    br = BagRecorder()
+    rclpy.spin(br)
     rclpy.shutdown()
 
 if __name__ == '__main__':
