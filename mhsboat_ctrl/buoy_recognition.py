@@ -117,6 +117,8 @@ class CameraSubscriber(Node):
             print(f"Error in callback: {e}")
 
     def image_callback(self, data: Image):
+        self.get_logger().info("Processing new frame")
+        self.get_logger().info(f"Frame rate: {self.FPS}")
         self.last_callback_time = time.perf_counter()
         frame_start_time = time.perf_counter()
         self.total_frames += 1
@@ -245,10 +247,13 @@ class CameraSubscriber(Node):
             f"Frame processing time: {frame_processing_time * 1000:.2f}ms, Average: {np.mean(self.processing_times) * 1000:.2f}ms"
         )
 
-        cv2.imshow("result", original_frame)
-        key = cv2.waitKey(1)
-        if key == 27 or cv2.getWindowProperty("result", cv2.WND_PROP_VISIBLE) < 1:
-            raise KeyboardInterrupt
+        if os.environ.get("DISPLAY", "") != "":
+            cv2.imshow("result", original_frame)
+            key = cv2.waitKey(1)
+            if key == 27 or cv2.getWindowProperty("result", cv2.WND_PROP_VISIBLE) < 1:
+                raise KeyboardInterrupt
+        else:
+            print("Headless mode: Skipping display")
 
         self.output = output  # Publish the latest detection output
 

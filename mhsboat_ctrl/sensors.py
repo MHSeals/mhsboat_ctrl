@@ -17,7 +17,7 @@ import yaml
 import math
 import numpy as np
 from typing import Dict, List, Tuple, Optional
-import tf_transformations]]
+import tf_transformations
 from sensor_msgs.msg import PointField
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
@@ -32,8 +32,8 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
     "yellow": BuoyColors.YELLOW,
 }
 
-BUOY_DUPLICATE_THRESHOLD = 0.1
-CLUSTER_DETECTION_THRESHOLD_ANGLE = 5
+BUOY_DUPLICATE_THRESHOLD = 0.2
+CLUSTER_DETECTION_THRESHOLD_ANGLE = 4
 
 
 class Sensors(Node):
@@ -241,7 +241,9 @@ class Sensors(Node):
             if result is None:
                 continue
 
-            (x, y, z), cluster_points = result
+            x, y, z, pts = result
+
+            self._publish_cluster(pts, lidar_data.header)
 
             # skip point if no associated lidar points
             if x == 0 and y == 0 and z == 0:
@@ -250,7 +252,7 @@ class Sensors(Node):
             self.get_logger().info(f"Buoy {i}: X: {x}, Y: {y}, Z: {z}")
 
             # Publish cluster points for detected objects for debugging
-            self._publish_cluster(cluster_points, lidar_data.header)
+            #self._publish_cluster(cluster_points, lidar_data.header)
 
             if camera_data.types[i].endswith("pole_buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
@@ -390,7 +392,7 @@ class Sensors(Node):
             if coords is None:
                 continue
 
-            x, y, z = coords
+            x, y, z, _ = coords
 
             if x == 0 and y == 0 and z == 0:
                 continue
@@ -403,6 +405,9 @@ class Sensors(Node):
             # check for objects that are really close to each other
             for obj2 in self.map:
                 if obj2 in items_to_remove:
+                    continue
+
+                if map_obj == obj2:
                     continue
 
                 same = True
@@ -552,35 +557,57 @@ class Sensors(Node):
 
     def get_XYZ_coordinates(
         self, theta: float, phi: float, pointCloud: PointCloud2, name: str
-    ) -> Optional[Tuple[Tuple[float, float, float], np.ndarray]]:
-        # Convert point cloud to numpy array
+    ) -> Optional[Tuple[float, float, float, np.ndarray]]:
+        """
+        Get the XYZ coordinates of a buoy based on the angle from the camera
+
+        :param theta: The angle from the x-axis
+        :type  theta: float
+        :param phi: The angle from the z-axis
+        :type  phi: float
+        :param pointCloud: The point cloud data
+        :type  pointCloud: class:`sensor_msgs.msg.PointCloud2`
+        :param name: The name of the buoy
+        :type  name: str
+        :return: The X, Y, Z coordinates of the buoy, or None if the buoy is not found
+        :rtype:  Tuple[float, float, float] | None
+        """
         points = np.array(list(read_points(pointCloud)))
-        if points.size == 0:
+        mask = np.empty(points.shape[0], dtype=bool)
+        for index, point in enumerate(points):
+            x = point[0]
+            y = point[1]
+            z = point[2]
+
+            # calculate angle from x axis, the camera always points towards the x axis so we only care about lidar points near the x axis
+            # might have to change if camera doesn't point towards real lidar's x asix
+
+            # why did jonathan make this complicated mess?
+            # pointTheta = (
+            #     math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
+            # )
+            # pointPhi = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
+
+            pointTheta = math.degrees(math.atan2(y, x))
+            pointPhi = math.degrees(math.atan2(z, x))
+
+            # max angle difference to consider a point a match
+            degrees = 4
+            mask[index] = not (
+                math.fabs(pointTheta - theta) % 360 <= degrees
+                and math.fabs(pointPhi - phi) % 360 <= degrees
+            )
+
+        points = np.delete(points, mask, axis=0)
+
+        self.get_logger().info("Number of clusters: " + str(len(points)))
+        if len(points) > 1:
+            rp = np.mean(points, axis=0)
+            return (rp[0], rp[1], rp[2] points)
+        if len(points) == 0:
             return None
 
-        # Calculate angles for all points at once
-        x = points[:, 0]
-        y = points[:, 1]
-        z = points[:, 2]
-        pointTheta = np.degrees(np.arctan2(y, x))
-        pointPhi = np.degrees(np.arctan2(z, x))
-
-        # Compute the absolute difference accounting for angle wrapping
-        def angle_diff(a, b):
-            return np.abs((a - b) % 360)
-
-        # Create a boolean mask for points within a 5° threshold
-        mask = (angle_diff(pointTheta, theta) <= CLUSTER_DETECTION_THRESHOLD_ANGLE) & (angle_diff(pointPhi, phi) <= CLUSTER_DETECTION_THRESHOLD_ANGLE)
-
-        filtered_points = points[mask]
-        self.get_logger().info("Number of clusters: " + str(len(filtered_points)))
-
-        if filtered_points.shape[0] > 1:
-            rp = np.mean(filtered_points, axis=0)
-            return (tuple(rp), filtered_points)
-        elif filtered_points.shape[0] == 1:
-            return (tuple(filtered_points[0]), filtered_points)
-        return None
+        return (points[0][0], points[0][1], points[0][2], points)
 
     # New helper function to publish cluster points as PointCloud2
     def _publish_cluster(self, points: np.ndarray, header) -> None:
