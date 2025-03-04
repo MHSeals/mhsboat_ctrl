@@ -82,6 +82,10 @@ class Sensors(Node):
         self.previous_odom_data = None
 
         self.get_logger().info("Sensors Node Initialized")
+        # Added FPS counter initialization
+        self._fps_counter = 0
+        self._fps_start = self.get_clock().now().nanoseconds
+        self.fps = 0
 
     def _camera_callback(self, msg: AiOutput):
         self.get_logger().info("Received camera data")
@@ -118,6 +122,16 @@ class Sensors(Node):
             self._process_sensor_data()
         except Exception as e:
             self.get_logger().error(f"Error processing sensor data: {e}")
+        # Increment FPS counter and log FPS every second
+        self._fps_counter += 1
+        now = self.get_clock().now().nanoseconds
+        elapsed_time = (now - self._fps_start) / 1e9  # seconds
+        if elapsed_time >= 1.0:
+            self.fps = self._fps_counter / elapsed_time
+            self._fps_counter = 0
+            self._fps_start = now
+
+        self.get_logger().info(f"FPS: {self.fps:.2f}")
 
     def _process_sensor_data(self) -> None:
         """
