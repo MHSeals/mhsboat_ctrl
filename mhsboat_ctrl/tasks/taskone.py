@@ -107,9 +107,7 @@ class TaskOne(Task):
                             and dist_g > MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
-                        dist_r = np.sqrt(
-                            (red2.x - red1.x) ** 2 + (red2.y - red1.y) ** 2
-                        )
+                        dist_r = distance(red1.x, red1.y, red2.x, red2.y)
                         if (
                             dist_r < MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
                             and dist_r > MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
@@ -117,15 +115,13 @@ class TaskOne(Task):
                             continue
 
                         # Get distance between buoy pairs (calculated in meters)
-                        dist_pair = distance(green1.x, green1.y, red2.x, red2.y)
+                        dist_pair = distance(green1.x, green1.y, red1.x, red1.y)
                         if (
                             dist_pair < MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
                             and dist_pair > MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
-                        dist_pair2 = np.sqrt(
-                            (red2.x - green2.x) ** 2 + (red2.y - green2.y) ** 2
-                        )
+                        dist_pair2 = distance(green2.x, green2.y, red2.x, red2.y)
                         if (
                             dist_pair2 < MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
                             and dist_pair2 > MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
