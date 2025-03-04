@@ -207,7 +207,6 @@ class TaskOne(Task):
                 for green_buoy in green_pole_buoys:
                     if(green_buoy.uid == closest_green_buoy.uid) closest_green_buoy = green_buoy 
                     self.boat_controller.get_logger().info("Found matching green buoy")
-                    
 
             # if first red buoy is closer, set that to self.closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.
             if distance(
