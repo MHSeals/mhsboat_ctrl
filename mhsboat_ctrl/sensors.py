@@ -609,8 +609,28 @@ class Sensors(Node):
 
         self.get_logger().info("Number of clusters: " + str(len(points)))
         if len(points) > 1:
-            nearest_point = points[np.argmin(np.linalg.norm(points, axis=1))]
-            return (nearest_point[0], nearest_point[1], nearest_point[2], points)
+            # Choose point closest to theta and phi
+            min_distance = 999999
+            min_point = None
+            for point in points:
+                x = point[0]
+                y = point[1]
+                z = point[2]
+
+                pointTheta = math.degrees(math.atan2(y, x))
+                pointPhi = math.degrees(math.atan2(z, x))
+
+                distance = math.sqrt((pointTheta - theta) ** 2 + (pointPhi - phi) ** 2)
+                if distance < min_distance:
+                    min_distance = distance
+                    min_point = point
+
+            if min_point is not None:
+                return (min_point[0], min_point[1], min_point[2], points)
+            else:
+                # this should never happen
+                self.get_logger().error("No points found")
+                return None
         if len(points) == 0:
             return None
 
