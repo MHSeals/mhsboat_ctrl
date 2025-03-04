@@ -172,12 +172,12 @@ class TaskOne(Task):
         ):
             self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
 
-            last_seen_deviation = self.get_clock().now().nanoseconds / 1e9 - last_seen
+            last_seen_deviation = self.boat_controller.get_clock().now().nanoseconds / 1e9 - self.last_seen
 
             # Handle case where all buoys aren't detected
             if(len(self.red_pole_buoys) < 1 or len(self.green_buoys) < 1):
-                if(last_seen == -1):
-                    self.last_seen = self.self.get_clock().now().nanoseconds / 1e9
+                if(self.last_seen == -1):
+                    self.last_seen = self.boat_controller.get_clock().now().nanoseconds / 1e9
                     continue
                 elif(last_seen_deviation > LAST_SEEN_BACKTRACK_DEVIATION):
                     self.boat_controller.set_forward_velocity(-FORWARD_VELOCITY / 2) # backtrack slowly until buoys are seen
