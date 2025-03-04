@@ -167,15 +167,17 @@ class TaskOne(Task):
         ):
             self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
 
+            # NOTE: I'm a bit concerned that if our boat detects an extraneous buoy or more than the four buoys in task 1 that it will use those instead
+
             # if first red buoy is closer, set that to closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.
             if distance(
                 self.red_pole_buoys[0].x, self.red_pole_buoys[0].y, BOAT_X, BOAT_Y
             ) < distance(
                 self.red_pole_buoys[1].x, self.red_pole_buoys[1].y, BOAT_X, BOAT_Y
             ):
-                closest_red_buoy = (self.red_pole_buoys[0].x, self.red_pole_buoys[0].y)
+                closest_red_buoy = self.red_pole_buoys[0]
             else:
-                closest_red_buoy = (self.red_pole_buoys[1].x, self.red_pole_buoys[1].y)
+                closest_red_buoy = self.red_pole_buoys[1]
 
             #
             if distance(
@@ -183,21 +185,16 @@ class TaskOne(Task):
             ) < distance(
                 self.green_pole_buoys[1].x, self.green_pole_buoys[1].y, BOAT_X, BOAT_Y
             ):
-                closest_green_buoy = (
-                    self.green_pole_buoys[0].x,
-                    self.green_pole_buoys[0].y,
-                )
+                closest_green_buoy = self.green_pole_buoys[0]
             else:
-                closest_green_buoy = (
-                    self.green_pole_buoys[1].x,
-                    self.green_pole_buoys[1].y,
-                )
+                closest_green_buoy = self.green_pole_buoys[1]
+
             # Get the midpoint
             mid = midpoint(
-                closest_red_buoy[0],
-                closest_red_buoy[1],
-                closest_green_buoy[0],
-                closest_green_buoy[1],
+                closest_red_buoy.x,
+                closest_red_buoy.y,
+                closest_green_buoy.x,
+                closest_green_buoy.y,
             )
             #
             if abs(mid[0]) > ALLOWED_TURN_DEVIATION:
