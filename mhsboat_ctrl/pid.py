@@ -74,7 +74,7 @@ class PIDController:
         goal_y = y + dy
         
         goal_slope = (goal_y - position[1]) / (goal_x - position[0]) 
-        return np.atan2(goal_slope) - np.atan2(heading_slope) # error
+        return self.compute(np.atan2(goal_slope) - np.atan2(heading_slope))
         
     def compute(self, error: float) -> float:
         self.time = self.get_time()
