@@ -19,6 +19,7 @@ import numpy as np
 from typing import Dict, List, Tuple, Optional
 import tf_transformations
 from sensor_msgs.msg import PointField
+from uuid import uuid1
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -439,15 +440,22 @@ class Sensors(Node):
                         map_obj.x = (map_obj.x + obj2.x) / 2
                         map_obj.y = (map_obj.y + obj2.y) / 2
                         map_obj.z = (map_obj.z + obj2.z) / 2
+                        map_obj.uid = map_obj.uid or obj2.uid
 
                         # remove the other object
                         items_to_remove.append(obj2)
+
 
         # Remove objects that are really close to each other
         self.map = [obj for obj in self.map if obj not in items_to_remove]
 
         # Handle other objects that havent been seen in for 5 seconds
         self.map = [obj for obj in self.map if now - obj.last_seen < 5e9]
+
+        # Add UID to objects that don't have one
+        for obj in self.map:
+            if obj.uid is None:
+                obj.uid = uuid1()
 
         self.get_logger().info(f"Map: {self.map}")
 
