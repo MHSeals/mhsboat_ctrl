@@ -15,7 +15,10 @@ FORWARD_VELOCITY = 1  # m/s
 ANGULAR_VELOCITY = 0.5  # rad/s
 BOAT_X = 0
 BOAT_Y = 0
-
+MIN_PAIR_DIST = 1.8288
+MAX_PAIR_DIST = 3.048
+MIN_GATE_DIST = 7.62
+MAX_GATE_DIST = 30.48
 
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
@@ -62,6 +65,23 @@ class TaskOne(Task):
                         if green1 == green2:
                             continue
 
+                        """
+                        
+                        Desired buoy pattern
+
+                        R1   G1
+
+
+                        R2   G2
+                        
+                        Pairs
+                            - R2, R1, G1
+                            - R1, G1, G2
+                            - G1, G2, R2
+                            - G2, R2, R1
+
+                        """
+
                         # Check angles on the 4 corners
                         angle_R1 = calculate_buoy_angle(green1, red1, red2)
                         if abs(angle_R1 - 90) > ANGLE_ALLOWED_DEVIATION:
@@ -83,32 +103,32 @@ class TaskOne(Task):
                         # Get distance between same colored buoys (calculated in meters)
                         dist_g = distance(green1.x, green1.y, green2.x, green2.y)
                         if (
-                            dist_g < 30.48 + DIST_ALLOWED_DEVIATION
-                            and dist_g > 6.096 - DIST_ALLOWED_DEVIATION
+                            dist_g < MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_g > MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
                         dist_r = np.sqrt(
                             (red2.x - red1.x) ** 2 + (red2.y - red1.y) ** 2
                         )
                         if (
-                            dist_r < 30.48 + DIST_ALLOWED_DEVIATION
-                            and dist_r > 6.096 - DIST_ALLOWED_DEVIATION
+                            dist_r < MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_r > MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
 
                         # Get distance between buoy pairs (calculated in meters)
                         dist_pair = distance(green1.x, green1.y, red2.x, red2.y)
                         if (
-                            dist_pair < 3.048 + DIST_ALLOWED_DEVIATION
-                            and dist_pair > 1.8288 - DIST_ALLOWED_DEVIATION
+                            dist_pair < MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_pair > MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
                         dist_pair2 = np.sqrt(
                             (red2.x - green2.x) ** 2 + (red2.y - green2.y) ** 2
                         )
                         if (
-                            dist_pair2 < 3.048 + DIST_ALLOWED_DEVIATION
-                            and dist_pair2 > 1.8288 - DIST_ALLOWED_DEVIATION
+                            dist_pair2 < MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_pair2 > MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
 
