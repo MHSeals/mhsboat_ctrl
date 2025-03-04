@@ -14,10 +14,6 @@ class TaskTwo(Task):
 
     def __init__(self, boat_controller: BoatController):
         self.boat_controller = boat_controller
-        self._buoy_map = boat_controller.buoy_map
-        self.red_ball_buoys = []
-        self.green_ball_buoys = []
-        self.yellow_ball_buoys = []
 
     def search(self) -> Optional[Tuple[float, float]]:
         """
@@ -36,26 +32,32 @@ class TaskTwo(Task):
         between the first pair of buoys to give the boat a
         good starting point
         """
-        ...
+        
+        self._buoy_map = boat_controller.buoy_map
+
+        self.yellow_ball_buoys = [
+            buoy for buoy in self.buoy_map
+            if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW
+        ]
+
 
     def run(self) -> TaskCompletionStatus:
         self.boat_controller.get_logger().info("Running Task Two")
 
         completion_status = TaskCompletionStatus.NOT_STARTED
 
+        self._buoy_map = boat_controller.buoy_map
+
         self.red_ball_buoys = [
-            buoy
-            for buoy in self.boat_controller.buoy_map
+            buoy for buoy in self.boat_controller.buoy_map
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.RED
         ]
         self.green_ball_buoys = [
-            buoy
-            for buoy in self.boat_controller.buoy_map
+            buoy for buoy in self.boat_controller.buoy_map
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.GREEN
         ]
         self.yellow_ball_buoys = [
-            buoy
-            for buoy in self.boat_controller.buoy_map
+            buoy for buoy in self.boat_controller.buoy_map
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW
         ]
 
