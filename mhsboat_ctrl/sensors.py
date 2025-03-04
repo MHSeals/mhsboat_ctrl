@@ -580,8 +580,11 @@ class Sensors(Node):
         :rtype:  Tuple[float, float, float] | None
         """
         points = np.array(list(read_points(pointCloud)))
-        mask = np.empty(points.shape[0], dtype=bool)
-        for index, point in enumerate(points):
+
+        min_distance = float("inf")
+        min_point = None
+
+        for point in points:
             x = point[0]
             y = point[1]
             z = point[2]
@@ -598,43 +601,23 @@ class Sensors(Node):
             pointTheta = math.degrees(math.atan2(y, x))
             pointPhi = math.degrees(math.atan2(z, x))
 
-            # max angle difference to consider a point a match
-            degrees = 4
-            mask[index] = not (
-                math.fabs(pointTheta - theta) % 360 <= degrees
-                and math.fabs(pointPhi - phi) % 360 <= degrees
-            )
+            # is pointTheta and pointPhi within a certain threshold of theta and phi?
+            if (
+                abs(pointTheta - theta) > CLUSTER_DETECTION_THRESHOLD_ANGLE
+                or abs(pointPhi - phi) > CLUSTER_DETECTION_THRESHOLD_ANGLE
+            ):
+                continue
 
-        points = np.delete(points, mask, axis=0)
+            dist = math.sqrt((pointTheta - theta) ** 2 + (pointPhi - phi) ** 2)
 
-        self.get_logger().info("Number of clusters: " + str(len(points)))
-        if len(points) > 1:
-            # Choose point closest to theta and phi
-            min_distance = 999999
-            min_point = None
-            for point in points:
-                x = point[0]
-                y = point[1]
-                z = point[2]
+            if dist < min_distance:
+                min_distance = dist
+                min_point = point
 
-                pointTheta = math.degrees(math.atan2(y, x))
-                pointPhi = math.degrees(math.atan2(z, x))
-
-                distance = math.sqrt((pointTheta - theta) ** 2 + (pointPhi - phi) ** 2)
-                if distance < min_distance:
-                    min_distance = distance
-                    min_point = point
-
-            if min_point is not None:
-                return (min_point[0], min_point[1], min_point[2], points)
-            else:
-                # this should never happen
-                self.get_logger().error("No points found")
-                return None
-        if len(points) == 0:
+        if min_point is None:
             return None
-
-        return (points[0][0], points[0][1], points[0][2], points)
+        
+        return min_point[0], min_point[1], min_point[2], points
 
     # New helper function to publish cluster points as PointCloud2
     def _publish_cluster(self, points: np.ndarray, header) -> None:
