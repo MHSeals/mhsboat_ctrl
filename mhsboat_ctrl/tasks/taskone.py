@@ -13,12 +13,15 @@ DIST_ALLOWED_DEVIATION = 1  # meters
 ALLOWED_TURN_DEVIATION = 10  # degrees
 FORWARD_VELOCITY = 1  # m/s
 ANGULAR_VELOCITY = 0.5  # rad/s
-BOAT_X = 0
-BOAT_Y = 0
-MIN_PAIR_DIST = 1.8288
-MAX_PAIR_DIST = 3.048
-MIN_GATE_DIST = 7.62
-MAX_GATE_DIST = 30.48
+BOAT_X = 0 # meters
+BOAT_Y = 0 # meters
+MIN_PAIR_DIST = 1.8288 # meters
+MAX_PAIR_DIST = 3.048 # meters
+MIN_GATE_DIST = 7.62 # meters
+MAX_GATE_DIST = 30.48 # meters
+LAST_SEEN_BACKTRACK_DEVIATION = 1 # seconds
+LAST_SEEN_STOP_DEVIATION = 3 # seconds
+LAST_SEEN_FAILURE_DEVIATION = 8 # seconds
 
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
@@ -161,13 +164,33 @@ class TaskOne(Task):
 
         completion_status = TaskCompletionStatus.NOT_STARTED
 
+        self.last_seen = -1 # Only set to a positive value when we actually don't see buoys
+
         while (
             not completion_status == TaskCompletionStatus.SUCCESS
             or not completion_status == TaskCompletionStatus.FAILURE
         ):
             self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
 
-            # NOTE: I'm a bit concerned that if our boat detects an extraneous buoy or more than the four buoys in task 1 that it will use those instead
+            last_seen_deviation = self.get_clock().now().nanoseconds / 1e9 - last_seen
+
+            # Handle case where all buoys aren't detected
+            if(len(self.red_pole_buoys) < 1 or len(self.green_buoys) < 1):
+                if(last_seen == -1):
+                    self.last_seen = self.self.get_clock().now().nanoseconds / 1e9
+                    continue
+                elif(last_seen_deviation > LAST_SEEN_BACKTRACK_DEVIATION):
+                    self.boat_controller.set_forward_velocity(-FORWARD_VELOCITY / 2) # backtrack slowly until buoys are seen
+                    continue
+                elif(last_seen_deviation > LAST_SEEN_STOP_DEVIATION)
+                    self.boat_controller.set_forward_velocity(0) # stop the boat
+                    continue
+                elif(last_seen_deviation > LAST_SEEN_FAILURE_DEVIATION)
+                    completion_status = TaskCompletionStatus.FAILURE
+                    continue
+            
+            if(len(self.red_pole_buoys) > 2 or len(self.green_pole_buoys) > 2)
+                ... # TODO: Handle when more of 2 of each buoy are detected
 
             # if first red buoy is closer, set that to closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.
             if distance(
