@@ -176,6 +176,8 @@ class TaskOne(Task):
 
             # Handle case where all buoys aren't detected
             if(len(self.red_pole_buoys) < 1 or len(self.green_buoys) < 1):
+                self.boat_controller.get_logger().info("No green/red buoy detected for buoy pairs")
+
                 if(self.last_seen == -1):
                     self.last_seen = self.boat_controller.get_clock().now().nanoseconds / 1e9
                     continue
@@ -190,17 +192,32 @@ class TaskOne(Task):
                     continue
             
             if(len(self.red_pole_buoys) > 2 or len(self.green_pole_buoys) > 2)
-                ... # TODO: Handle when more of 2 of each buoy are detected
+                if self.closest_red_buoy == None or self.closest_green_buoy == None: 
+                    self.boat_controller.get_logger().error("Too many buoys detected at task start")
+                    continue
+                
+                self.boat_controller.get_logger().info("Too many buoys detected, attempting to match corresponding new buoy")
+                
+                self.boat
+                # TODO: I'm not entirely sure if there is a way to optimize or if this is the correct way to use uids, but we need to improve this.
+                for red_buoy in red_pole_buoys:
+                    if(red_buoy.uid == closest_red_buoy.uid) closest_red_buoy = red_buoy
+                    self.boat_controller.get_logger().info("Found matching red buoy")
+                
+                for green_buoy in green_pole_buoys:
+                    if(green_buoy.uid == closest_green_buoy.uid) closest_green_buoy = green_buoy 
+                    self.boat_controller.get_logger().info("Found matching green buoy")
+                    
 
-            # if first red buoy is closer, set that to closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.
+            # if first red buoy is closer, set that to self.closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.
             if distance(
                 self.red_pole_buoys[0].x, self.red_pole_buoys[0].y, BOAT_X, BOAT_Y
             ) < distance(
                 self.red_pole_buoys[1].x, self.red_pole_buoys[1].y, BOAT_X, BOAT_Y
             ):
-                closest_red_buoy = self.red_pole_buoys[0]
+                self.closest_red_buoy = self.red_pole_buoys[0]
             else:
-                closest_red_buoy = self.red_pole_buoys[1]
+                self.closest_red_buoy = self.red_pole_buoys[1]
 
             #
             if distance(
@@ -208,16 +225,16 @@ class TaskOne(Task):
             ) < distance(
                 self.green_pole_buoys[1].x, self.green_pole_buoys[1].y, BOAT_X, BOAT_Y
             ):
-                closest_green_buoy = self.green_pole_buoys[0]
+                self.closest_green_buoy = self.green_pole_buoys[0]
             else:
-                closest_green_buoy = self.green_pole_buoys[1]
+                self.closest_green_buoy = self.green_pole_buoys[1]
 
             # Get the midpoint
             mid = midpoint(
-                closest_red_buoy.x,
-                closest_red_buoy.y,
-                closest_green_buoy.x,
-                closest_green_buoy.y,
+                self.closest_red_buoy.x,
+                self.closest_red_buoy.y,
+                self.closest_green_buoy.x,
+                self.closest_green_buoy.y,
             )
             #
             if abs(mid[0]) > ALLOWED_TURN_DEVIATION:
