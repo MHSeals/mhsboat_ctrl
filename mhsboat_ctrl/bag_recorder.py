@@ -36,12 +36,12 @@ class BagRecorder(Node):
         self.writer.create_topic(topic_info)
 
         self.map_subscription = self.create_subscription(
-            Clusters,
+            BuoyMap,
             '/mhsboat_ctrl/map',
-            self.cluster_callback,
+            self.map_callback,
             10)
 
-    def cluster_callback(self, msg):
+    def map_callback(self, msg):
         self.writer.write(
             '/mhsboat_ctrl/map',
             serialize_message(msg),

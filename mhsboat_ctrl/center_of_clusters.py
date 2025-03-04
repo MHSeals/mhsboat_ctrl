@@ -124,9 +124,9 @@ def point_cloud(msg: PointCloud2, node: center_of_clusters) -> PointCloud2:
 
     # print("clusterCenters: "+str(clusterCenters))
 
-    clusterCenters = np.delete(
-        clusterCenters, np.where(clusterCenters == [np.inf]), axis=0
-    )
+    # get rid of infinite cluster centers
+    clusterCenters = clusterCenters[~np.isinf(clusterCenters).any(axis=1)]
+
     print("clusterCenters length: " + str(len(clusterCenters)))
 
     # print("clusterCenters: "+str(clusterCenters))

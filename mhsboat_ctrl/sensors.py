@@ -76,7 +76,6 @@ class Sensors(Node):
 
         self.map: List[CourseObject] = []
 
-        # New publisher for buoy clusters
         self.buoy_cluster_pub = self.create_publisher(PointCloud2, "/mhsboat_ctrl/buoy_clusters", 10)
 
         self.previous_odom_data = None
@@ -602,8 +601,8 @@ class Sensors(Node):
 
         self.get_logger().info("Number of clusters: " + str(len(points)))
         if len(points) > 1:
-            rp = np.mean(points, axis=0)
-            return (rp[0], rp[1], rp[2] points)
+            nearest_point = points[np.argmin(np.linalg.norm(points, axis=1))]
+            return (nearest_point[0], nearest_point[1], nearest_point[2], points)
         if len(points) == 0:
             return None
 
