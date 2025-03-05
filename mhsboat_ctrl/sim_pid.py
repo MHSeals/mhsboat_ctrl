@@ -1,5 +1,5 @@
-from mhsboat_ctrl.mhsboat_ctrl import BoatController
 import numpy as np
+from time import time
 from typing import Tuple
 
 class PIDController:
@@ -39,10 +39,9 @@ class PIDController:
 
     """
 
-    def __init__(self, boat_controller: BoatController, look_ahead: float, Kp: float, Ki: float, Kd: float, integral_bound: float):
+    def __init__(self, look_ahead: float, Kp: float, Ki: float, Kd: float, integral_bound: float):
         self.look_ahead = look_ahead
         self.integral_bound = integral_bound
-        self.boat_controller = boat_controller
 
         self.Kp = Kp
         self.Ki = Ki
@@ -50,10 +49,10 @@ class PIDController:
 
         self.prev_error = 0
         self.integral = 0
-        self.prev_t = self.get_time()
+        self.prev_t = time()
 
     def pure_pursuit(self, slope: float, position: float, orientation: float) -> Tuple[Tuple[float, float], float]:
-        """
+        """ 
         Simplified pure pusuit algorithm using only a slope to represent path due to starting at the origin and linear nature
         Outputs the heading error by calculating the angle between the line from the robot to the desired goal and the robot's forward heading
         """
@@ -68,14 +67,13 @@ class PIDController:
 
         goal_x = x + dx
         goal_y = y + dy
-        
 
         angle_to_goal = np.arctan2(goal_y - position[1], goal_x - position[0])
         error = self.compute(angle_to_goal - orientation)
         return (goal_x, goal_y), error
         
     def compute(self, error: float) -> float:
-        self.t = self.get_time()
+        self.t = time()
         self.dt = self.t - self.prev_t
         self.prev_t = self.t
 
@@ -88,6 +86,3 @@ class PIDController:
 
         angle_out = (self.Kp * error) + (self.Kd * derivative) + (self.Ki * self.integral)
         return angle_out
-    
-    def get_time(self) -> float:
-        self.boat_controller.get_clock().now().nanoseconds / 1e9
