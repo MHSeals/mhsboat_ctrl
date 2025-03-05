@@ -5,21 +5,21 @@ import noise
 from time import time
 
 NOISE_SCALE = 1.1
-WAVE_STRENGTH = 10.0
+WAVE_STRENGTH = 6.0
 WIDTH = 800
 HEIGHT = 600
-SLOPE = 5.0 / 3.0
+SLOPE = 1.0 / 3.0
 BOAT_WIDTH = 20
 BOAT_HEIGHT = 50
 WAVE_SIM_SPEED = 0.2
 LINEAR_VELOCITY = 60
-TURN_SPEED = 1
+TURN_SPEED = 4
 SEED = 32
 
 diagonal = (BOAT_WIDTH**2 + BOAT_HEIGHT**2) ** (1 / 2)
 
 boat_pos = np.array([40.0, 20.0])
-boat_orientation = np.pi / 2
+boat_orientation = np.pi
 boat_vel = np.array([0.0, 0.0])
 
 start_time = time()
@@ -29,7 +29,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
 positions = []
 
-controller = PIDController(look_ahead=50, Kp=10, Ki=2, Kd=2, integral_bound=10)
+controller = PIDController(look_ahead=70, Kp=20, Ki=1, Kd=5, integral_bound=8)
 angular_velocity = 0
 
 def get_wave(t):
