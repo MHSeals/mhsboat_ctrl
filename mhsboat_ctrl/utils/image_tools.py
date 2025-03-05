@@ -6,36 +6,44 @@ import time
 simple_wb = cv2.xphoto.createSimpleWB()
 
 
+def adjust_gamma(image: np.ndarray, gamma: float = 0.5) -> np.ndarray:
+    """
+    Apply gamma correction to the image to adjust brightness.
+    A gamma value less than 1 brightens the image.
+    
+    :param image: The input image (8-bit)
+    :param gamma: The gamma correction value (default: 0.5)
+    :return: The gamma corrected image
+    """
+    invGamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** invGamma) * 255 
+                      for i in range(256)]).astype("uint8")
+    return cv2.LUT(image, table)
+
 def preprocess(image: np.ndarray) -> np.ndarray:
     """
-    Preprocesses an image for buoy recognition
-
-    :param image: The image to preprocess
-    :type image: class:`numpy.ndarray`
+    Preprocesses an image for buoy recognition, including white balancing,
+    brightness enhancement via gamma correction, contrast adjustment, and sharpening.
+    
+    :param image: The original image (BGR format) from the D435 camera
     :return: The preprocessed image
-    :rtype: class:`numpy.ndarray`
     """
-    # automatic color balance
+    # 1. Automatic white balance
     image = simple_wb.balanceWhite(image)
-
-    # equalize histogram
-    # image = cv2.cvtColor(image, cv2.COLOR_BGR2YCrCb)
-    # channels = cv2.split(image)
-    # cv2.equalizeHist(channels[0], channels[0])
-    # cv2.merge(channels, image)
-    # image = cv2.cvtColor(image, cv2.COLOR_YCrCb2BGR)
-
-    # constrast and brightness
-    image_brightness = np.average(norm(image, axis=2)) / np.sqrt(3)
-
+    
+    # 2. Brightness enhancement using gamma correction
+    image = adjust_gamma(image, gamma=0.5)
+    
+    # 3. Adjust brightness and contrast further based on image brightness
+    # Calculate average brightness (using norm to consider all channels)
+    image_brightness = np.average(np.linalg.norm(image, axis=2)) / np.sqrt(3)
     beta = 130 - image_brightness
-
     image = cv2.convertScaleAbs(image, alpha=1.05, beta=beta)
-
-    # sharpen
+    
+    # 4. Sharpen the image
     blurred = cv2.GaussianBlur(image, (0, 0), 3)
     image = cv2.addWeighted(image, 1.5, blurred, -0.5, 0)
-
+    
     return image
 
 

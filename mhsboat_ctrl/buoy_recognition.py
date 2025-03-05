@@ -134,7 +134,7 @@ class CameraSubscriber(Node):
 
         # Prepare frame for model prediction
         model_frame = cv2.resize(display_frame, MODEL_INPUT_DIMENSIONS)
-        model_frame = preprocess(model_frame)
+        # model_frame = preprocess(model_frame)
 
         # Update FPS calculation
         elapsed_time = time.perf_counter() - self.start_time
@@ -251,7 +251,7 @@ class CameraSubscriber(Node):
             f"Frame processing time: {frame_processing_time * 1000:.2f}ms, Average: {np.mean(self.processing_times) * 1000:.2f}ms"
         )
 
-        if self.headless_mode:
+        if not self.headless_mode:
             cv2.imshow("result", original_frame)
             key = cv2.waitKey(1)
             if key == 27 or cv2.getWindowProperty("result", cv2.WND_PROP_VISIBLE) < 1:
