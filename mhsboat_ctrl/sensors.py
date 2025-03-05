@@ -20,6 +20,7 @@ from typing import Dict, List, Tuple, Optional
 import tf_transformations
 from sensor_msgs.msg import PointField
 from uuid import uuid1
+import traceback
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -122,6 +123,7 @@ class Sensors(Node):
             self._process_sensor_data()
         except Exception as e:
             self.get_logger().error(f"Error processing sensor data: {e}")
+            traceback.print_exc()
         # Increment FPS counter and log FPS every second
         self._fps_counter += 1
         now = self.get_clock().now().nanoseconds
@@ -639,10 +641,13 @@ class Sensors(Node):
             return
 
         fields = [
-            PointField('x', 0, PointField.FLOAT32, 1),
-            PointField('y', 4, PointField.FLOAT32, 1),
-            PointField('z', 8, PointField.FLOAT32, 1),
+            PointField(name="x", offset=0, datatype=PointField.FLOAT32, count=1),
+            PointField(name="y", offset=4, datatype=PointField.FLOAT32, count=1),
+            PointField(name="z", offset=8, datatype=PointField.FLOAT32, count=1),
         ]
+
+        points = points.reshape(-1, 3).astype(np.float32)
+
         cloud_msg = PointCloud2(
             header=header,
             height=1,
