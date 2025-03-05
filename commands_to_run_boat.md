@@ -38,6 +38,10 @@ Initialize the mapping system that builds the course map:
 ros2 launch mhsboat_ctrl mapping.launch.py
 ```
 
+Parameters:
+
+- `headless_mode` (default: `True`): Controls whether computer vision tries to display images on the screen. Set to `False` to enable image display.
+
 *Details:* The mapping launch file (launch/mapping.launch.py) sets up nodes to process sensor data and generate maps. This is especially useful for simulation and diagnostic purposes.
 
 ### 4. Controller

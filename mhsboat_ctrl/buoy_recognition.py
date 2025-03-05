@@ -86,6 +86,10 @@ class CameraSubscriber(Node):
     def __init__(self):
         print("Initializing node")
         super().__init__("camera_subscriber")
+
+        self.declare_parameter("headless_mode", True)
+        self.headless_mode = self.get_parameter("headless_mode").value
+
         self.start_time = time.perf_counter()
         self.display_time = 1.0
         self.fc = 0
@@ -247,13 +251,11 @@ class CameraSubscriber(Node):
             f"Frame processing time: {frame_processing_time * 1000:.2f}ms, Average: {np.mean(self.processing_times) * 1000:.2f}ms"
         )
 
-        if os.environ.get("DISPLAY", "") != "":
+        if self.headless_mode:
             cv2.imshow("result", original_frame)
             key = cv2.waitKey(1)
             if key == 27 or cv2.getWindowProperty("result", cv2.WND_PROP_VISIBLE) < 1:
                 raise KeyboardInterrupt
-        else:
-            print("Headless mode: Skipping display")
 
         self.output = output  # Publish the latest detection output
 

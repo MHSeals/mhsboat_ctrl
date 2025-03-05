@@ -26,6 +26,10 @@ colcon build --symlink-install --packages-select mhsboat_ctrl
 
 [See commands_to_run_boat.md](./commands_to_run_boat.md)
 
+## Packages Description
+
+[See packages_description.md](./packages_description.md)
+
 ## Principles
 
 1. **Boat-Centric Coordinates**:  
