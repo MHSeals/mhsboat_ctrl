@@ -1,0 +1,166 @@
+import rclpy
+from rclpy.node import Node
+from typing import List, Tuple
+from geometry_msgs.msg import TwistStamped
+from boat_interfaces.msg import BuoyMap, BoatMovement
+
+from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
+from mhsboat_ctrl.task import Task
+from mhsboat_ctrl.course_objects import CourseObject, PoleBuoy, BallBuoy
+
+class BoatController(Node):
+    tasks: List[Task] = []
+
+    def __init__(self):
+        super().__init__("mhsboat_ctrl")
+        
+        self.map_subscriber = self.create_subscription(
+            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10
+        )
+
+        self.movement_subscriber = self.create_subscription(
+            BuoyMap, "/mhsboat_ctrl/movement", self.movement_callback, 10
+        )
+
+        self.get_logger().info("Boat Controller Node Initialized")
+
+        self.buoy_map: list[CourseObject] = []
+
+        self.cmd_vel_publisher = self.create_publisher(
+            TwistStamped, "/mavros/setpoint_velocity/cmd_vel", 10
+        )
+
+        self.dx = 0
+        self.dy = 0
+        self.dzr = 0
+
+        self.cmd_vel = TwistStamped()
+        self.cmd_vel.twist.linear.x = 0.0
+        self.cmd_vel.twist.linear.y = 0.0
+        self.cmd_vel.twist.angular.z = 0.0
+        self.cmd_vel_publisher.publish(self.cmd_vel)
+
+        self.run()
+
+    def set_forward_velocity(self, velocity: float):
+        self.cmd_vel.twist.linear.x = velocity
+
+    def set_backward_velocity(self, velocity: float):
+        self.cmd_vel.twist.linear.y = velocity
+
+    def set_angular_velocity(self, velocity: float):
+        self.cmd_vel.twist.angular.z = velocity
+
+    def map_callback(self, msg: BuoyMap):
+        for i in range(len(msg.x)):
+            color = BuoyColors(msg.colors[i].lower())
+            if msg.types[i] == "pole":
+                self.buoy_map.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color))  # type: ignore color will always only be red or green
+            elif msg.types[i] == "ball":
+                self.buoy_map.append(BallBuoy(msg.x[i], msg.y[i], msg.z[i], color))
+            elif msg.types[i] == "shape":
+                self.buoy_map.append(CourseObject(msg.x[i], msg.y[i], msg.z[i]))
+            elif msg.types[i] == "course_object":
+                self.buoy_map.append(CourseObject(msg.x[i], msg.y[i], msg.z[i]))
+            else:
+                self.get_logger().error(f"Unknown buoy type: {msg.types[i]}")
+
+    def movement_callback(self, msg: BoatMovement):
+        self.dx = msg.dx
+        self.dy = msg.dy
+        self.dzr = msg.dzr
+
+    def get_movement(self) -> Tuple[float, float, float]
+        return (dx, dy, dzr)
+
+    def add_task(self, task: Task):
+        """
+        Add a task to the controller
+
+        :param task: The task to add
+        :type task: class:`mhsboat_ctrl.task.Task`
+        """
+        self.tasks.append(task)
+    
+    def _process_tasks(self):
+        """
+        Run all tasks
+        """
+
+        for task in self.tasks:
+            if task.status == TaskStatus.COMPLETED:
+                continue
+
+            search_result = task.search()
+            if search_result is not None:
+                self.get_logger().info(f"Found Task {task.__qualname__}")
+
+                inp = ""
+                while True:
+                    inp = input("Run task? (y/n): ")
+                    if inp == "y" or inp == "n":
+                        break
+                    else:
+                        print("Invalid input. Please enter 'y' or 'n'.")
+
+                if inp == "y":
+                    self.get_logger().info("Running task")
+                    self.get_logger().info("Press Ctrl+C to cancel")
+
+                    try:
+                        completion_status = task.run()
+                    except KeyboardInterrupt:
+                        completion_status = TaskCompletionStatus.CANCELLED
+                    except Exception as e:
+                        self.get_logger().error(f"Task failed: {e}")
+                        completion_status = TaskCompletionStatus.FAILURE
+                    
+                    if completion_status == TaskCompletionStatus.SUCCESS:
+                        task.status = TaskStatus.COMPLETED
+                        self.get_logger().info("Task completed")
+                    elif completion_status == TaskCompletionStatus.PARTIAL_SUCCESS:
+                        task.status = TaskStatus.PARTIAL_COMPLETION
+                        self.get_logger().info("Task partially completed")
+                    elif completion_status == TaskCompletionStatus.FAILURE:
+                        task.status = TaskStatus.FAILURE
+                        self.get_logger().error("Task failed")
+                    elif completion_status == TaskCompletionStatus.CANCELLED:
+                        self.get_logger().info("Task cancelled")
+                    elif completion_status == TaskCompletionStatus.NOT_STARTED:
+                        task.status = TaskStatus.NOT_STARTED
+                        self.get_logger().error("Task not started")
+                    else:
+                        task.status = TaskStatus.FAILURE
+                        self.get_logger().error("Task failed")
+
+    def run(self):
+        """
+        Run the boat controller
+        """
+        self.get_logger().info("Running Boat Controller")
+        while rclpy.ok():
+            try:
+                self._process_tasks()
+            except KeyboardInterrupt:
+                exit = input("Exit? (y/n): ")
+                if exit == "y":
+                    break
+                else:
+                    continue
+            except Exception as e:
+                self.get_logger().error(f"Error: {e}")
+                continue
+
+
+def main(args=None):
+    rclpy.init(args=args)
+
+    boat_controller = BoatController()
+
+    try:
+        rclpy.spin(boat_controller)
+    except KeyboardInterrupt:
+        boat_controller.get_logger().info("Shutting down")
+    finally:
+        boat_controller.destroy_node()
+        rclpy.shutdown()
