@@ -477,11 +477,12 @@ class Sensors(Node):
 
         # Publish the map
         msg = BuoyMap()
-        x, y, z, types, colors = [], [], [], [], []
+        x, y, z, types, colors, uids = [], [], [], [], [], []
         for obj in self.map:
             x.append(obj.x)
             y.append(obj.y)
             z.append(obj.z)
+            uids.append(obj.uid)
 
             if isinstance(obj, Shape):
                 types.append(obj.shape.value)
@@ -501,6 +502,7 @@ class Sensors(Node):
         msg.z = z
         msg.types = types
         msg.colors = colors
+        msg.uids = uids
 
         self.map_publisher.publish(msg)
 

@@ -3,6 +3,7 @@ from rclpy.node import Node
 from typing import List
 from geometry_msgs.msg import TwistStamped
 from boat_interfaces.msg import BuoyMap
+from uuid import UUID
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.task import Task
@@ -54,6 +55,7 @@ class BoatController(Node):
         self.cmd_vel.twist.angular.z = velocity
 
     def sensors_callback(self, msg: BuoyMap):
+        # TODO: ADD UID TO TOPIC. PARSE UID HERE
         for i in range(len(msg.x)):
             color = BuoyColors(msg.colors[i].lower())
             if msg.types[i] == "pole":
@@ -66,6 +68,9 @@ class BoatController(Node):
                 self.buoy_map.append(CourseObject(msg.x[i], msg.y[i], msg.z[i]))
             else:
                 self.get_logger().error(f"Unknown buoy type: {msg.types[i]}")
+                continue
+
+            self.buoy_map[-1].uid = UUID(hex=msg.uids[i])
 
     def add_task(self, task: Task):
         """
