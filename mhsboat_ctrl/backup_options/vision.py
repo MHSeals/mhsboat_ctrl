@@ -8,10 +8,11 @@ from rclpy.qos import (
     QoSDurabilityPolicy,
     QoSLivelinessPolicy,
 )
-
+from cv_bridge import CvBridge
 from boat_interfaces.msg import AiOutput, BuoyMap, BoatMovement
 from sensor_msgs.msg import Odometry, CameraInfo, Image 
 import numpy as np
+import tf_transformations
 from typing import Dict
 
 from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
@@ -101,53 +102,55 @@ class Vision(Node):
         self.cy = msg.k[5]  # Optical center y
         
     # TODO: Add better error handling and logging
-    def _camera_callback(self, cam_data: AiOutput) -> None:
+    def _camera_callback(self, camera_data: AiOutput) -> None:
         self.get_logger().info("Received buoy detections")
         
-        lefts = np.array([cam_data.lefts])
-        tops = np.array([cam_data.tops])
-        widths = np.array([cam_data.widths])
-        heights = np.array([cam_data.heights])
+        lefts = np.array([camera_data.lefts])
+        tops = np.array([camera_data.tops])
+        widths = np.array([camera_data.widths])
+        heights = np.array([camera_data.heights])
         detected_objects = []
         
         # Calculate the centers of each buoy detection to transform point later
         centers = np.array([lefts + widths / 2, tops + heights / 2]).T
         items_to_remove = []
+        
 
-        for i in range(cam_data.num):
+        for i in range(camera_data.num):
+            x, y, z = centers[i]
             if camera_data.types[i].endswith("pole_buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 # type: ignore - this will always be either red or green
-                detected_objects.append(PoleBuoy(*centers[i], buoy_color)) # type: ignore
+                detected_objects.append(PoleBuoy(x, y, z, buoy_color)) # type: ignore
             elif camera_data.types[i].endswith("buoy"):
                 buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                detected_objects.append(BallBuoy(*centers[i], buoy_color))
+                detected_objects.append(BallBuoy(x, y, z, buoy_color))
             elif camera_data.types[i].endswith("circle"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 detected_objects.append(
-                    Shape(*centers[i], Shapes.CIRCLE, shape_color)
+                    Shape(x, y, z, Shapes.CIRCLE, shape_color)
                 )
             elif camera_data.types[i].endswith("triangle"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 detected_objects.append(
-                    Shape(*centers[i], Shapes.TRIANGLE, shape_color)
+                    Shape(x, y, z, Shapes.TRIANGLE, shape_color)
                 )
             elif camera_data.types[i].endswith("cross"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                detected_objects.append(Shape(*centers[i], Shapes.CROSS, shape_color))
+                detected_objects.append(Shape(x, y, z, Shapes.CROSS, shape_color))
             elif camera_data.types[i].endswith("square"):
                 shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
                 detected_objects.append(
-                    Shape(*centers[i], Shapes.SQUARE, shape_color)
+                    Shape(x, y, z, Shapes.SQUARE, shape_color)
                 )
             elif camera_data.types[i].endswith("duck_image"):
                 pass
             elif camera_data.types[i].endswith("racquet_ball"):
                 pass
             
-        for i in range(cam_data.num):
+        for i in range(camera_data.num):
             # Search for duplicate buoys
-            for j in range(cam_data.num)[::-1]:
+            for j in range(camera_data.num)[::-1]:
                 if detected_objects[j] in items_to_remove:
                     continue
                 
@@ -168,20 +171,20 @@ class Vision(Node):
 
                 if same:
                     self.get_logger().info(
-                        f"Checking for duplicates: {detected_objects[i]} (original) and {buoy2} (this frame)"
+                        f"Checking for duplicates: {detected_objects[i]} (original) and {detected_objects[j]} (this frame)"
                     )
 
-                    distance = np.linalg.norm(detected_objects[i], buoy2)
+                    distance = np.linalg.norm(detected_objects[i], detected_objects[j])
 
                     self.get_logger().info(f"Distance: {distance}")
 
                     if distance < BUOY_DUPLICATE_THRESHOLD:
                         self.get_logger().info("Found duplicate; merging objects")
                         # make position the average of the two
-                        detected_objects[i] = (buoy[i] + buoy[j]) / 2
+                        detected_objects[i] = (detected_objects[i] + detected_objects[j]) / 2
 
                         # remove the other object
-                        items_to_remove.append(buoy[j])
+                        items_to_remove.append(detected_objects[j])
             
         # Remove objects that are really close to each other
         detected_objects = [obj for obj in detected_objects if obj not in items_to_remove]
@@ -217,7 +220,7 @@ class Vision(Node):
     def _depth_callback(self, msg: Image) -> None:
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
 
-    def _odom_callback(self, msg: Odometry) -> None:
+    def _odom_callback(self, odom_data: Odometry) -> None:
         self.get_logger().info("Received odom data")
         
         delta_trans = [
@@ -257,7 +260,7 @@ class Vision(Node):
         
         self.movement_publisher.publish(msg)
         
-    def pixel_to_3d(self, point: np.ndarray, width: int, height: int) -> np.ndarray:
+    def pixel_to_3d(self, point: np.ndarray, msg: Image) -> np.ndarray:
         if self.fx is None:
             self.get_logger().warn("Camera info not received yet")
             return
@@ -283,9 +286,9 @@ def main(args=None):
     try:
         rclpy.spin(vision)
     except KeyboardInterrupt:
-        sensors.get_logger().info("Shutting down vision node")
+        vision.get_logger().info("Shutting down vision node")
     finally:
-        sensors.destroy_node()
+        vision.destroy_node()
         rclpy.shutdown()
     
 if __name__ == "__main__":
