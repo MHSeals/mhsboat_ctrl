@@ -1,0 +1,9 @@
+int32 num
+int32 img_width
+int32 img_height
+string[] types
+int32[] confidences
+int32[] lefts
+int32[] tops
+int32[] widths
+int32[] heights

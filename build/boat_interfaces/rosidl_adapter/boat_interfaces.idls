@@ -1,0 +1,4 @@
+/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/AiOutput.idl
+/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BuoyCoordinates.idl
+/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BuoyMap.idl
+/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BoatMovement.idl

@@ -1,0 +1,30 @@
+{
+  "package_name": "boat_interfaces",
+  "output_dir": "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_generator_py/boat_interfaces",
+  "template_dir": "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource",
+  "idl_tuples": [
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/AiOutput.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BuoyCoordinates.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BuoyMap.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BoatMovement.idl"
+  ],
+  "target_dependencies": [
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../../../lib/rosidl_generator_py/rosidl_generator_py",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/local/lib/python3.10/dist-packages/rosidl_generator_py/__init__.py",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/local/lib/python3.10/dist-packages/rosidl_generator_py/generate_py_impl.py",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_action_pkg_typesupport_entry_point.c.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_action.py.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_idl_pkg_typesupport_entry_point.c.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_idl_support.c.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_idl.py.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_msg_pkg_typesupport_entry_point.c.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_msg_support.c.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_msg.py.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_srv_pkg_typesupport_entry_point.c.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_generator_py/share/rosidl_generator_py/cmake/../resource/_srv.py.em",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/AiOutput.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/BuoyCoordinates.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/BuoyMap.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/BoatMovement.idl"
+  ]
+}

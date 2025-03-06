@@ -12,6 +12,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
     "msg/AiOutput.msg"
     "msg/BuoyCoordinates.msg"
     "msg/BuoyMap.msg"
+    "msg/BoatMovement.msg"
 )
 
 ament_export_dependencies(rosidl_default_runtime)

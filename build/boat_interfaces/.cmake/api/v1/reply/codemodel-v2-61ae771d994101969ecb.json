@@ -1,0 +1,233 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1
+					],
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-4d78daadd287ec2de186.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17
+					]
+				},
+				{
+					"build" : "boat_interfaces__py",
+					"jsonFile" : "directory-boat_interfaces__py-5f6e29d9558a734a199b.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "build/boat_interfaces/boat_interfaces__py",
+					"targetIndexes" : 
+					[
+						4
+					]
+				}
+			],
+			"name" : "",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0,
+						1
+					],
+					"name" : "boat_interfaces",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_build_boat_interfaces_egg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_build_boat_interfaces_egg-5a805b757c501889056d.json",
+					"name" : "ament_cmake_python_build_boat_interfaces_egg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ament_cmake_python_copy_boat_interfaces::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ament_cmake_python_copy_boat_interfaces-b27f4319478bc79df312.json",
+					"name" : "ament_cmake_python_copy_boat_interfaces",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces-0847bfea7033acfe9740.json",
+					"name" : "boat_interfaces",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__cpp-868024f5278ef9271b2f.json",
+					"name" : "boat_interfaces__cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "boat_interfaces__py::@37740facb9039f5c3aae",
+					"jsonFile" : "target-boat_interfaces__py-0b613a6608e2e7974caf.json",
+					"name" : "boat_interfaces__py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_generator_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_generator_c-60fdbe42c0d285873dfc.json",
+					"name" : "boat_interfaces__rosidl_generator_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_generator_py::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_generator_py-ed976a670adf818f83f3.json",
+					"name" : "boat_interfaces__rosidl_generator_py",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_c-9cd8c45bcebe6d08b721.json",
+					"name" : "boat_interfaces__rosidl_typesupport_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_c__pyext-cdf2954cc5c7bb3cf63a.json",
+					"name" : "boat_interfaces__rosidl_typesupport_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_cpp-0d3f058a254b0a0e73e9.json",
+					"name" : "boat_interfaces__rosidl_typesupport_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_fastrtps_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_fastrtps_c-42352e872c9b93b60c47.json",
+					"name" : "boat_interfaces__rosidl_typesupport_fastrtps_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_fastrtps_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_fastrtps_c__pyext-32d14f5e87927f0b6765.json",
+					"name" : "boat_interfaces__rosidl_typesupport_fastrtps_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_fastrtps_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_fastrtps_cpp-d0e59f8139f1cab54c0b.json",
+					"name" : "boat_interfaces__rosidl_typesupport_fastrtps_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_introspection_c::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_introspection_c-83022234d8acac0467d9.json",
+					"name" : "boat_interfaces__rosidl_typesupport_introspection_c",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_introspection_c__pyext::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_introspection_c__pyext-a0e66555a40ec21d2b3b.json",
+					"name" : "boat_interfaces__rosidl_typesupport_introspection_c__pyext",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces__rosidl_typesupport_introspection_cpp::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces__rosidl_typesupport_introspection_cpp-9c5530df4277e6a9bc1a.json",
+					"name" : "boat_interfaces__rosidl_typesupport_introspection_cpp",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "boat_interfaces_uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-boat_interfaces_uninstall-ef3e47ed32f55345d0dc.json",
+					"name" : "boat_interfaces_uninstall",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "uninstall::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-uninstall-61efa6c08a667c40c52a.json",
+					"name" : "uninstall",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces",
+		"source" : "/home/liam-bray/roboboat_ws/src/boat_interfaces"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

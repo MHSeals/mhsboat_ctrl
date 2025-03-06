@@ -1,0 +1,14 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "boat_interfaces__py",
+		"source" : "build/boat_interfaces/boat_interfaces__py"
+	}
+}

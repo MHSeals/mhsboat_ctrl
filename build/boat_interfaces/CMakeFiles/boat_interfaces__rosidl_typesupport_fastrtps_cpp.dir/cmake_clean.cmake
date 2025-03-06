@@ -1,0 +1,25 @@
+file(REMOVE_RECURSE
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/ai_output__type_support.cpp.o"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/ai_output__type_support.cpp.o.d"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/boat_movement__type_support.cpp.o"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/boat_movement__type_support.cpp.o.d"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/buoy_coordinates__type_support.cpp.o"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/buoy_coordinates__type_support.cpp.o.d"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/buoy_map__type_support.cpp.o"
+  "CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/buoy_map__type_support.cpp.o.d"
+  "libboat_interfaces__rosidl_typesupport_fastrtps_cpp.pdb"
+  "libboat_interfaces__rosidl_typesupport_fastrtps_cpp.so"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/ai_output__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/boat_movement__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/buoy_coordinates__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/buoy_map__rosidl_typesupport_fastrtps_cpp.hpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/ai_output__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/boat_movement__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/buoy_coordinates__type_support.cpp"
+  "rosidl_typesupport_fastrtps_cpp/boat_interfaces/msg/detail/dds_fastrtps/buoy_map__type_support.cpp"
+)
+
+# Per-language clean rules from dependency scanning.
+foreach(lang CXX)
+  include(CMakeFiles/boat_interfaces__rosidl_typesupport_fastrtps_cpp.dir/cmake_clean_${lang}.cmake OPTIONAL)
+endforeach()

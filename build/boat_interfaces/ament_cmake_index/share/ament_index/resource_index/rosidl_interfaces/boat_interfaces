@@ -1,0 +1,8 @@
+msg/AiOutput.idl
+msg/AiOutput.msg
+msg/BoatMovement.idl
+msg/BoatMovement.msg
+msg/BuoyCoordinates.idl
+msg/BuoyCoordinates.msg
+msg/BuoyMap.idl
+msg/BuoyMap.msg

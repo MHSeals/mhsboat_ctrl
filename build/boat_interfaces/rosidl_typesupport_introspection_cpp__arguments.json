@@ -1,0 +1,25 @@
+{
+  "package_name": "boat_interfaces",
+  "output_dir": "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_typesupport_introspection_cpp/boat_interfaces",
+  "template_dir": "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource",
+  "idl_tuples": [
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/AiOutput.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BuoyCoordinates.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BuoyMap.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces:msg/BoatMovement.idl"
+  ],
+  "target_dependencies": [
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/lib/rosidl_typesupport_introspection_cpp/rosidl_typesupport_introspection_cpp",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/local/lib/python3.10/dist-packages/rosidl_typesupport_introspection_cpp/__init__.py",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource/idl__rosidl_typesupport_introspection_cpp.hpp.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource/idl__type_support.cpp.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource/msg__rosidl_typesupport_introspection_cpp.hpp.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource/msg__type_support.cpp.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource/srv__rosidl_typesupport_introspection_cpp.hpp.em",
+    "/home/liam-bray/ros2_humble/install/rosidl_typesupport_introspection_cpp/share/rosidl_typesupport_introspection_cpp/resource/srv__type_support.cpp.em",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/AiOutput.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/BuoyCoordinates.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/BuoyMap.idl",
+    "/home/liam-bray/roboboat_ws/src/boat_interfaces/build/boat_interfaces/rosidl_adapter/boat_interfaces/msg/BoatMovement.idl"
+  ]
+}
