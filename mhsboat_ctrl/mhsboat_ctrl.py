@@ -55,7 +55,6 @@ class BoatController(Node):
         self.cmd_vel.twist.angular.z = velocity
 
     def sensors_callback(self, msg: BuoyMap):
-        # TODO: ADD UID TO TOPIC. PARSE UID HERE
         for i in range(len(msg.x)):
             color = BuoyColors(msg.colors[i].lower())
             if msg.types[i] == "pole":
