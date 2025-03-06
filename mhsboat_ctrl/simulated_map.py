@@ -34,7 +34,8 @@ BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-WORLD_TO_PIXEL = 100
+
+WORLD_TO_PIXEL = 30
 
 LOOKAHEAD = 3 # meters
 KP = 1
@@ -147,7 +148,8 @@ class GUI(Node):
 
         # Update and draw the text
         if not (self.load or self.save):
-            self.words = f"{self.buoy_type.__name__}_{self.buoy_color.value}".upper()
+            x, y = pygame.mouse.get_pos()
+            self.words = f"{self.buoy_type.__name__}_{self.buoy_color.value} ({round((x / WORLD_TO_PIXEL), 2)}, {round(y / WORLD_TO_PIXEL, 2)})".upper()
         self.draw_text(self.words)
 
         # Update the display and save current time for delta time
