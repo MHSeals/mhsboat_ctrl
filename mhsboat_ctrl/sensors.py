@@ -37,7 +37,6 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
 BUOY_DUPLICATE_THRESHOLD = 0.2
 CLUSTER_DETECTION_THRESHOLD_ANGLE = 4
 
-
 class Sensors(Node):
     def __init__(self):
         super().__init__("sensors")
@@ -663,84 +662,6 @@ class Sensors(Node):
         )
 
         self.buoy_cluster_pub.publish(cloud_msg)
-
-
-# TODO: rewrite this class as its own node
-
-
-class SensorsSimulated(Node):
-    # TODO: fix this class
-    def __init__(self, map_file: str):
-        super().__init__("sensors")
-
-        if not os.path.exists(map_file):
-            raise FileNotFoundError(f"Map file {map_file} does not exist")
-
-        self.map: List[CourseObject] = []
-
-        with open(map_file, "r") as f:
-            try:
-                map_data = yaml.safe_load(f)
-
-                for obj in map_data["objects"]:
-                    if obj.get("pole_buoy") is not None:
-                        if obj["pole_buoy"]["color"].upper() not in ["RED", "GREEN"]:
-                            raise ValueError(
-                                f"Invalid color for pole buoy: {obj['pole_buoy']['color']} at {obj['pole_buoy']['x']}, {obj['pole_buoy']['y']}"
-                            )
-
-                        self.map.append(
-                            PoleBuoy(
-                                obj["pole_buoy"]["x"],
-                                obj["pole_buoy"]["y"],
-                                # type: ignore
-                                # type: ignore - this will always be either red or green
-                                BuoyColors[obj["pole_buoy"]["color"].upper()],
-                            )
-                        )
-                    elif obj.get("ball_buoy") is not None:
-                        self.map.append(
-                            BallBuoy(
-                                obj["ball_buoy"]["x"],
-                                obj["ball_buoy"]["y"],
-                                obj["ball_buoy"]["z"],
-                                BuoyColors[obj["ball_buoy"]["color"].upper()],
-                            )
-                        )
-                    elif obj.get("buoy") is not None:
-                        self.map.append(
-                            Buoy(
-                                obj["buoy"]["x"],
-                                obj["buoy"]["y"],
-                                obj["buoy"]["z"],
-                                BuoyColors[obj["buoy"]["color"].upper()],
-                            )
-                        )
-                    elif obj.get("shape") is not None:
-                        self.map.append(
-                            Shape(
-                                obj["shape"]["x"],
-                                obj["shape"]["y"],
-                                obj["shape"]["z"],
-                                Shapes[obj["shape"]["shape"].upper()],
-                                BuoyColors[obj["shape"]["color"].upper()],
-                            )
-                        )
-                    elif obj.get("course_object") is not None:
-                        self.map.append(
-                            CourseObject(
-                                obj["course_object"]["x"],
-                                obj["course_object"]["y"],
-                                obj["course_object"]["z"],
-                            )
-                        )
-                    else:
-                        raise ValueError(f"Unknown buoy type in map file: {obj}")
-            except yaml.YAMLError as e:
-                raise ValueError(f"Error parsing map file: {e}")
-
-        self.get_logger().info("Simualted Sensors Node Initialized")
-
 
 def main(args=None):
     rclpy.init(args=args)

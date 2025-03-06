@@ -8,6 +8,12 @@ from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.course_objects import CourseObject, PoleBuoy, BallBuoy
 
+LOOKAHEAD = 3 # meters
+KP = 1
+KI = 0.05
+KD = 0.1
+INTEGRAL_BOUND = 1
+
 class BoatController(Node):
     tasks: List[Task] = []
 
@@ -39,6 +45,8 @@ class BoatController(Node):
         self.cmd_vel.twist.linear.y = 0.0
         self.cmd_vel.twist.angular.z = 0.0
         self.cmd_vel_publisher.publish(self.cmd_vel)
+
+        self.pid = PIDController(boat_controller, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
 
         self.run()
 

@@ -8,7 +8,7 @@ import pygame
 
 from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
-from mhsboat_ctrl.utils.simulated_controller import SimulatedController
+from mhsboat_ctrl.mhsboat_ctrl import BoatController
 
 from boat_interfaces.msg import BuoyMap
 
@@ -24,6 +24,11 @@ BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
 
+LOOKAHEAD = 3 # meters
+KP = 1
+KI = 0.05
+KD = 0.1
+INTEGRAL_BOUND = 1
 
 class GUI(Node):
     def __init__(self, controller: SimulatedController):
@@ -54,6 +59,8 @@ class GUI(Node):
         self.save = False
 
         self.controller = controller
+
+        self.pid = PIDController(controller, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
 
         """
         controller.twist.linear.x - forward velocity
@@ -282,7 +289,7 @@ def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
 def main(args=None):
     rclpy.init(args=args)
 
-    gui = GUI(SimulatedController())
+    gui = GUI(BoatController())
 
     try:
         rclpy.spin(gui)

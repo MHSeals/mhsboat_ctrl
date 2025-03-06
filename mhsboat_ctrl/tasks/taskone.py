@@ -23,19 +23,14 @@ MAX_GATE_DIST = 30.48 # meters
 LAST_SEEN_BACKTRACK_DEVIATION = 1 # seconds
 LAST_SEEN_STOP_DEVIATION = 3 # seconds
 LAST_SEEN_FAILURE_DEVIATION = 8 # seconds
-LOOKAHEAD = 3 # meters
-KP = 1
-KI = 0.05
-KD = 0.1
-INTEGRAL_BOUND = 1
 
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
 
     def __init__(self, boat_controller: BoatController):
         self.boat_controller = boat_controller
-        self.pid = PIDController(boat_controller, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
         self.buoy_map = self.boat_controller.buoy_map
+        self.pid = self.boat_controller.pid
         self._buoys = []
         self.red_pole_buoys = []
         self.green_pole_buoys = []
