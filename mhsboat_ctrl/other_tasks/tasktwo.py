@@ -44,7 +44,7 @@ class TaskTwo(Task):
             if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW
         ]
         
-        if len(yellow_ball_buoys) >= 
+        # if len(yellow_ball_buoys) >= 
 
     def run(self) -> TaskCompletionStatus:
         self.boat_controller.get_logger().info("Running Task Two")

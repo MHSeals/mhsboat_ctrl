@@ -29,8 +29,8 @@ class TaskOne(Task):
 
     def __init__(self, boat_controller: BoatController):
         self.boat_controller = boat_controller
-        self.buoy_map = self.boat_controller.buoy_map
         self.pid = self.boat_controller.pid
+        self.buoy_map = self.boat_controller.buoy_map
         self._buoys = []
         self.red_pole_buoys = []
         self.green_pole_buoys = []
@@ -89,47 +89,48 @@ class TaskOne(Task):
 
                         # Check angles on the 4 corners
                         angle_R1 = calculate_buoy_angle(green1, red1, red2)
-                        if abs(angle_R1 - 90) > ANGLE_ALLOWED_DEVIATION:
-                            continue
                         angle_G1 = calculate_buoy_angle(red1, green1, green2)
-                        if abs(angle_G1 - 90) > ANGLE_ALLOWED_DEVIATION:
-                            continue
                         angle_R2 = calculate_buoy_angle(green2, red2, red1)
-                        if abs(angle_R2 - 90) > ANGLE_ALLOWED_DEVIATION:
-                            continue
                         angle_G2 = calculate_buoy_angle(red2, green2, green1)
-                        if abs(angle_G2 - 90) > ANGLE_ALLOWED_DEVIATION:
-                            continue
 
                         self.boat_controller.get_logger().info(
                             f"Angles: {angle_R1}, {angle_G1}, {angle_R2}, {angle_G2}"
                         )
 
+                        if abs(angle_R1 - 90) > ANGLE_ALLOWED_DEVIATION:
+                            continue
+                        if abs(angle_G1 - 90) > ANGLE_ALLOWED_DEVIATION:
+                            continue
+                        if abs(angle_R2 - 90) > ANGLE_ALLOWED_DEVIATION:
+                            continue
+                        if abs(angle_G2 - 90) > ANGLE_ALLOWED_DEVIATION:
+                            continue
+
                         # Get distance between same colored buoys (calculated in meters)
                         dist_g = distance(green1.x, green1.y, green2.x, green2.y)
                         if (
-                            dist_g < MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
-                            and dist_g > MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
+                            dist_g > MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_g < MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
                         dist_r = distance(red1.x, red1.y, red2.x, red2.y)
                         if (
-                            dist_r < MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
-                            and dist_r > MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
+                            dist_r > MAX_GATE_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_r < MIN_GATE_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
 
                         # Get distance between buoy pairs (calculated in meters)
                         dist_pair = distance(green1.x, green1.y, red1.x, red1.y)
                         if (
-                            dist_pair < MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
-                            and dist_pair > MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
+                            dist_pair > MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_pair < MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
                         dist_pair2 = distance(green2.x, green2.y, red2.x, red2.y)
                         if (
-                            dist_pair2 < MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
-                            and dist_pair2 > MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
+                            dist_pair2 > MAX_PAIR_DIST + DIST_ALLOWED_DEVIATION
+                            and dist_pair2 < MIN_PAIR_DIST - DIST_ALLOWED_DEVIATION
                         ):
                             continue
 
@@ -170,28 +171,28 @@ class TaskOne(Task):
 
         while (
             not completion_status == TaskCompletionStatus.SUCCESS
-            or not completion_status == TaskCompletionStatus.FAILURE
+            and not completion_status == TaskCompletionStatus.FAILURE
         ):
             self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
 
             last_seen_deviation = self.boat_controller.get_clock().now().nanoseconds / 1e9 - self.last_seen
 
             # Handle case where all buoys aren't detected
-            if(len(self.red_pole_buoys) < 1 or len(self.green_buoys) < 1):
+            if(len(self.red_pole_buoys) < 1 or len(self.green_pole_buoys) < 1):
                 if(self.last_seen == -1):
                     self.last_seen = self.boat_controller.get_clock().now().nanoseconds / 1e9
                     continue
                 elif(last_seen_deviation > LAST_SEEN_BACKTRACK_DEVIATION):
                     self.boat_controller.set_forward_velocity(-FORWARD_VELOCITY / 2) # backtrack slowly until buoys are seen
                     continue
-                elif(last_seen_deviation > LAST_SEEN_STOP_DEVIATION)
+                elif(last_seen_deviation > LAST_SEEN_STOP_DEVIATION):
                     self.boat_controller.set_forward_velocity(0) # stop the boat
                     continue
-                elif(last_seen_deviation > LAST_SEEN_FAILURE_DEVIATION)
+                elif(last_seen_deviation > LAST_SEEN_FAILURE_DEVIATION):
                     completion_status = TaskCompletionStatus.FAILURE
                     continue
             
-            if(len(self.red_pole_buoys) > 2 or len(self.green_pole_buoys) > 2)
+            if(len(self.red_pole_buoys) > 2 or len(self.green_pole_buoys) > 2):
                 ... # TODO: Handle when more of 2 of each buoy are detected
 
             # if first red buoy is closer, set that to closest_red_buoy. if second buoy is closer, set that to close_red_buoy instead.

@@ -1,4 +1,8 @@
-from mhsboat_ctrl.mhsboat_ctrl import BoatController
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mhsboat_ctrl.mhsboat_ctrl import BoatController
+
 import numpy as np
 from typing import Tuple
 
@@ -39,7 +43,7 @@ class PIDController:
 
     """
 
-    def __init__(self, boat_controller: BoatController, look_ahead: float, Kp: float, Ki: float, Kd: float, integral_bound: float):
+    def __init__(self, boat_controller: 'BoatController', look_ahead: float, Kp: float, Ki: float, Kd: float, integral_bound: float):
         self.look_ahead = look_ahead
         self.integral_bound = integral_bound
         self.boat_controller = boat_controller

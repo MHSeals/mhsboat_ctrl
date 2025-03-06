@@ -2,13 +2,13 @@ import rclpy
 from rclpy.node import Node
 import numpy as np
 import os
+from uuid import uuid1
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"  # Hide annoying prompt
 import pygame
 
 from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
-from mhsboat_ctrl.mhsboat_ctrl import BoatController
 
 from boat_interfaces.msg import BuoyMap
 
@@ -31,7 +31,7 @@ KD = 0.1
 INTEGRAL_BOUND = 1
 
 class GUI(Node):
-    def __init__(self, controller: SimulatedController):
+    def __init__(self):
         super().__init__("boat_gui")
 
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
@@ -57,16 +57,6 @@ class GUI(Node):
         self.run = True
         self.load = False
         self.save = False
-
-        self.controller = controller
-
-        self.pid = PIDController(controller, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
-
-        """
-        controller.twist.linear.x - forward velocity
-        controller.twist.linear.y - backward velocity
-        controller.twist.angular.z - angular velocity
-        """
 
         self.display_timer = self.create_timer(0, self.display_loop)
 
@@ -133,12 +123,17 @@ class GUI(Node):
         pygame.display.update()
 
         msg = BuoyMap()
-        x, y, z, types, colors = [], [], [], [], []
+        x, y, z, types, colors, uids = [], [], [], [], [], []
+
+        # self.get_logger().info(f"Buoys: {self.buoys}")
+
         for obj in self.buoys:
             x.append(float(obj.x))
             y.append(float(obj.y))
             z.append(0.0)
 
+            uids.append(str(uuid1()))
+            
             if isinstance(obj, Shape):
                 types.append(obj.shape.value)
                 colors.append(obj.color.value)
@@ -157,6 +152,7 @@ class GUI(Node):
         msg.z = z
         msg.types = types
         msg.colors = colors
+        msg.uids = uids
 
         self.map_publisher.publish(msg)
 
@@ -289,7 +285,7 @@ def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
 def main(args=None):
     rclpy.init(args=args)
 
-    gui = GUI(BoatController())
+    gui = GUI()
 
     try:
         rclpy.spin(gui)

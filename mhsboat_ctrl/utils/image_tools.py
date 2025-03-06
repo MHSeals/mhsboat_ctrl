@@ -5,7 +5,6 @@ import time
 
 simple_wb = cv2.xphoto.createSimpleWB()
 
-
 def adjust_gamma(image: np.ndarray, gamma: float = 0.5) -> np.ndarray:
     """
     Apply gamma correction to the image to adjust brightness.

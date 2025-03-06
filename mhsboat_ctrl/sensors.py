@@ -481,7 +481,7 @@ class Sensors(Node):
             x.append(obj.x)
             y.append(obj.y)
             z.append(obj.z)
-            uids.append(obj.uid)
+            uids.append(str(obj.uid))
 
             if isinstance(obj, Shape):
                 types.append(obj.shape.value)

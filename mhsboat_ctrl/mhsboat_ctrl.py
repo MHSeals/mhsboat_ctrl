@@ -9,6 +9,12 @@ from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.course_objects import CourseObject, PoleBuoy, BallBuoy
 
+from mhsboat_ctrl.pid import PIDController
+
+import os
+import glob
+import importlib
+
 LOOKAHEAD = 3 # meters
 KP = 1
 KI = 0.05
@@ -23,12 +29,15 @@ class BoatController(Node):
 
         # self.declare_parameter("map_file", "")
 
-        # for task_file in glob.glob(os.path.join(os.path.dirname(__file__), "tasks", "*.py")):
-        #     if os.path.basename(task_file) == "__init__.py":
-        #         continue
+        self.pid = PIDController(self, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
+        self.buoy_map: list[CourseObject] = []
 
-        #     task_module = importlib.import_module(f"mhsboat_ctrl.tasks.{os.path.basename(task_file)[:-3]}")
-        #     task_module.main(self)
+        for task_file in glob.glob(os.path.join(os.path.dirname(__file__), "tasks", "*.py")):
+            if os.path.basename(task_file) == "__init__.py":
+                continue
+
+            task_module = importlib.import_module(f"mhsboat_ctrl.tasks.{os.path.basename(task_file)[:-3]}")
+            task_module.main(self)
 
         self.sensors_subscriber = self.create_subscription(
             BuoyMap, "/mhsboat_ctrl/map", self.sensors_callback, 10
@@ -36,7 +45,6 @@ class BoatController(Node):
 
         self.get_logger().info("Boat Controller Node Initialized")
 
-        self.buoy_map: list[CourseObject] = []
 
         self.cmd_vel_publisher = self.create_publisher(
             TwistStamped, "/mavros/setpoint_velocity/cmd_vel", 10
@@ -47,8 +55,6 @@ class BoatController(Node):
         self.cmd_vel.twist.linear.y = 0.0
         self.cmd_vel.twist.angular.z = 0.0
         self.cmd_vel_publisher.publish(self.cmd_vel)
-
-        self.pid = PIDController(boat_controller, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
 
         self.run()
 

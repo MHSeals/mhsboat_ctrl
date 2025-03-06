@@ -2,13 +2,16 @@ import abc
 from typing import Tuple, Optional
 
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
-from mhsboat_ctrl.mhsboat_ctrl import BoatController
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mhsboat_ctrl.mhsboat_ctrl import BoatController
 
 class Task(abc.ABC):
     status: TaskStatus
 
-    def __init__(self, boat_controller: BoatController):
+    def __init__(self, boat_controller: 'BoatController'):
         self.boat_controller = boat_controller
 
     def __init_subclass__(cls, **kwargs):

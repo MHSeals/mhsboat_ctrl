@@ -31,7 +31,6 @@ setup(
             "buoy_recognition = mhsboat_ctrl.buoy_recognition:main",
             "center_of_clusters = mhsboat_ctrl.center_of_clusters:main",
             "bag_recorder = mhsboat_ctrl.bag_recorder:main",
-            "vision_mhsboat_ctrl = mhsboat_ctrl.vision_mhsboat_ctrl:main"
         ],
     },
 )
