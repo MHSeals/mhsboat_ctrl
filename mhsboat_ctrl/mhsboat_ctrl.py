@@ -60,12 +60,16 @@ class BoatController(Node):
 
     def set_forward_velocity(self, velocity: float):
         self.cmd_vel.twist.linear.x = velocity
+        self.cmd_vel_publisher.publish(self.cmd_vel)
 
     def set_backward_velocity(self, velocity: float):
+        # mavros is just really weird
         self.cmd_vel.twist.linear.y = velocity
+        self.cmd_vel_publisher.publish(self.cmd_vel)
 
     def set_angular_velocity(self, velocity: float):
         self.cmd_vel.twist.angular.z = velocity
+        self.cmd_vel_publisher.publish(self.cmd_vel)
 
     def sensors_callback(self, msg: BuoyMap):
         for i in range(len(msg.x)):

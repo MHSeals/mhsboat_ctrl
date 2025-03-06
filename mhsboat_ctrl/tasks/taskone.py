@@ -36,7 +36,7 @@ class TaskOne(Task):
         self.green_pole_buoys = []
 
     def search(self) -> Optional[Tuple[float, float]]:
-        self.boat_controller.get_logger().info("Searching for TaskOne")
+        # self.boat_controller.get_logger().info("Searching for TaskOne")
         """
         Search for the following pattern where R is a red pole buoy, and G is a green pole buoy
         There could be any number of other objects between the buoys, and the rectangle could be rotated in any direction
@@ -45,6 +45,9 @@ class TaskOne(Task):
         
         R   G
         """
+        
+        # self.boat_controller.set_angular_velocity(np.pi / 10)
+        # self.boat_controller.set_forward_velocity(0.5)
 
         self.red_pole_buoys = [
             buoy

@@ -1,16 +1,27 @@
 import rclpy
 from rclpy.node import Node
-import numpy as np
-import os
-from uuid import uuid1
-
-os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"  # Hide annoying prompt
-import pygame
+from rclpy.qos import (
+    QoSProfile,
+    QoSHistoryPolicy,
+    QoSReliabilityPolicy,
+    QoSDurabilityPolicy,
+    QoSLivelinessPolicy,
+)
 
 from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
 
 from boat_interfaces.msg import BuoyMap
+from geometry_msgs.msg import TwistStamped
+
+import numpy as np
+import os
+import copy
+from uuid import uuid1
+from typing import Tuple 
+
+os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"  # Hide annoying prompt
+import pygame
 
 # Constants
 FONT_SIZE = 40
@@ -23,6 +34,7 @@ BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
+WORLD_TO_PIXEL = 100
 
 LOOKAHEAD = 3 # meters
 KP = 1
@@ -46,21 +58,39 @@ class GUI(Node):
             convert_color(BOAT_COLOR),
             BOAT_WIDTH,
             BOAT_HEIGHT,
-            SCREEN_WIDTH / 2,
-            SCREEN_HEIGHT / 2,
+            0,
+            0
         )
         self.buoys = []
+        self.original_buoys = []
         self.buoy_color = BuoyColors.GREEN
         self.buoy_type = PoleBuoy
-        self.prev_time = pygame.time.get_ticks() / 1000
+        self.prev_time = self.get_clock().now().nanoseconds / 1e9
         self.words = ""
         self.run = True
         self.load = False
         self.save = False
+        
+        self._qos_profile = QoSProfile(
+            depth=10,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            liveliness=QoSLivelinessPolicy.AUTOMATIC,
+        )
+
+        self.cmd_vel_sub = self.create_subscription(
+            TwistStamped, "/mavros/setpoint_velocity/cmd_vel", self.cmd_vel_callback, self._qos_profile
+        )
 
         self.display_timer = self.create_timer(0, self.display_loop)
+        
+    def cmd_vel_callback(self, msg: TwistStamped):
+        # self.get_logger().info("Received movement commands")
+        self.boat.linear_vel = msg.twist.linear.x
+        self.boat.angular_vel = msg.twist.angular.z
 
-    def display_loop(self):
+    def display_loop(self) -> None:
         # Event handler
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
@@ -93,14 +123,16 @@ class GUI(Node):
                 ):
                     self.get_logger().info("Buoy color not available for type")
                 else:
-                    self.buoys.append(self.buoy_type(*pos, 0, self.buoy_color))  # type: ignore
+                    self.original_buoys.append(self.buoy_type(*self.shift_back(pixel_to_world(translate_click_point(pos))), 0, self.buoy_color))  # type: ignore
             elif event.type == pygame.QUIT or not self.run:
                 self.quit()
                 return
 
         # Calculate delta time to compensate for flucuating framerate
-        self.time = pygame.time.get_ticks() / 1000
+        self.time = self.get_clock().now().nanoseconds / 1e9
         self.dt = self.time - self.prev_time
+
+        # self.get_logger().info(f"dt: {self.dt}")
 
         # Wipes the screen by drawing the background
         self.screen.fill(convert_color(BACKGROUND_COLOR))
@@ -147,6 +179,10 @@ class GUI(Node):
                 types.append("course_object")
                 colors.append("none")
 
+            # self.get_logger().info(f"Buoy: x={obj.x}, y={obj.y}, color={obj.color.value}")
+
+        # self.get_logger().info(f"x:{self.boat.x}, y:{self.boat.y}, o:{self.boat.orientation}")
+
         msg.x = x
         msg.y = y
         msg.z = z
@@ -157,6 +193,9 @@ class GUI(Node):
         self.map_publisher.publish(msg)
 
     def draw_boat(self, points):
+        for i in range(len(points)):
+            points[i] = translate_draw_point(self.shift_point(points[i]))
+            
         pygame.draw.polygon(self.screen, self.boat.color, points)
 
     def draw_text(self, words):
@@ -164,33 +203,54 @@ class GUI(Node):
         self.screen.blit(font_surface, (10, 10))
 
     def draw_buoys(self):
+                
+        self.buoys = copy.deepcopy(self.original_buoys)
+
         for buoy in self.buoys:
             if isinstance(buoy, Buoy):
                 color = convert_color(buoy.color.value)
-                x = buoy.x
-                y = buoy.y
+
+                buoy.x, buoy.y = self.shift_point((buoy.x, buoy.y))
+
+                x = buoy.x * WORLD_TO_PIXEL
+                y = buoy.y * WORLD_TO_PIXEL
+                
+                center = translate_draw_point((x, y))
 
                 if isinstance(buoy, PoleBuoy):
-                    pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
+                    pygame.draw.circle(self.screen, color, center, BUOY_RADIUS)
                     pygame.draw.circle(
                         self.screen,
                         darken_color(color, 80),
-                        (x, y),
+                        center,
                         BUOY_RADIUS * 5 / 6,
                     )
-                    pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS * 2 / 5)
+                    pygame.draw.circle(self.screen, color, center, BUOY_RADIUS * 2 / 5)
                 elif isinstance(buoy, BallBuoy):
-                    pygame.draw.circle(self.screen, color, (x, y), BUOY_RADIUS)
+                    pygame.draw.circle(self.screen, color, center, BUOY_RADIUS)
                     pygame.draw.circle(
                         self.screen,
                         darken_color(convert_color("blue"), 120),
-                        (x, y),
+                        center,
                         BUOY_RADIUS / 2,
                     )
                 else:
                     self.get_logger().info("Buoy variation unspecified")
             else:
                 self.get_logger().info("Buoy type error")
+
+    def shift_point(self, point: Tuple[float, float]) -> Tuple[float, float]:
+        r, theta = np.hypot(point[0], point[1]), np.arctan2(point[1], point[0])
+        theta += self.boat.orientation
+        x, y = r * np.cos(theta), r * np.sin(theta)
+        return(x - self.boat.x, y - self.boat.y)
+
+    def shift_back(self, point: Tuple[float, float]) -> Tuple[float, float]:
+        x, y = point[0] + self.boat.x, point[1] + self.boat.y
+        r, theta = np.hypot(x, y), np.arctan2(y, x)
+        theta -= self.boat.orientation
+        return (r * np.cos(theta), r * np.sin(theta))
+        
 
     def write_map(self): ...
 
@@ -212,8 +272,7 @@ class Boat:
         x=0.0,
         y=0.0,
         angular_vel=0.0,
-        linear_vel_x=0.0,
-        linear_vel_y=0.0,
+        linear_vel=0.0,
         orientation=0.0,
     ):
         # Properties
@@ -221,8 +280,7 @@ class Boat:
         self.width = width
         self.height = height
         self.angular_vel = angular_vel
-        self.linear_vel_x = linear_vel_x
-        self.linear_vel_y = linear_vel_y
+        self.linear_vel = linear_vel
         self.orientation = orientation
         self.x = x
         self.y = y
@@ -232,12 +290,12 @@ class Boat:
 
     # Print string
     def __str__(self):
-        return f"Boat(x:{self.x}, y:{self.y}, o:{self.orientation}, ω:{self.angular_vel}, vx:{self.linear_vel_x}, vy:{self.linear_vel_y})"
+        return f"Boat(x:{self.x}, y:{self.y}, o:{self.orientation}, ω:{self.angular_vel}, v:{self.linear_vel})"
 
     # Move the boat based on linear velocity and orientation
     def move(self, dt: float):
-        self.x += self.linear_vel_x * dt
-        self.y -= self.linear_vel_y * dt
+        self.x += self.linear_vel * np.cos(self.orientation) * dt
+        self.y -= self.linear_vel * np.sin(self.orientation) * dt
 
     # Turn the boat based on angular velocity in radians per second
     def turn(self, dt: float):
@@ -264,7 +322,6 @@ class Boat:
 
         return points
 
-
 # Helper functions
 def convert_color(color: str) -> pygame.Color:
     try:
@@ -273,7 +330,6 @@ def convert_color(color: str) -> pygame.Color:
         print(f"Color not defined in colordict: {e}")
         return pygame.Color("pink")  # Default color to indicate error
 
-
 # Function that darkens any given color by subtracting a certain amount from the color value
 def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
     new_color = []
@@ -281,6 +337,17 @@ def darken_color(color: pygame.Color, amount: int) -> pygame.Color:
         new_color.append(max(color[i] - amount, 0))
     return pygame.Color(tuple(new_color))
 
+def translate_draw_point(point: Tuple[int, int]) -> Tuple[int, int]:
+    return (point[0] + SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - point[1])
+
+def translate_click_point(point: Tuple[int, int]) -> Tuple[int, int]:
+    return (point[0] - SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - point[1])
+
+def world_to_pixel(point: Tuple[float, float]) -> Tuple[int, int]:
+    return (int(point[0] * WORLD_TO_PIXEL), int(point[1] * WORLD_TO_PIXEL))
+
+def pixel_to_world(point: Tuple[int, int]) -> Tuple[float, float]:
+    return (point[0] / WORLD_TO_PIXEL, point[1] / WORLD_TO_PIXEL)
 
 def main(args=None):
     rclpy.init(args=args)
