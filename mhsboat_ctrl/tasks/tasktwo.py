@@ -8,7 +8,9 @@ from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import BallBuoy
 from mhsboat_ctrl.utils.math_util import distance, midpoint, calculate_buoy_angle
 
-
+MIN_GREEN_BUOYS = 2
+MIN_RED_BUOYS = 2
+MIN_YELLOW_BUOYS = 1
 class TaskTwo(Task):
     status = TaskStatus.NOT_STARTED
 
@@ -36,7 +38,13 @@ class TaskTwo(Task):
         between the first pair of buoys to give the boat a
         good starting point
         """
-        ...
+        self.yellow_ball_buoys = [
+            buoy
+            for buoy in self.buoy_map
+            if isinstance(buoy, BallBuoy) and buoy.color == BuoyColors.YELLOW
+        ]
+        
+        if len(yellow_ball_buoys) >= 
 
     def run(self) -> TaskCompletionStatus:
         self.boat_controller.get_logger().info("Running Task Two")

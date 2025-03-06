@@ -6,6 +6,7 @@ from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import PoleBuoy
 from mhsboat_ctrl.utils.math_util import distance, midpoint, calculate_buoy_angle
+from mhsboat_ctrl.pid import PIDController
 
 # TODO: What is a good value for these?
 ANGLE_ALLOWED_DEVIATION = 15  # degrees
@@ -22,12 +23,18 @@ MAX_GATE_DIST = 30.48 # meters
 LAST_SEEN_BACKTRACK_DEVIATION = 1 # seconds
 LAST_SEEN_STOP_DEVIATION = 3 # seconds
 LAST_SEEN_FAILURE_DEVIATION = 8 # seconds
+LOOKAHEAD = 3 # meters
+KP = 1
+KI = 0.05
+KD = 0.1
+INTEGRAL_BOUND = 1
 
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
 
     def __init__(self, boat_controller: BoatController):
         self.boat_controller = boat_controller
+        self.pid = PIDController(boat_controller, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
         self.buoy_map = self.boat_controller.buoy_map
         self._buoys = []
         self.red_pole_buoys = []

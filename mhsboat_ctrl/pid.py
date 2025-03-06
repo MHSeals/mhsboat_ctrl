@@ -68,7 +68,6 @@ class PIDController:
 
         goal_x = x + dx
         goal_y = y + dy
-        
 
         angle_to_goal = np.arctan2(goal_y - position[1], goal_x - position[0])
         error = self.compute(angle_to_goal - orientation)
