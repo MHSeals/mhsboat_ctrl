@@ -114,45 +114,33 @@ class VisionBoatController(Node):
 
             search_result = task.search()
             if search_result is not None:
-                self.get_logger().info(f"Found Task {task.__qualname__}")
+                self.get_logger().info(f"Found Task {task.__class__.__qualname__}")
 
-                inp = ""
-                while True:
-                    inp = input("Run task? (y/n): ")
-                    if inp == "y" or inp == "n":
-                        break
-                    else:
-                        print("Invalid input. Please enter 'y' or 'n'.")
-
-                if inp == "y":
-                    self.get_logger().info("Running task")
-                    self.get_logger().info("Press Ctrl+C to cancel")
-
-                    try:
-                        completion_status = task.run()
-                    except KeyboardInterrupt:
-                        completion_status = TaskCompletionStatus.CANCELLED
-                    except Exception as e:
-                        self.get_logger().error(f"Task failed: {e}")
-                        completion_status = TaskCompletionStatus.FAILURE
-                    
-                    if completion_status == TaskCompletionStatus.SUCCESS:
-                        task.status = TaskStatus.COMPLETED
-                        self.get_logger().info("Task completed")
-                    elif completion_status == TaskCompletionStatus.PARTIAL_SUCCESS:
-                        task.status = TaskStatus.PARTIAL_COMPLETION
-                        self.get_logger().info("Task partially completed")
-                    elif completion_status == TaskCompletionStatus.FAILURE:
-                        task.status = TaskStatus.FAILURE
-                        self.get_logger().error("Task failed")
-                    elif completion_status == TaskCompletionStatus.CANCELLED:
-                        self.get_logger().info("Task cancelled")
-                    elif completion_status == TaskCompletionStatus.NOT_STARTED:
-                        task.status = TaskStatus.NOT_STARTED
-                        self.get_logger().error("Task not started")
-                    else:
-                        task.status = TaskStatus.FAILURE
-                        self.get_logger().error("Task failed")
+                try:
+                    completion_status = task.run()
+                except KeyboardInterrupt:
+                    completion_status = TaskCompletionStatus.CANCELLED
+                except Exception as e:
+                    self.get_logger().error(f"Task failed: {e}")
+                    completion_status = TaskCompletionStatus.FAILURE
+                
+                if completion_status == TaskCompletionStatus.SUCCESS:
+                    task.status = TaskStatus.COMPLETED
+                    self.get_logger().info("Task completed")
+                elif completion_status == TaskCompletionStatus.PARTIAL_SUCCESS:
+                    task.status = TaskStatus.PARTIAL_COMPLETION
+                    self.get_logger().info("Task partially completed")
+                elif completion_status == TaskCompletionStatus.FAILURE:
+                    task.status = TaskStatus.FAILURE
+                    self.get_logger().error("Task failed")
+                elif completion_status == TaskCompletionStatus.CANCELLED:
+                    self.get_logger().info("Task cancelled")
+                elif completion_status == TaskCompletionStatus.NOT_STARTED:
+                    task.status = TaskStatus.NOT_STARTED
+                    self.get_logger().error("Task not started")
+                else:
+                    task.status = TaskStatus.FAILURE
+                    self.get_logger().error("Task failed")
 
     def run(self):
         """

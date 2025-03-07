@@ -5,9 +5,9 @@ from mhsboat_ctrl.vision_mhsboat_ctrl import VisionBoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 
-# TODO: What is a good value for these?
-FORWARD_VELOCITY = 5  # m/s
-ANGULAR_VELOCITY = 4  # rad/s
+FORWARD_VELOCITY = 1.0  # m/s
+ANGULAR_VELOCITY = 4.0  # rad/s
+END_DISTANCE = 10 # m
 
 class PIDTuner(Task):
     status = TaskStatus.NOT_STARTED
@@ -16,11 +16,11 @@ class PIDTuner(Task):
         self.boat_controller = boat_controller
         self.pid = self.boat_controller.pid
 
+    def search(self) -> Optional[Tuple[float, float]]:
         self.x = 0.0
         self.y = 0.0
         self.zr = 0.0
 
-    def search(self) -> Optional[Tuple[float, float]]:
         return (0.0, 0.0)
 
     def run(self) -> TaskCompletionStatus:
@@ -36,7 +36,7 @@ class PIDTuner(Task):
             self.y += self.boat_controller.dy
             self.zr += self.boat_controller.dzr
 
-            angular_velocity = self.boat_controller.pid.pure_pursuit(np.pi / 3, (self.x, self.y), self.zr)
+            angular_velocity = self.boat_controller.pid.pure_pursuit(0.1, (self.x, self.y), self.zr)
             angular_velocity *= ANGULAR_VELOCITY * np.pi / 180
             
             self.boat_controller.set_angular_velocity(angular_velocity)
