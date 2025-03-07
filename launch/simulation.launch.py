@@ -9,8 +9,8 @@ def generate_launch_description():
         [
             Node(
                 package="mhsboat_ctrl",
-                executable="mhsboat_ctrl",
-                name="mhsboat_ctrl",
+                executable="vision_mhsboat_ctrl",
+                name="vision_mhsboat_ctrl",
             ),
             Node(
                 package="mhsboat_ctrl",

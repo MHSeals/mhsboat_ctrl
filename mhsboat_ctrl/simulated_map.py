@@ -11,7 +11,7 @@ from rclpy.qos import (
 from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors
 
-from boat_interfaces.msg import BuoyMap
+from boat_interfaces.msg import BuoyMap, BoatMovement
 from geometry_msgs.msg import TwistStamped
 
 import numpy as np
@@ -49,6 +49,8 @@ class GUI(Node):
 
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
 
+        self.movement_publisher = self.create_publisher(BoatMovement, "/mhsboat_ctrl/movement", 10)
+
         # Start Pygame window
         pygame.init()
 
@@ -62,6 +64,9 @@ class GUI(Node):
             0,
             0
         )
+        self.prev_x = self.boat.x
+        self.prev_y = self.boat.y
+        self.prev_rz = self.boat.orientation
         self.buoys = []
         self.original_buoys = []
         self.buoy_color = BuoyColors.GREEN
@@ -141,6 +146,18 @@ class GUI(Node):
         # Update and draw the boat
         self.boat.turn(self.dt)
         self.boat.move(self.dt)
+
+        msg = BoatMovement()
+        msg.dx = float(self.boat.x - self.prev_x)
+        msg.dy = float(self.boat.y - self.prev_y)
+        msg.drz = float(self.boat.orientation - self.prev_rz) 
+        
+        self.movement_publisher.publish(msg)
+
+        self.prev_x = self.boat.x
+        self.prev_y = self.boat.y
+        self.prev_rz = self.boat.orientation
+
         self.draw_boat(self.boat.get_draw_points())
 
         # Draw the buoys
@@ -158,8 +175,6 @@ class GUI(Node):
 
         msg = BuoyMap()
         x, y, z, types, colors, uids = [], [], [], [], [], []
-
-        # self.get_logger().info(f"Buoys: {self.buoys}")
 
         for obj in self.buoys:
             x.append(float(obj.x))
@@ -205,7 +220,6 @@ class GUI(Node):
         self.screen.blit(font_surface, (10, 10))
 
     def draw_buoys(self):
-                
         self.buoys = copy.deepcopy(self.original_buoys)
 
         for buoy in self.buoys:
@@ -252,7 +266,6 @@ class GUI(Node):
         r, theta = np.hypot(x, y), np.arctan2(y, x)
         theta -= self.boat.orientation
         return (r * np.cos(theta), r * np.sin(theta))
-        
 
     def write_map(self): ...
 
@@ -262,7 +275,6 @@ class GUI(Node):
         self.run = False
         pygame.quit()
         self.get_logger().info("GUI Quit")
-
 
 class Boat:
     # Initialize starting values

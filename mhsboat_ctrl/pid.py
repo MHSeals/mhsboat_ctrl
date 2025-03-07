@@ -56,7 +56,7 @@ class PIDController:
         self.integral = 0
         self.prev_t = self.get_time()
 
-    def pure_pursuit(self, slope: float, position: float, orientation: float) -> Tuple[Tuple[float, float], float]:
+    def pure_pursuit(self, slope: float, position: Tuple[float, float], orientation: float) -> Tuple[Tuple[float, float], float]:
         """
         Simplified pure pusuit algorithm using only a slope to represent path due to starting at the origin and linear nature
         Outputs the heading error by calculating the angle between the line from the robot to the desired goal and the robot's forward heading
@@ -93,4 +93,4 @@ class PIDController:
         return angle_out
     
     def get_time(self) -> float:
-        self.boat_controller.get_clock().now().nanoseconds / 1e9
+        return self.boat_controller.get_clock().now().nanoseconds / 1e9

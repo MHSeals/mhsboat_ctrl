@@ -1,0 +1,11 @@
+[console_scripts]
+bag_recorder = mhsboat_ctrl.bag_recorder:main
+buoy_recognition = mhsboat_ctrl.buoy_recognition:main
+center_of_clusters = mhsboat_ctrl.center_of_clusters:main
+display_map = mhsboat_ctrl.display_map:main
+mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main
+sensors = mhsboat_ctrl.sensors:main
+simulated_map = mhsboat_ctrl.simulated_map:main
+vision = mhsboat_ctrl.vision:main
+vision_mhsboat_ctrl = mhsboat_ctrl.vision_mhsboat_ctrl:main
+

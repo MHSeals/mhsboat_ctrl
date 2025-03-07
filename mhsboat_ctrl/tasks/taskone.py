@@ -1,16 +1,15 @@
 import numpy as np
 from typing import Tuple, Optional
 
-from mhsboat_ctrl.mhsboat_ctrl import BoatController
+from mhsboat_ctrl.mhsboat_ctrl import VisionBoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import PoleBuoy
 from mhsboat_ctrl.utils.math_util import distance, midpoint, calculate_buoy_angle
-from mhsboat_ctrl.pid import PIDController
 
 # TODO: What is a good value for these?
-ANGLE_ALLOWED_DEVIATION = 15  # degrees
-DIST_ALLOWED_DEVIATION = 1  # meters
+ANGLE_ALLOWED_DEVIATION = 30  # degrees
+DIST_ALLOWED_DEVIATION = 2  # meters
 ALLOWED_TURN_DEVIATION = 10  # degrees
 FORWARD_VELOCITY = 1  # m/s
 ANGULAR_VELOCITY = 0.5  # rad/s
@@ -27,13 +26,17 @@ LAST_SEEN_FAILURE_DEVIATION = 8 # seconds
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
 
-    def __init__(self, boat_controller: BoatController):
+    def __init__(self, boat_controller: VisionBoatController):
         self.boat_controller = boat_controller
         self.pid = self.boat_controller.pid
         self.buoy_map = self.boat_controller.buoy_map
         self._buoys = []
         self.red_pole_buoys = []
         self.green_pole_buoys = []
+
+        self.x = 0
+        self.y = 0
+        self.rz = 0
 
     def search(self) -> Optional[Tuple[float, float]]:
         # self.boat_controller.get_logger().info("Searching for TaskOne")
@@ -48,6 +51,12 @@ class TaskOne(Task):
         
         # self.boat_controller.set_angular_velocity(np.pi / 10)
         # self.boat_controller.set_forward_velocity(0.5)
+        
+        self.x += self.boat_controller.dx
+        self.y += self.boat_controller.dy
+        self.rz += self.boat_controller.drz
+
+        self.boat_controller.pid.pure_pursuit(1.0, (self.x, self.y), self.rz)
 
         self.red_pole_buoys = [
             buoy
@@ -59,6 +68,8 @@ class TaskOne(Task):
             for buoy in self.buoy_map
             if isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.GREEN
         ]
+        
+        # self.boat_controller.get_logger().info(f"RPB: {self.red_pole_buoys}, GPB: {self.green_pole_buoys}")
 
         if len(self.red_pole_buoys) < 2 or len(self.green_pole_buoys) < 2:
             return None

@@ -14,18 +14,18 @@ KI = 0.05
 KD = 0.1
 INTEGRAL_BOUND = 1
 
-class BoatController(Node):
+class VisionBoatController(Node):
     tasks: List[Task] = []
 
     def __init__(self):
-        super().__init__("mhsboat_ctrl")
+        super().__init__("vision_mhsboat_ctrl")
         
         self.map_subscriber = self.create_subscription(
             BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10
         )
 
         self.movement_subscriber = self.create_subscription(
-            BuoyMap, "/mhsboat_ctrl/movement", self.movement_callback, 10
+            BoatMovement, "/mhsboat_ctrl/movement", self.movement_callback, 10
         )
 
         self.get_logger().info("Boat Controller Node Initialized")
@@ -163,7 +163,7 @@ class BoatController(Node):
 def main(args=None):
     rclpy.init(args=args)
 
-    boat_controller = BoatController()
+    boat_controller = VisionBoatController()
 
     try:
         rclpy.spin(boat_controller)

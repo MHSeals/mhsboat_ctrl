@@ -1,0 +1,38 @@
+running develop
+running egg_info
+creating mhsboat_ctrl.egg-info
+writing mhsboat_ctrl.egg-info/PKG-INFO
+writing dependency_links to mhsboat_ctrl.egg-info/dependency_links.txt
+writing entry points to mhsboat_ctrl.egg-info/entry_points.txt
+writing requirements to mhsboat_ctrl.egg-info/requires.txt
+writing top-level names to mhsboat_ctrl.egg-info/top_level.txt
+writing manifest file 'mhsboat_ctrl.egg-info/SOURCES.txt'
+reading manifest file 'mhsboat_ctrl.egg-info/SOURCES.txt'
+writing manifest file 'mhsboat_ctrl.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/python3.10/site-packages/mhsboat-ctrl.egg-link (link to .)
+Installing bag_recorder script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing buoy_recognition script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing center_of_clusters script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing display_map script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing mhsboat_ctrl script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing sensors script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing simulated_map script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing vision script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+Installing vision_mhsboat_ctrl script to /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/lib/mhsboat_ctrl
+
+Installed /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl
+running symlink_data
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index/resource_index
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index/resource_index/packages
+symbolically linking /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/resource/mhsboat_ctrl -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/ament_index/resource_index/packages
+symbolically linking /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/package.xml -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/launch
+symbolically linking /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/launch/simulation.launch.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/launch
+symbolically linking /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/launch/odometry.launch.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/launch
+symbolically linking /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/launch/mapping.launch.py -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/launch
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/description
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/rviz
+creating /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/config
+symbolically linking /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/config/ekf.yaml -> /home/liam-bray/roboboat_ws/src/mhsboat_ctrl/install/mhsboat_ctrl/share/mhsboat_ctrl/config
