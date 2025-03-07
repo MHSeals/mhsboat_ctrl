@@ -163,7 +163,10 @@ class GUI(Node):
         # Draw the buoys
         self.draw_buoys()
         
-        self.draw_path(1.0)
+        draw_path_points = self.draw_path(1.0)
+
+        for point in draw_path_points:
+            pygame.draw.circle(self.screen, (0, 0, 0), point, 2)
 
         # Update and draw the text
         if not (self.load or self.save):
@@ -223,8 +226,8 @@ class GUI(Node):
         
     def draw_path(self, angle: float) -> List[Tuple[int, int]]:
         points = []
-        for i in range(-SCREEN_WIDTH / 2, SCREEN_WIDTH / 2):
-            x, _ = self.shift_point(i, 0) 
+        for i in range(int(-SCREEN_WIDTH / 2), int(SCREEN_WIDTH / 2)):
+            x, _ = self.shift_point((i, 0)) 
             y = np.tan(angle) * x 
             points.append(translate_draw_point((x, y)))
         return points
