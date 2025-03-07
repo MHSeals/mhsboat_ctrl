@@ -1,1 +1,0 @@
-/home/liam-bray/roboboat_ws/src/mhsboat_ctrl/build/mhsboat_ctrl/launch/mapping.launch.py
