@@ -8,7 +8,7 @@ NOISE_SCALE = 1.1
 WAVE_STRENGTH = 6.0
 WIDTH = 800
 HEIGHT = 600
-SLOPE = 1.0 / 3.0
+ANGLE = np.pi * 0.48
 BOAT_WIDTH = 20
 BOAT_HEIGHT = 50
 WAVE_SIM_SPEED = 0.2
@@ -107,11 +107,11 @@ while True:
     
     # print(f"vel: {angular_velocity / np.pi * 180}, orientation: {boat_orientation / np.pi * 180}")
     
-    goal, angular_velocity = controller.pure_pursuit(SLOPE, boat_pos.tolist(), boat_orientation) 
+    goal, angular_velocity = controller.pure_pursuit(ANGLE, boat_pos.tolist(), boat_orientation) 
     angular_velocity *= TURN_SPEED * np.pi / 180
     goal = translate_draw_point(goal)
 
-    pygame.draw.line(screen, "black", translate_draw_point((0, 0)), translate_draw_point((WIDTH, WIDTH * SLOPE)), 3)
+    pygame.draw.line(screen, "black", translate_draw_point((0, 0)), translate_draw_point((WIDTH, WIDTH * np.tan(ANGLE))), 3)
     pygame.draw.circle(screen, "black", goal, 8)
     
     for pos in positions:

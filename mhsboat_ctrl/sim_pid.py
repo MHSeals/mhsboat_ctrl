@@ -51,11 +51,12 @@ class PIDController:
         self.integral = 0
         self.prev_t = time()
 
-    def pure_pursuit(self, slope: float, position: float, orientation: float) -> Tuple[Tuple[float, float], float]:
+    def pure_pursuit(self, angle: float, position: float, orientation: float) -> Tuple[Tuple[float, float], float]:
         """ 
         Simplified pure pusuit algorithm using only a slope to represent path due to starting at the origin and linear nature
         Outputs the heading error by calculating the angle between the line from the robot to the desired goal and the robot's forward heading
         """
+        slope = np.tan(angle)
         
         perp_slope = -1 / slope
 

@@ -1,7 +1,7 @@
 import numpy as np
 from typing import Tuple, Optional
 
-from mhsboat_ctrl.mhsboat_ctrl import VisionBoatController
+from mhsboat_ctrl.vision_mhsboat_ctrl import VisionBoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import PoleBuoy
@@ -34,9 +34,9 @@ class TaskOne(Task):
         self.red_pole_buoys = []
         self.green_pole_buoys = []
 
-        self.x = 0
-        self.y = 0
-        self.rz = 0
+        self.x = 0.0
+        self.y = 0.0
+        self.zr = 0.0
 
     def search(self) -> Optional[Tuple[float, float]]:
         # self.boat_controller.get_logger().info("Searching for TaskOne")
@@ -49,14 +49,15 @@ class TaskOne(Task):
         R   G
         """
         
-        # self.boat_controller.set_angular_velocity(np.pi / 10)
-        # self.boat_controller.set_forward_velocity(0.5)
-        
         self.x += self.boat_controller.dx
         self.y += self.boat_controller.dy
-        self.rz += self.boat_controller.drz
+        self.zr += self.boat_controller.dzr
 
-        self.boat_controller.pid.pure_pursuit(1.0, (self.x, self.y), self.rz)
+        angular_velocity = self.boat_controller.pid.pure_pursuit(np.pi / 3, (self.x, self.y), self.zr)
+        angular_velocity *= 5 * np.pi / 180
+        
+        self.boat_controller.set_angular_velocity(angular_velocity)
+        self.boat_controller.set_forward_velocity(3.0)
 
         self.red_pole_buoys = [
             buoy
@@ -255,5 +256,5 @@ class TaskOne(Task):
         return completion_status
 
 
-def main(controller: BoatController):
+def main(controller: VisionBoatController):
     controller.add_task(TaskOne(controller))

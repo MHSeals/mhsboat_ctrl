@@ -66,7 +66,7 @@ class GUI(Node):
         )
         self.prev_x = self.boat.x
         self.prev_y = self.boat.y
-        self.prev_rz = self.boat.orientation
+        self.prev_zr = self.boat.orientation
         self.buoys = []
         self.original_buoys = []
         self.buoy_color = BuoyColors.GREEN
@@ -150,13 +150,13 @@ class GUI(Node):
         msg = BoatMovement()
         msg.dx = float(self.boat.x - self.prev_x)
         msg.dy = float(self.boat.y - self.prev_y)
-        msg.drz = float(self.boat.orientation - self.prev_rz) 
+        msg.dzr = float(self.boat.orientation - self.prev_zr) 
         
         self.movement_publisher.publish(msg)
 
         self.prev_x = self.boat.x
         self.prev_y = self.boat.y
-        self.prev_rz = self.boat.orientation
+        self.prev_zr = self.boat.orientation
 
         self.draw_boat(self.boat.get_draw_points())
 
