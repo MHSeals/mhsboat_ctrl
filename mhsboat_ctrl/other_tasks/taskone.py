@@ -11,6 +11,7 @@ FORWARD_VELOCITY = 1  # m/s
 ANGULAR_VELOCITY = 0.5  # rad/s
 DRIVE_DEVIATION = 3
 END_DEVIATION = 6
+ANGLE_DEV = 15
 
 class TaskOne(Task):
     status = TaskStatus.NOT_STARTED
@@ -21,11 +22,13 @@ class TaskOne(Task):
         self.buoy_map = self.boat_controller.buoy_map
         self._buoys = []
         self.red_pole_buoys = []
-        self.green_pole_buoys = []
+        self.green_pole_buoys = [] 
 
         self.x = 0.0
         self.y = 0.0
         self.zr = 0.0
+
+        self.prev_angle = 1e99
 
     def search(self) -> Optional[Tuple[float, float]]:
         """
@@ -61,13 +64,16 @@ class TaskOne(Task):
             
             mdpt = midpoint(closest_green_pole_buoy.x, closest_green_pole_buoy.y, closest_red_pole_buoy.x, closest_red_pole_buoy.y)
             
-            angle = np.arctan2(mdpt[1], mdpt[0])
+            self.angle = np.arctan2(mdpt[1], mdpt[0])
+            
+            if abs(self.angle - self.prev_angle) > ANGLE_DEV:
+                self.prev_angle = self.angle
 
             self.x += self.boat_controller.dx
             self.y += self.boat_controller.dy
             self.zr += self.boat_controller.dzr
 
-            angular_velocity = self.boat_controller.pid.pure_pursuit(angle, (self.x, self.y), self.zr)
+            angular_velocity = self.boat_controller.pid.pure_pursuit(self.prev_angle, (self.x, self.y), self.zr)
             angular_velocity *= ANGULAR_VELOCITY * np.pi / 180
             
             self.boat_controller.set_angular_velocity(angular_velocity)
@@ -82,10 +88,10 @@ class TaskOne(Task):
                     self.set_forward_velocity(FORWARD_VELOCITY)
                     self.set_angular_velocity(0)
                 elif(last_seen_deviation > END_DEVIATION):
+                    self.boat_controller.through_gates = True
                     completion_status = TaskCompletionStatus.SUCCESS
 
         return completion_status
-
 
 def main(controller: VisionBoatController):
     controller.add_task(TaskOne(controller))

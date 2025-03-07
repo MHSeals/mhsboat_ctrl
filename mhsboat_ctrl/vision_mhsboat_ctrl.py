@@ -51,6 +51,8 @@ class VisionBoatController(Node):
         self.cmd_vel.twist.angular.z = 0.0
         self.cmd_vel_publisher.publish(self.cmd_vel)
 
+        self.through_gates = False
+
         self.pid = PIDController(self, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
 
         for task_file in glob.glob(os.path.join(os.path.dirname(__file__), "tasks", "*.py")):
