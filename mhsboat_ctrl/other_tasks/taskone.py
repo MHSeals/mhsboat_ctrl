@@ -49,15 +49,6 @@ class TaskOne(Task):
         R   G
         """
         
-        self.x += self.boat_controller.dx
-        self.y += self.boat_controller.dy
-        self.zr += self.boat_controller.dzr
-
-        angular_velocity = self.boat_controller.pid.pure_pursuit(np.pi / 3, (self.x, self.y), self.zr)
-        angular_velocity *= 5 * np.pi / 180
-        
-        self.boat_controller.set_angular_velocity(angular_velocity)
-        self.boat_controller.set_forward_velocity(3.0)
 
         self.red_pole_buoys = [
             buoy
@@ -188,7 +179,16 @@ class TaskOne(Task):
             not completion_status == TaskCompletionStatus.SUCCESS
             and not completion_status == TaskCompletionStatus.FAILURE
         ):
-            self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
+            # TODO: Finish this part of the code
+            # self.x += self.boat_controller.dx
+            # self.y += self.boat_controller.dy
+            # self.zr += self.boat_controller.dzr
+
+            # angular_velocity = self.boat_controller.pid.pure_pursuit(np.pi / 3, (self.x, self.y), self.zr)
+            # angular_velocity *= 5 * np.pi / 180
+            # 
+            # self.boat_controller.set_angular_velocity(angular_velocity)
+            # self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
 
             last_seen_deviation = self.boat_controller.get_clock().now().nanoseconds / 1e9 - self.last_seen
 
