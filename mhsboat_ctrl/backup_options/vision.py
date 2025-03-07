@@ -83,7 +83,7 @@ class Vision(Node):
         )
         
         self._odom_out_sub = self.create_subscription(
-            Odometry(), "/odometry/filtered", self._odom_callback, self._qos_profile
+            Odometry, "/odometry/filtered", self._odom_callback, self._qos_profile
         )
         
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
@@ -114,7 +114,6 @@ class Vision(Node):
         # Calculate the centers of each buoy detection to transform point later
         centers = np.array([lefts + widths / 2, tops + heights / 2]).T
         items_to_remove = []
-        
 
         for i in range(camera_data.num):
             x, y, z = centers[i]
