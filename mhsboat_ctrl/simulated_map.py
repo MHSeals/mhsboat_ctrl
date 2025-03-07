@@ -18,7 +18,7 @@ import numpy as np
 import os
 import copy
 from uuid import uuid1
-from typing import Tuple 
+from typing import Tuple, List 
 
 os.environ["PYGAME_HIDE_SUPPORT_PROMPT"] = "hide"  # Hide annoying prompt
 import pygame
@@ -162,6 +162,8 @@ class GUI(Node):
 
         # Draw the buoys
         self.draw_buoys()
+        
+        self.draw_path(1.0)
 
         # Update and draw the text
         if not (self.load or self.save):
@@ -218,6 +220,14 @@ class GUI(Node):
     def draw_text(self, words):
         font_surface = self.text.render(words, True, FONT_COLOR)
         self.screen.blit(font_surface, (10, 10))
+        
+    def draw_path(self, angle: float) -> List[Tuple[int, int]]:
+        points = []
+        for i in range(-SCREEN_WIDTH / 2, SCREEN_WIDTH / 2):
+            x, _ = self.shift_point(i, 0) 
+            y = np.tan(angle) * x 
+            points.append(translate_draw_point((x, y)))
+        return points
 
     def draw_buoys(self):
         self.buoys = copy.deepcopy(self.original_buoys)

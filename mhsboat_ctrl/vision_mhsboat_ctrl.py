@@ -126,21 +126,33 @@ class VisionBoatController(Node):
                 
                 if completion_status == TaskCompletionStatus.SUCCESS:
                     task.status = TaskStatus.COMPLETED
+                    self.set_forward_velocity(0)
+                    self.set_angular_velocity(0)
                     self.get_logger().info("Task completed")
                 elif completion_status == TaskCompletionStatus.PARTIAL_SUCCESS:
                     task.status = TaskStatus.PARTIAL_COMPLETION
                     self.get_logger().info("Task partially completed")
+                    self.set_forward_velocity(0)
+                    self.set_angular_velocity(0)
                 elif completion_status == TaskCompletionStatus.FAILURE:
                     task.status = TaskStatus.FAILURE
                     self.get_logger().error("Task failed")
+                    self.set_forward_velocity(0)
+                    self.set_angular_velocity(0)
                 elif completion_status == TaskCompletionStatus.CANCELLED:
                     self.get_logger().info("Task cancelled")
+                    self.set_forward_velocity(0)
+                    self.set_angular_velocity(0)
                 elif completion_status == TaskCompletionStatus.NOT_STARTED:
                     task.status = TaskStatus.NOT_STARTED
                     self.get_logger().error("Task not started")
+                    self.set_forward_velocity(0)
+                    self.set_angular_velocity(0)
                 else:
                     task.status = TaskStatus.FAILURE
                     self.get_logger().error("Task failed")
+                    self.set_forward_velocity(0)
+                    self.set_angular_velocity(0)
 
     def run(self):
         """

@@ -57,11 +57,14 @@ class PIDController:
         Outputs the heading error by calculating the angle between the line from the robot to the desired goal and the robot's forward heading
         """
         slope = np.tan(angle)
-        
-        perp_slope = -1 / slope
+        if slope == 0:
+            y = position[1] 
+            x = y / slope
+        else:
+            perp_slope = -1 / slope
 
-        x = (-perp_slope * position[0] + position[1]) / (slope - perp_slope)
-        y = x * slope
+            x = (-perp_slope * position[0] + position[1]) / (slope - perp_slope)
+            y = x * slope
 
         dx =  self.look_ahead / np.sqrt(1 + slope ** 2)
         dy = self.look_ahead * slope / np.sqrt(1 + slope ** 2)
