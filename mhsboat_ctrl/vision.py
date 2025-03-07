@@ -113,6 +113,9 @@ class Vision(Node):
         
         # Calculate the centers of each buoy detection to transform point later
         centers = np.array([lefts + widths / 2, tops + heights / 2]).T
+        for i in range(len(centers)):
+            centers[i] = self.pixel_to_3d(centers[i])
+
         items_to_remove = []
 
         for i in range(camera_data.num):
