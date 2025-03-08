@@ -5,9 +5,10 @@ from mhsboat_ctrl.vision_mhsboat_ctrl import VisionBoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 
-FORWARD_VELOCITY = 1.0  # m/s
+FORWARD_VELOCITY = 10.0  # m/s
 ANGULAR_VELOCITY = 4.0  # rad/s
 END_DISTANCE = 10 # m
+ANGLE = 0
 
 class PIDTuner(Task):
     status = TaskStatus.NOT_STARTED
@@ -36,7 +37,7 @@ class PIDTuner(Task):
             self.y += self.boat_controller.dy
             self.zr += self.boat_controller.dzr
 
-            angular_velocity = self.boat_controller.pid.pure_pursuit(0.1, (self.x, self.y), self.zr)
+            angular_velocity = self.boat_controller.pid.pure_pursuit(ANGLE, (self.x, self.y), self.zr)
             angular_velocity *= ANGULAR_VELOCITY * np.pi / 180
             
             self.boat_controller.set_angular_velocity(angular_velocity)

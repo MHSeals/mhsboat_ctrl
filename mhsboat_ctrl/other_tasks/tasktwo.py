@@ -30,6 +30,8 @@ class TaskTwo(Task):
         self.y = 0.0
         self.zr = 0.0
 
+        self.last_seen = -1
+
         self.prev_angle = 1e99
 
     def search(self) -> Optional[Tuple[float, float]]:

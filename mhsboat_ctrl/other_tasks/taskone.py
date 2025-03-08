@@ -27,6 +27,7 @@ class TaskOne(Task):
         self.x = 0.0
         self.y = 0.0
         self.zr = 0.0
+        self.last_seen = -1
 
         self.prev_angle = 1e99
 
@@ -85,8 +86,8 @@ class TaskOne(Task):
                     self.last_seen = self.boat_controller.get_clock().now().nanoseconds / 1e9
                     continue
                 elif(last_seen_deviation > DRIVE_DEVIATION):
-                    self.set_forward_velocity(FORWARD_VELOCITY)
-                    self.set_angular_velocity(0)
+                    self.boat_controller.set_forward_velocity(FORWARD_VELOCITY)
+                    self.boat_controller.set_angular_velocity(0)
                 elif(last_seen_deviation > END_DEVIATION):
                     self.boat_controller.through_gates = True
                     completion_status = TaskCompletionStatus.SUCCESS

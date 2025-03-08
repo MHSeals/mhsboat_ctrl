@@ -27,9 +27,9 @@ import pygame
 FONT_SIZE = 40
 FONT = "Segoe UI Medium"
 FONT_COLOR = "black"
-BUOY_RADIUS = 10
-BOAT_WIDTH = 40
-BOAT_HEIGHT = 70
+BUOY_RADIUS = 0.4
+BOAT_WIDTH = 1
+BOAT_HEIGHT = 2
 BOAT_COLOR = "gray12"
 BACKGROUND_COLOR = "lightblue"
 SCREEN_WIDTH = 800
@@ -37,11 +37,14 @@ SCREEN_HEIGHT = 600
 
 WORLD_TO_PIXEL = 30
 
+ANGLE = np.pi / 4
 LOOKAHEAD = 3 # meters
-KP = 1
-KI = 0.05
+KP = 3
+KI = 0.06
 KD = 0.1
 INTEGRAL_BOUND = 1
+
+BUOY_RADIUS *= WORLD_TO_PIXEL
 
 class GUI(Node):
     def __init__(self):
@@ -163,7 +166,7 @@ class GUI(Node):
         # Draw the buoys
         self.draw_buoys()
         
-        draw_path_points = self.draw_path(1.0)
+        draw_path_points = self.draw_path(ANGLE)
 
         for point in draw_path_points:
             pygame.draw.circle(self.screen, (0, 0, 0), point, 2)
@@ -226,10 +229,10 @@ class GUI(Node):
         
     def draw_path(self, angle: float) -> List[Tuple[int, int]]:
         points = []
-        for i in range(int(-SCREEN_WIDTH / 2), int(SCREEN_WIDTH / 2)):
-            x, _ = self.shift_point((i, 0)) 
-            y = np.tan(angle) * x 
-            points.append(translate_draw_point((x, y)))
+        for x in range(int(-SCREEN_WIDTH / 2), int(SCREEN_WIDTH / 2)):
+            shift_x, _ = self.shift_back((x, 0))
+            y = np.tan(angle) * shift_x 
+            points.append(translate_draw_point(self.shift_point((shift_x, y))))
         return points
 
     def draw_buoys(self):
@@ -268,11 +271,17 @@ class GUI(Node):
             else:
                 self.get_logger().info("Buoy type error")
 
-    def shift_point(self, point: Tuple[float, float]) -> Tuple[float, float]:
-        r, theta = np.hypot(point[0], point[1]), np.arctan2(point[1], point[0])
-        theta += self.boat.orientation
-        x, y = r * np.cos(theta), r * np.sin(theta)
-        return(x - self.boat.x, y - self.boat.y)
+    def shift_back(self, point: Tuple[float, float]) -> Tuple[float, float]:
+        cos_angle = np.cos(self.boat.orientation)
+        sin_angle = np.sin(self.boat.orientation)
+        
+        x_rotated = point[0] * cos_angle - point[1] * sin_angle
+        y_rotated = point[0] * sin_angle + point[1] * cos_angle
+        
+        x_world = x_rotated + self.boat.x
+        y_world = y_rotated + self.boat.y
+
+        return (x_world, y_world)
 
     def shift_back(self, point: Tuple[float, float]) -> Tuple[float, float]:
         x, y = point[0] + self.boat.x, point[1] + self.boat.y
@@ -312,8 +321,11 @@ class Boat:
         self.x = x
         self.y = y
 
+        self.a1 = np.arctan(self.width / self.height) * 2
+        self.a2 = np.pi - self.a1
+
         # Helper values for drawing the boat
-        self.diagonal = (width**2 + height**2) ** (1 / 2)
+        self.diagonal = ((width * WORLD_TO_PIXEL) ** 2 + (height * WORLD_TO_PIXEL) ** 2) ** (1 / 2)
 
     # Print string
     def __str__(self):
@@ -322,7 +334,7 @@ class Boat:
     # Move the boat based on linear velocity and orientation
     def move(self, dt: float):
         self.x += self.linear_vel * np.cos(self.orientation) * dt
-        self.y -= self.linear_vel * np.sin(self.orientation) * dt
+        self.y += self.linear_vel * np.sin(self.orientation) * dt
 
     # Turn the boat based on angular velocity in radians per second
     def turn(self, dt: float):
@@ -331,13 +343,11 @@ class Boat:
 
     # Redraw the boat each frame by using the angles formed by diagonals
     def get_draw_points(self) -> list[tuple[int, int]]:
-        a1 = np.arctan(self.width / self.height) * 2
-        a2 = np.pi - a1
-        angles = [self.orientation + a1 / 2]
-        angles.append(angles[0] + a2)
-        angles.append(angles[1] + a1)
-        angles.append(angles[2] + a2)
-
+        angles = [self.orientation + self.a1 / 2]
+        angles.append(angles[0] + self.a2)
+        angles.append(angles[1] + self.a1)
+        angles.append(angles[2] + self.a2)
+    
         points = []
         for i in range(4):
             points.append(
@@ -346,7 +356,13 @@ class Boat:
                     self.y - np.sin(angles[i]) * self.diagonal / 2,
                 )
             )
-
+    
+        tip_length = self.height * 0.3
+        tip_x = self.x + np.cos(self.orientation) * (self.diagonal / 2 + tip_length)
+        tip_y = self.y - np.sin(self.orientation) * (self.diagonal / 2 + tip_length)
+    
+        points.append((tip_x, tip_y))
+    
         return points
 
 # Helper functions

@@ -10,12 +10,12 @@ from rclpy.qos import (
 )
 from cv_bridge import CvBridge
 from boat_interfaces.msg import AiOutput, BuoyMap, BoatMovement
-from sensor_msgs.msg import Odometry, CameraInfo, Image 
+from sensor_msgs.msg import CameraInfo, Image, Imu
 import numpy as np
 import tf_transformations
-from typing import Dict
+from typing import Dict, Tuple
 
-from mhsboat_ctrl.course_objects import CourseObject, Shape, Buoy, PoleBuoy, BallBuoy
+from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
 
 buoy_color_mapping: Dict[str, BuoyColors] = {
@@ -63,7 +63,7 @@ class Vision(Node):
         super().__init__("vision")
         
         self._ai_out_sub = self.create_subscription(
-            AiOutput, "/AiOutput", self._camera_callback, 10
+            AiOutput, '/AiOutput', self._camera_callback, 10
         )
         
         self._depth_sub = self.create_subscription(
