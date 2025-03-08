@@ -7,44 +7,7 @@ import numpy as np
 from typing import Tuple
 
 class PIDController:
-    """
-    PID controllers have three components:
-    - proportional
-    - integral
-    - and derivative components
-    
-    Kp, Ki, and Kd gains respectively where e denotes error and t, time
-    
-    The following logic is used to compute the output value u(t), the motor outputs
-    
-    Proportional: Kp * e(t)
-    Integral: Ki * ₀∫ᵗ e(𝜏)d𝜏
-    Derivative: Kd * d(e(t))/dt
-    
-    All of these components are added together to determine the output
-    
-    we need to store the following
-    - time
-    - integral (adds over time)
-    - time_prev
-    - e_prev
-    
-    In our case, our system has tto handle these
-    
-    INPUTS
-    - Current position (start at (0,0) when we want to start going forward then use odometry)
-    - Desired path represented with a linear function (only need slope since started at origin)
-    - Heading error (meaning that we have to calcuate heading by using our purse pursuit algorithm)
-    - Look ahead distance
-    
-    OUTPUTS
-    - Forward velocity
-    - Angular velocity
-
-    """
-
-    def __init__(self, boat_controller: 'VisionBoatController', look_ahead: float, Kp: float, Ki: float, Kd: float, integral_bound: float):
-        self.look_ahead = look_ahead
+    def __init__(self, boat_controller: 'VisionBoatController', Kp: float, Ki: float, Kd: float, integral_bound: float):
         self.integral_bound = integral_bound
         self.boat_controller = boat_controller
 
@@ -55,29 +18,6 @@ class PIDController:
         self.prev_error = 0
         self.integral = 0
         self.prev_t = self.get_time()
-
-    def pure_pursuit(self, angle: float, position: Tuple[float, float], orientation: float) -> Tuple[Tuple[float, float], float]:
-        """
-        Simplified pure pusuit algorithm using only a slope to represent path due to starting at the origin and linear nature
-        Outputs the heading error by calculating the angle between the line from the robot to the desired goal and the robot's forward heading
-        """
-        
-        slope = np.tan(angle)
-        
-        perp_slope = -1 / slope
-
-        x = (-perp_slope * position[0] + position[1]) / (slope - perp_slope)
-        y = x * slope
-
-        dx =  self.look_ahead / np.sqrt(1 + slope ** 2)
-        dy = self.look_ahead * slope / np.sqrt(1 + slope ** 2)
-
-        goal_x = x + dx
-        goal_y = y + dy
-
-        angle_to_goal = np.arctan2(goal_y - position[1], goal_x - position[0])
-        error = self.compute(angle_to_goal - orientation)
-        return -error
         
     def compute(self, error: float) -> float:
         self.t = self.get_time()

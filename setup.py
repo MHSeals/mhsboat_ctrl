@@ -24,14 +24,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
-            "mhsboat_ctrl = mhsboat_ctrl.mhsboat_ctrl:main",
-            "sensors = mhsboat_ctrl.sensors:main",
-            "simulated_map = mhsboat_ctrl.simulated_map:main",
-            "display_map = mhsboat_ctrl.display_map:main",
             "buoy_recognition = mhsboat_ctrl.buoy_recognition:main",
-            "center_of_clusters = mhsboat_ctrl.center_of_clusters:main",
-            "bag_recorder = mhsboat_ctrl.bag_recorder:main",
-            "vision = mhsboat_ctrl.vision:main",
             "vision_mhsboat_ctrl = mhsboat_ctrl.vision_mhsboat_ctrl:main"
         ],
     },

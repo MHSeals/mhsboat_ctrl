@@ -3,78 +3,52 @@ from typing import Tuple, Optional
 
 from mhsboat_ctrl.vision_mhsboat_ctrl import VisionBoatController
 from mhsboat_ctrl.task import Task
-from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
+from mhsboat_ctrl.enums import TaskStatus, BuoyColors
 from mhsboat_ctrl.course_objects import PoleBuoy
-from mhsboat_ctrl.utils.math_util import distance, midpoint, calculate_buoy_angle
+from mhsboat_ctrl.utils.math_utils import dist, mdpt, p2a
 
 FORWARD_VELOCITY = 1  # m/s
 ANGULAR_VELOCITY = 0.5  # rad/s
-DRIVE_DEVIATION = 3
-END_DEVIATION = 6
-ANGLE_DEV = 15
+END_DEVIATION = 5
 
 class TaskOne(Task):
-    status = TaskStatus.NOT_STARTED
-
     def __init__(self, boat_controller: VisionBoatController):
         self.boat_controller = boat_controller
         self.pid = self.boat_controller.pid
-        self.buoy_map = self.boat_controller.buoy_map
-        self._buoys = []
+        self.buoys = self.boat_controller.buoys
         self.red_pole_buoys = []
         self.green_pole_buoys = [] 
 
-        self.x = 0.0
-        self.y = 0.0
-        self.zr = 0.0
-        self.last_seen = -1
-
-        self.prev_angle = 1e99
-
     def search(self) -> Optional[Tuple[float, float]]:
-        """
-        For the sake of competition we are going to line up the boat
-        with the task and start running task 1 immediately rather than
-        trying to detect it.
-        """
+        # Don't put this in the task folder at the same time as pid_tuner
+        return (0.0, 0.0)
 
-        return (0.0, 0.0) # Not really necessary for this task, so it isn't used
-
-    def run(self) -> TaskCompletionStatus:
-        """
-        All previous navigation is being stripped down to traveling straight
-        between the detected midpoints by using the PID algorithm.
-        """
-
+    def run(self) -> TaskStatus:
         self.boat_controller.get_logger().info("Running Task One")
 
-        completion_status = TaskCompletionStatus.NOT_STARTED
+        self.boat_controller.orientation = 0
+
+        completion_status = TaskCompletionStatus.ACTIVE
 
         while (
             not completion_status == TaskCompletionStatus.SUCCESS
             and not completion_status == TaskCompletionStatus.FAILURE
         ):
-            self.green_pole_buoys = [buoy for buoy in self.buoy_map if(
+            self.green_pole_buoys = [buoy for buoy in self.buoys if(
                 isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.GREEN)]
 
-            self.red_pole_buoys = [buoy for buoy in self.buoy_map if(
+            self.red_pole_buoys = [buoy for buoy in self.buoys if(
                 isinstance(buoy, PoleBuoy) and buoy.color == BuoyColors.RED)]
 
-            closest_green_pole_buoy = min(self.green_pole_buoys, key=lambda x: distance(0, 0, x.x, x.y))
-            closest_red_pole_buoy = min(self.red_pole_buoys, key=lambda x: distance(0, 0, x.x, x.y))
+            closest_green_pole_buoy = min(self.green_pole_buoys, key=lambda buoy: buoy.size)
+            closest_red_pole_buoy = min(self.red_pole_buoys, key=lambda buoy: buoy.size)
             
-            mdpt = midpoint(closest_green_pole_buoy.x, closest_green_pole_buoy.y, closest_red_pole_buoy.x, closest_red_pole_buoy.y)
+            mdpt = mdpt(closest_green_pole_buoy.x, closest_green_pole_buoy.y, closest_red_pole_buoy.x, closest_red_pole_buoy.y)
             
-            self.angle = np.arctan2(mdpt[1], mdpt[0])
-            
-            if abs(self.angle - self.prev_angle) > ANGLE_DEV:
-                self.prev_angle = self.angle
+            # Will throw error if intrinsics aren't received
+            error = p2a(self.boat_controller.intrinsics, (self.boat_controller.width / 2, self.boat_controller.height / 2), (mdpt))
 
-            self.x += self.boat_controller.dx
-            self.y += self.boat_controller.dy
-            self.zr += self.boat_controller.dzr
-
-            angular_velocity = self.boat_controller.pid.pure_pursuit(self.prev_angle, (self.x, self.y), self.zr)
+            angular_velocity = self.boat_controller.pid.compute(error)
             angular_velocity *= ANGULAR_VELOCITY * np.pi / 180
             
             self.boat_controller.set_angular_velocity(angular_velocity)

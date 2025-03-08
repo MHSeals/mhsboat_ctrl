@@ -11,7 +11,7 @@ import urllib.request
 from collections import defaultdict, deque
 from typing import Dict
 from sensor_msgs.msg import Image
-from boat_interfaces.msg import AiOutput
+from boat_interfaces.msg import BuoyDetections
 from mhsboat_ctrl.utils.image_tools import preprocess
 from mhsboat_ctrl.utils import rgb
 
@@ -103,10 +103,10 @@ class CameraSubscriber(Node):
         self.track_history = defaultdict(lambda: deque(maxlen=30))
 
         self.create_subscription(Image, "/color/image_raw", self.safe_image_callback, 10)
-        self.publisher = self.create_publisher(AiOutput, "AiOutput", 10)
+        self.publisher = self.create_publisher(BuoyDetections, "buoy_detections", 10)
         self.timer = self.create_timer(0.5, self.timer_callback)
 
-        self.output = AiOutput()
+        self.output = BuoyDetections()
         print("Node initialized")
 
     def timer_callback(self):
@@ -157,7 +157,7 @@ class CameraSubscriber(Node):
         original_frame = cv2.add(original_frame, overlay)
 
         # Initialize output message fields for this frame
-        output = AiOutput()
+        output = BuoyDetections()
         output.num = 0
         output.img_width = DISPLAY_WIDTH
         output.img_height = DISPLAY_HEIGHT

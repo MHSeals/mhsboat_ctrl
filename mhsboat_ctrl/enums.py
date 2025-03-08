@@ -1,23 +1,9 @@
 from enum import Enum
-
-
-class TaskCompletionStatus(Enum):
+class TaskStatus(Enum):
     SUCCESS = 0
     FAILURE = 1
-    CANCELLED = 2
-    PARTIAL_SUCCESS = 3
-    NOT_STARTED = 4
-
-
-class TaskStatus(Enum):
-    NOT_STARTED = 0
-    FOUND = 1
-    IN_PROGRESS = 2
-    COMPLETED = 3
-    CANCELLED = 4
-    FAILURE = 5
-    PARTIAL_COMPLETION = 6
-
+    ACTIVE = 2
+    SEARCHING = 3
 
 class BuoyColors(Enum):
     RED = "red"
@@ -25,7 +11,6 @@ class BuoyColors(Enum):
     YELLOW = "yellow"
     BLUE = "blue"
     BLACK = "black"
-
 
 class Shapes(Enum):
     CIRCLE = "circle"

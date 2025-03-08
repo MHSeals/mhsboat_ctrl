@@ -1,17 +1,17 @@
 import abc
 from typing import Tuple, Optional
 
-from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
+from mhsboat_ctrl.enums import TaskStatus
 
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from mhsboat_ctrl.mhsboat_ctrl import BoatController
+    from mhsboat_ctrl.vision_mhsboat_ctrl import VisionBoatController
 
 class Task(abc.ABC):
     status: TaskStatus
 
-    def __init__(self, boat_controller: 'BoatController'):
+    def __init__(self, boat_controller: 'VisionBoatController'):
         self.boat_controller = boat_controller
 
     def __init_subclass__(cls, **kwargs):
@@ -25,4 +25,4 @@ class Task(abc.ABC):
     def search(self) -> Optional[Tuple[float, float]]: ...
 
     @abc.abstractmethod
-    def run(self) -> TaskCompletionStatus: ...
+    def run(self) -> TaskStatus: ...

@@ -1,23 +1,48 @@
+"""
+Currently, I am using the size of the bounding boxes to approximate their closeness
+and determine which ones should be used as pairs for the boat's path but if necessary,
+we may subscribe to the depth stream of the stereo camera and take the average pixel
+depth within the bounding box to get which ones are the closes. This approach is likely
+overkill though because we don't use the depth values for anything else.
+"""
+
 import rclpy
 from rclpy.node import Node
-from typing import List, Tuple
-from geometry_msgs.msg import TwistStamped
-from boat_interfaces.msg import BuoyMap, BoatMovement
+from rclpy.qos import (
+    QoSProfile,
+    QoSHistoryPolicy,
+    QoSReliabilityPolicy,
+    QoSDurabilityPolicy,
+    QoSLivelinessPolicy,
+)
 
-from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus, BuoyColors
+from geometry_msgs.msg import TwistStamped
+from sensor_msgs.msg import Imu, CameraInfo
+import tf_transformations
+from boat_interfaces.msg import BuoyDetections
+
+from mhsboat_ctrl.enums import TaskStatus, BuoyColors
 from mhsboat_ctrl.task import Task
-from mhsboat_ctrl.course_objects import CourseObject, PoleBuoy, BallBuoy
+from mhsboat_ctrl.course_objects import Shape, PoleBuoy, BallBuoy
 from mhsboat_ctrl.pid import PIDController
 
 import os
 import glob
 import importlib
+from typing import List
 
-LOOKAHEAD = 3 # meters
 KP = 1
 KI = 0.05
 KD = 0.1
 INTEGRAL_BOUND = 1
+
+buoy_color_mapping: Dict[str, BuoyColors] = {
+    "black": BuoyColors.BLACK,
+    "blue": BuoyColors.BLUE,
+    "green": BuoyColors.GREEN,
+    "red": BuoyColors.RED,
+    "yellow": BuoyColors.YELLOW,
+}
 
 class VisionBoatController(Node):
     tasks: List[Task] = []
@@ -25,25 +50,39 @@ class VisionBoatController(Node):
     def __init__(self):
         super().__init__("vision_mhsboat_ctrl")
         
-        self.map_subscriber = self.create_subscription(
-            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10
-        )
-
-        self.movement_subscriber = self.create_subscription(
-            BoatMovement, "/mhsboat_ctrl/movement", self.movement_callback, 10
-        )
-
         self.get_logger().info("Boat Controller Node Initialized")
+        
+        self.buoy_detection_subscriber = self.create_subscription(
+            BuoyDetections, "buoy_detections", self.buoy_detection_callback, 10    
+        )
 
-        self.buoy_map: list[CourseObject] = []
+        self.intrinsics_subscriber = self.create_subscription(
+            CameraInfo, '/depth/camera_info', self.intrinsics_callback, 10
+        )
+        self.intrinsics = None
+
+
+        self.camera_info_subscriber = self.create_subscription(
+            CameraInfo, '/color/camera_info', self.camera_info_callback, 10
+        )
+        self.width = None
+        self.height = None
+
+        self.qos_profile = QoSProfile(
+            depth=10,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            liveliness=QoSLivelinessPolicy.AUTOMATIC,
+        )
+        
+        self.imu_sub = self.create_subscription(
+            Imu, "/mavros/imu/data", self.imu_callback, self.qos_profile
+        )
 
         self.cmd_vel_publisher = self.create_publisher(
             TwistStamped, "/mavros/setpoint_velocity/cmd_vel", 10
         )
-
-        self.dx = 0
-        self.dy = 0
-        self.dzr = 0
 
         self.cmd_vel = TwistStamped()
         self.cmd_vel.twist.linear.x = 0.0
@@ -51,9 +90,11 @@ class VisionBoatController(Node):
         self.cmd_vel.twist.angular.z = 0.0
         self.cmd_vel_publisher.publish(self.cmd_vel)
 
-        self.through_gates = False
+        self.buoys = []
 
-        self.pid = PIDController(self, LOOKAHEAD, KP, KI, KD, INTEGRAL_BOUND)
+        self.pid = PIDController(self, KP, KI, KD, INTEGRAL_BOUND)
+        
+        self.orientation = 0
 
         for task_file in glob.glob(os.path.join(os.path.dirname(__file__), "tasks", "*.py")):
             if os.path.basename(task_file) == "__init__.py":
@@ -63,6 +104,61 @@ class VisionBoatController(Node):
             task_module.main(self)
 
         self.run()
+
+    def camera_info_callback(self, msg: CameraInfo):
+        self.width = msg.width
+        self.height = msg.height
+        self.get_logger().info(f"Image Width: {self.width}, Height: {self.height}")
+
+    def intrinsics_callback(self, msg) -> None:
+        """ Get camera intrinsics from CameraInfo topic. """
+        fx = msg.k[0]  # Focal length in x
+        fy = msg.k[4]  # Focal length in y
+        cx = msg.k[2]  # Optical center x
+        cy = msg.k[5]  # Optical center y
+        
+        self.intrinsics = (fx, fy, cx, cy)
+        
+    def imu_callback(self, msg: Imu) -> None:
+        self.orientation += msg.angular_velocity.z
+        
+    def buoy_detection_callback(self, camera_data: BuoyDetections) -> None:
+        lefts = np.array([camera_data.lefts])
+        tops = np.array([camera_data.tops])
+        widths = np.array([camera_data.widths])
+        heights = np.array([camera_data.heights])
+        self.buoys = []
+        
+        centers = np.array([lefts + widths / 2, tops + heights / 2]).T
+
+        for i in range(msg.num):
+            x = centers[i, 0]
+            y = centers[i, 1]
+            size = widths[i] * heights[i]
+
+            if camera_data.types[i].endswith("pole_buoy"):
+                buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
+                # type: ignore - this will always be either red or green
+                self.buoys.append(PoleBuoy(x, y, buoy_color, size)) # type: ignore
+            elif camera_data.types[i].endswith("buoy"):
+                buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
+                self.buoys.append(BallBuoy(x, y, buoy_color, size))
+            elif camera_data.types[i].endswith("circle"):
+                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
+                self.buoys.append(Shape(x, y, Shapes.CIRCLE, shape_color, size))
+            elif camera_data.types[i].endswith("triangle"):
+                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
+                self.buoys.append(Shape(x, y, Shapes.TRIANGLE, shape_color, size))
+            elif camera_data.types[i].endswith("cross"):
+                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
+                self.buoys.append(Shape(x, y, Shapes.CROSS, shape_color, size))
+            elif camera_data.types[i].endswith("square"):
+                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
+                self.buoys.append(Shape(x, y, Shapes.SQUARE, shape_color, size))
+            elif camera_data.types[i].endswith("duck_image"):
+                pass
+            elif camera_data.types[i].endswith("racquet_ball"):
+                pass
 
     def set_forward_velocity(self, velocity: float):
         self.cmd_vel.twist.linear.x = velocity
@@ -76,25 +172,6 @@ class VisionBoatController(Node):
     def set_angular_velocity(self, velocity: float):
         self.cmd_vel.twist.angular.z = velocity
         self.cmd_vel_publisher.publish(self.cmd_vel)
-
-    def map_callback(self, msg: BuoyMap):
-        for i in range(len(msg.x)):
-            color = BuoyColors(msg.colors[i].lower())
-            if msg.types[i] == "pole":
-                self.buoy_map.append(PoleBuoy(msg.x[i], msg.y[i], msg.z[i], color))  # type: ignore color will always only be red or green
-            elif msg.types[i] == "ball":
-                self.buoy_map.append(BallBuoy(msg.x[i], msg.y[i], msg.z[i], color))
-            elif msg.types[i] == "shape":
-                self.buoy_map.append(CourseObject(msg.x[i], msg.y[i], msg.z[i]))
-            elif msg.types[i] == "course_object":
-                self.buoy_map.append(CourseObject(msg.x[i], msg.y[i], msg.z[i]))
-            else:
-                self.get_logger().error(f"Unknown buoy type: {msg.types[i]}")
-
-    def movement_callback(self, msg: BoatMovement):
-        self.dx = msg.dx
-        self.dy = msg.dy
-        self.dzr = msg.dzr
 
     def add_task(self, task: Task):
         """
@@ -121,38 +198,18 @@ class VisionBoatController(Node):
                 try:
                     completion_status = task.run()
                 except KeyboardInterrupt:
-                    completion_status = TaskCompletionStatus.CANCELLED
+                    self.get_logger().info("Task cancelled")
+                    completion_status = TaskStatus.FAILURE
                 except Exception as e:
                     self.get_logger().error(f"Task failed: {e}")
-                    completion_status = TaskCompletionStatus.FAILURE
+                    completion_status = TaskStatus.FAILURE
                 
-                if completion_status == TaskCompletionStatus.SUCCESS:
-                    task.status = TaskStatus.COMPLETED
-                    self.set_forward_velocity(0)
-                    self.set_angular_velocity(0)
+                if completion_status == TaskStatus.SUCCESS:
                     self.get_logger().info("Task completed")
-                elif completion_status == TaskCompletionStatus.PARTIAL_SUCCESS:
-                    task.status = TaskStatus.PARTIAL_COMPLETION
-                    self.get_logger().info("Task partially completed")
                     self.set_forward_velocity(0)
                     self.set_angular_velocity(0)
-                elif completion_status == TaskCompletionStatus.FAILURE:
-                    task.status = TaskStatus.FAILURE
-                    self.get_logger().error("Task failed")
-                    self.set_forward_velocity(0)
-                    self.set_angular_velocity(0)
-                elif completion_status == TaskCompletionStatus.CANCELLED:
-                    self.get_logger().info("Task cancelled")
-                    self.set_forward_velocity(0)
-                    self.set_angular_velocity(0)
-                elif completion_status == TaskCompletionStatus.NOT_STARTED:
-                    task.status = TaskStatus.NOT_STARTED
-                    self.get_logger().error("Task not started")
-                    self.set_forward_velocity(0)
-                    self.set_angular_velocity(0)
-                else:
-                    task.status = TaskStatus.FAILURE
-                    self.get_logger().error("Task failed")
+                elif completion_status == TaskStatus.FAILURE:
+                    self.get_logger().error("Task failed/cancelled")
                     self.set_forward_velocity(0)
                     self.set_angular_velocity(0)
 
