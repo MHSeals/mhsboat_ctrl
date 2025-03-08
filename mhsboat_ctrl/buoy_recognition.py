@@ -19,16 +19,16 @@ print("Importing libraries...")
 print("Libraries imported")
 print("Checking for model...")
 
-MODEL_URL = "https://github.com/MHSeals/buoy-model/releases/download/V14/best.pt"
+MODEL_URL = "/root/roboboat_ws/src/mhsboat_ctrl/mhsboat_ctrl/best.pt"
 file_name = os.path.basename(MODEL_URL)
 model_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), file_name)
 
-if not os.path.exists(model_path):
-    print(f"Model not found; downloading {MODEL_URL}")
-    urllib.request.urlretrieve(MODEL_URL, model_path)
+# if not os.path.exists(model_path):
+#     print(f"Model not found; downloading {MODEL_URL}")
+#     urllib.request.urlretrieve(MODEL_URL, model_path)
 
 print("Loading model...")
-model = YOLO(model_path)
+model = YOLO(MODEL_URL)
 print("Model loaded")
 
 # Constants
@@ -121,8 +121,8 @@ class CameraSubscriber(Node):
             print(f"Error in callback: {e}")
 
     def image_callback(self, data: Image):
-        self.get_logger().info("Processing new frame")
-        self.get_logger().info(f"Frame rate: {self.FPS}")
+        # self.get_logger().info("Processing new frame")
+        # self.get_logger().info(f"Frame rate: {self.FPS}")
         self.last_callback_time = time.perf_counter()
         frame_start_time = time.perf_counter()
         self.total_frames += 1
@@ -247,9 +247,9 @@ class CameraSubscriber(Node):
         frame_processing_time = time.perf_counter() - frame_start_time
         self.processing_times.append(frame_processing_time)
         self.processing_times = self.processing_times[-100:]
-        print(
-            f"Frame processing time: {frame_processing_time * 1000:.2f}ms, Average: {np.mean(self.processing_times) * 1000:.2f}ms"
-        )
+        # print(
+        #     f"Frame processing time: {frame_processing_time * 1000:.2f}ms, Average: {np.mean(self.processing_times) * 1000:.2f}ms"
+        # )
 
         if not self.headless_mode:
             cv2.imshow("result", original_frame)

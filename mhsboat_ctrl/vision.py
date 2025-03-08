@@ -11,9 +11,10 @@ from rclpy.qos import (
 from cv_bridge import CvBridge
 from boat_interfaces.msg import AiOutput, BuoyMap, BoatMovement
 from sensor_msgs.msg import CameraInfo, Image, Imu
-import numpy as np
+# from nav_msgs.msg import Odometry
 import tf_transformations
-from typing import Dict, Tuple
+import numpy as np
+from typing import Dict 
 
 from mhsboat_ctrl.course_objects import Shape, Buoy, PoleBuoy, BallBuoy
 from mhsboat_ctrl.enums import BuoyColors, Shapes
@@ -25,8 +26,6 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
     "red": BuoyColors.RED,
     "yellow": BuoyColors.YELLOW,
 }
-
-BUOY_DUPLICATE_THRESHOLD = 0.2
 
 class Vision(Node):
     
@@ -82,17 +81,70 @@ class Vision(Node):
             liveliness=QoSLivelinessPolicy.AUTOMATIC,
         )
         
-        self._odom_out_sub = self.create_subscription(
-            Odometry, "/odometry/filtered", self._odom_callback, self._qos_profile
+        self._imu_out_sub = self.create_subscription(
+            Imu, "/mavros/imu/data", self._imu_callback, self._qos_profile
         )
+        
+        # self._odom_out_sub = self.create_subscription(
+        #     Odometry, "/odometry/filtered", self._odom_callback, self._qos_profile
+        # )
         
         self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
         self.movement_publisher = self.create_publisher(BoatMovement, "/mhsboat_ctrl/movement", 10)
         
         self.bridge = CvBridge()
         self.fx = self.fy = self.cx = self.cy = None  # Camera intrinsics
+        
+        self.prev_time = None
+        self.linear_velocity_x = 0
+        self.linear_velocity_y = 0
+        # self.previous_odom_data = None
 
         self.get_logger().info("Vision Node Initialized")
+        
+    # def _odom_callback(self, odom_data: Odometry) -> None:
+    #     self.get_logger().info("Received odom data")
+    #     
+    #     if self.previous_odom_data is None:
+    #         self.previous_odom_data = odom_data
+    #         return
+    #     
+    #     delta_trans = [
+    #         odom_data.pose.pose.position.x - self.previous_odom_data.pose.pose.position.x, 
+    #         odom_data.pose.pose.position.y - self.previous_odom_data.pose.pose.position.y,
+    #         odom_data.pose.pose.position.z - self.previous_odom_data.pose.pose.position.z
+    #     ]
+
+    #     quat = [
+    #         odom_data.pose.pose.orientation.x,
+    #         odom_data.pose.pose.orientation.y,
+    #         odom_data.pose.pose.orientation.z,
+    #         odom_data.pose.pose.orientation.w,
+    #     ]
+    #     
+    #     previous_quat = [
+    #         self.previous_odom_data.pose.pose.orientation.x,
+    #         self.previous_odom_data.pose.pose.orientation.y,
+    #         self.previous_odom_data.pose.pose.orientation.z,
+    #         self.previous_odom_data.pose.pose.orientation.w,
+    #     ]
+
+    #     delta_quat = tf_transformations.quaternion_multiply(
+    #         tf_transformations.quaternion_inverse(previous_quat), quat
+    #     )
+
+    #     # Convert quaternion to Euler angles (roll, pitch, yaw)
+    #     delta_euler = tf_transformations.euler_from_quaternion(delta_quat)
+    # 
+    #     self.get_logger().info(f"Translation: {delta_trans}")
+    #     self.get_logger().info(f"Change in rotation: {delta_euler}")
+    #     
+    #     msg = BoatMovement()
+    #     msg.dx = delta_trans[0]
+    #     msg.dy = delta_trans[1]
+    #     msg.dzr = delta_euler[2]
+    #     
+    #     self.movement_publisher.publish(msg)
     
     def _camera_info_callback(self, msg) -> None:
         """ Get camera intrinsics from CameraInfo topic. """
@@ -115,8 +167,6 @@ class Vision(Node):
         centers = np.array([lefts + widths / 2, tops + heights / 2]).T
         for i in range(len(centers)):
             centers[i] = self.pixel_to_3d(centers[i])
-
-        items_to_remove = []
 
         for i in range(camera_data.num):
             x, y, z = centers[i]
@@ -149,47 +199,6 @@ class Vision(Node):
                 pass
             elif camera_data.types[i].endswith("racquet_ball"):
                 pass
-            
-        for i in range(camera_data.num):
-            # Search for duplicate buoys
-            for j in range(camera_data.num)[::-1]:
-                if detected_objects[j] in items_to_remove:
-                    continue
-                
-                if i == j:
-                    continue
-                
-                same = True
-
-                # Check for different features
-                if isinstance(detected_objects[i], Shape) and isinstance(detected_objects[j], Shape):
-                    if detected_objects[i].shape != detected_objects[j].shape or detected_objects[i].color != detected_objects[j].color:
-                        same = False
-                elif isinstance(detected_objects[i], Buoy) and isinstance(detected_objects[j], Buoy):
-                    if detected_objects[i].color != detected_objects[j].color:
-                        same = False
-                elif type(detected_objects[i]) != type(detected_objects[j]):
-                    same = False
-
-                if same:
-                    self.get_logger().info(
-                        f"Checking for duplicates: {detected_objects[i]} (original) and {detected_objects[j]} (this frame)"
-                    )
-
-                    distance = np.linalg.norm(detected_objects[i], detected_objects[j])
-
-                    self.get_logger().info(f"Distance: {distance}")
-
-                    if distance < BUOY_DUPLICATE_THRESHOLD:
-                        self.get_logger().info("Found duplicate; merging objects")
-                        # make position the average of the two
-                        detected_objects[i] = (detected_objects[i] + detected_objects[j]) / 2
-
-                        # remove the other object
-                        items_to_remove.append(detected_objects[j])
-            
-        # Remove objects that are really close to each other
-        detected_objects = [obj for obj in detected_objects if obj not in items_to_remove]
 
         msg = BuoyMap()
         x, y, z, types, colors = [], [], [], [], []
@@ -222,43 +231,25 @@ class Vision(Node):
     def _depth_callback(self, msg: Image) -> None:
         self.depth_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="passthrough")
 
-    def _odom_callback(self, odom_data: Odometry) -> None:
-        self.get_logger().info("Received odom data")
-        
-        delta_trans = [
-            odom_data.pose.pose.position.x - self.prev_x, 
-            odom_data.pose.pose.position.y - self.prev_y,
-            odom_data.pose.pose.position.z - self.prev_z
-        ]
+    def _imu_callback(self, imu_data: Imu) -> None:
+        if self.prev_time is None:
+            self.prev_time = imu_data.header.stamp.sec + imu_data.header.stamp.nanosec / 1e9 
 
-        quat = [
-            odom_data.pose.pose.orientation.x,
-            odom_data.pose.pose.orientation.y,
-            odom_data.pose.pose.orientation.z,
-            odom_data.pose.pose.orientation.w,
-        ]
-        
-        previous_quat = [
-            self.previous_odom_data.pose.pose.orientation.x,
-            self.previous_odom_data.pose.pose.orientation.y,
-            self.previous_odom_data.pose.pose.orientation.z,
-            self.previous_odom_data.pose.pose.orientation.w,
-        ]
+        time = imu_data.header.stamp.sec + imu_data.header.stamp.nanosec / 1e9 
+        # self.get_logger().info(f"Received imu data t={time}")
+        dt = time - self.prev_time
+        self.prev_time = time
 
-        delta_quat = tf_transformations.quaternion_multiply(
-            tf_transformations.quaternion_inverse(previous_quat), quat
-        )
-
-        # Convert quaternion to Euler angles (roll, pitch, yaw)
-        delta_euler = tf_transformations.euler_from_quaternion(delta_quat)
-    
-        self.get_logger().info(f"Translation: {delta_trans}")
-        self.get_logger().info(f"Change in rotation: {delta_euler}")
+        self.linear_velocity_x += imu_data.linear_acceleration.x * dt
+        self.linear_velocity_y += imu_data.linear_acceleration.y * dt
         
         msg = BoatMovement()
-        msg.dx = delta_trans[0]
-        msg.dy = delta_trans[1]
-        msg.dzr = delta_euler[2]
+        msg.dx = self.linear_velocity_x * dt
+        msg.dy = self.linear_velocity_y * dt
+        msg.dzr = imu_data.angular_velocity.z * dt
+        
+        self.get_logger().info(f"{imu_data.linear_acceleration.x}, {imu_data.linear_acceleration.y}, {imu_data.angular_velocity.z}")
+        # self.get_logger().info(f"Processed imu data: dx={msg.dx}, dy={msg.dy}, dzr={msg.dzr}")
         
         self.movement_publisher.publish(msg)
         

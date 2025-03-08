@@ -2,19 +2,27 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from launch.substitutions import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument
+
+"""
+- Imu dead reckoning
+- Buoy detections (depth map) 
+- mhsboat_ctrl (mavros)
+- PID to drive straight
+"""
 
 def generate_launch_description():
     pkg_share = get_package_share_directory("mhsboat_ctrl")
 
+    headless_mode_arg = DeclareLaunchArgument(
+        'headless_mode',
+        default_value='True',
+        description='Run computer vision node in headless mode'
+    )
+
     return LaunchDescription(
         [
-            """
-            - Imu dead reckoning
-            - Buoy detections (depth map) 
-            - mhsboat_ctrl (mavros)
-            - PID to drive straight
-            """
-
+            headless_mode_arg,
             Node(
                 package="mhsboat_ctrl",
                 executable="vision_mhsboat_ctrl",
@@ -39,12 +47,12 @@ def generate_launch_description():
                     }
                 ],
             ),
-            Node(
-                package="mhsboat_ctrl",
-                executable="buoy_recognition",
-                name="buoy_recognition",
-                output="screen",
-                parameters=[{"headless_mode": LaunchConfiguration("headless_mode")}],
-            ),
+            # Node(
+            #     package="mhsboat_ctrl",
+            #     executable="buoy_recognition",
+            #     name="buoy_recognition",
+            #     output="screen",
+            #     parameters=[{"headless_mode": LaunchConfiguration("headless_mode")}],
+            # ),
         ]
     )

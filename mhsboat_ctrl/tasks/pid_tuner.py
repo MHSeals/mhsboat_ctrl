@@ -5,10 +5,10 @@ from mhsboat_ctrl.vision_mhsboat_ctrl import VisionBoatController
 from mhsboat_ctrl.task import Task
 from mhsboat_ctrl.enums import TaskCompletionStatus, TaskStatus
 
-FORWARD_VELOCITY = 10.0  # m/s
-ANGULAR_VELOCITY = 4.0  # rad/s
-END_DISTANCE = 10 # m
-ANGLE = 0
+FORWARD_VELOCITY = 1.0  # m/s
+ANGULAR_VELOCITY = 2 * np.pi / 5.3  # rad/s
+END_DISTANCE = 5.0 # m
+ANGLE = 0.0
 
 class PIDTuner(Task):
     status = TaskStatus.NOT_STARTED
