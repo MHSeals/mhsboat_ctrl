@@ -9,10 +9,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
-    "msg/AiOutput.msg"
-    "msg/BuoyCoordinates.msg"
-    "msg/BuoyMap.msg"
-    "msg/BoatMovement.msg"
+    "msg/BuoyDetections.msg"
 )
 
 ament_export_dependencies(rosidl_default_runtime)
