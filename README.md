@@ -9,9 +9,9 @@ This document reflects the current state of the codebase.
 - Ubuntu 22.04
 - Python >= 3.8
 - numpy ~= 1.24.4
-- [Custom messages](https://github.com/MHSeals/mhsboat_ctrl/tree/boat_interfaces)  
+- [Custom messages](https://github.com/MHSeals/boat_interfaces)  
   (replace `ros_ws` with the path to your ROS 2 workspace)  
-  `cd ~/ros_ws/src && git clone https://github.com/MHSeals/mhsboat_ctrl/ -b boat_interfaces boat_interfaces`
+  `cd ~/ros_ws/src && git clone https://github.com/MHSeals/boat_interfaces`
 
 ## Building
 
