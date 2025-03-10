@@ -11,17 +11,17 @@ ekf_localization:
     odom0: /odom
     odom0_differential: false
     odom0_relative: false
-    odom0_config: [true, true, false,
-                   false, false, false,
-                   true, true, false,
-                   false, false, false,
-                   false, false]
+    odom0_config: [true, true, true, # x, y, z
+                   false, false, false, # roll, pitch, yaw
+                   true, true, false, # vx, vy, vz
+                   false, false, false, # vroll, vpitch, vyaw
+                   false, false, false] # ax, ay, az
 
     imu0: /imu/data
     imu0_config: [false, false, false,
                   true, true, true,
                   false, false, false,
                   false, false, false,
-                  false, false]
+                  false, false, false]
     imu0_differential: false
     imu0_relative: false
