@@ -15,4 +15,4 @@ assert midpoint(0, 0, 1, 0) == (0.5, 0)
 assert midpoint(0, 0, 0, 1) == (0, 0.5)
 assert midpoint(0, 0, 1, 1) == (0.5, 0.5)
 
-print("All tests passed!")
+print("Tests completed")
