@@ -1,27 +1,51 @@
 ekf_localization:
   ros__parameters:
+    # === Overall EKF Settings ===
     frequency: 30.0
-    sensor_timeout: 0.2
+    sensor_timeout: 0.25
     two_d_mode: false
+    publish_tf: true
+    publish_acceleration: false
+
+    # === Frame Names ===
+    map_frame: map
     odom_frame: odom
     base_link_frame: base_link
     world_frame: odom
-    transform_time_offset: 0.1
 
-    odom0: /odom
+    # === ZED 2i VIO ===
+    odom0: /zed/odom
     odom0_differential: false
     odom0_relative: false
-    odom0_config: [true, true, true, # x, y, z
-                   false, false, false, # roll, pitch, yaw
-                   true, true, false, # vx, vy, vz
-                   false, false, false, # vroll, vpitch, vyaw
-                   false, false, false] # ax, ay, az
+    odom0_config: [
+      true,  true,  true,    # x, y, z
+      true,  true,  true,    # roll, pitch, yaw
+      true,  true,  true,    # vx, vy, vz
+      true,  true,  true,    # vroll, vpitch, vyaw
+      false, false, false    # ax, ay, az
+    ]
 
-    imu0: /imu/data
-    imu0_config: [false, false, false,
-                  true, true, true,
-                  false, false, false,
-                  false, false, false,
-                  false, false, false]
-    imu0_differential: false
-    imu0_relative: false
+    # === Lidar Odometry ===
+    odom1: /dlio/odom_node/odom
+    odom1_differential: false
+    odom1_relative: false
+    odom1_config: [
+      true,  true,  true,    # x, y, z
+      true,  true,  true,    # roll, pitch, yaw
+      true,  true,  true,    # vx, vy, vz
+      true,  true,  true,    # vroll, vpitch, vyaw
+      false, false, false    # ax, ay, az
+    ]
+
+    # === CubeOrange IMU ===
+    # DLIO Fuses the Cube Orange IMU itself.
+    # imu0: /imu/data
+    # imu0_differential: false
+    # imu0_relative: false
+    # imu0_config: [
+    #   true,  true,  false,   # x, y, z
+    #   false, false, true,    # roll, pitch, yaw
+    #   true,  true,  false,   # vx, vy, vz
+    #   false, false, true,    # vroll, vpitch, vyaw
+    #   false, false, false    # ax, ay, az
+    # ]
