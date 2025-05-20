@@ -102,7 +102,7 @@ class CameraSubscriber(Node):
         # Use deque with fixed maxlen for efficient tracking history updates
         self.track_history = defaultdict(lambda: deque(maxlen=30))
 
-        self.create_subscription(Image, "/color/image_raw", self.safe_image_callback, 10)
+        self.create_subscription(Image, "/zed/left/image_rect_color", self.safe_image_callback, 10)
         self.publisher = self.create_publisher(AiOutput, "AiOutput", 10)
         self.timer = self.create_timer(0.5, self.timer_callback)
 

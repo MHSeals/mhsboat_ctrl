@@ -3,7 +3,7 @@ import rclpy.logging
 from rclpy.node import Node
 from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
-from sensor_msgs.msg import PointCloud2
+from sensor_msgs.msg import PointCloud2, Image
 from nav_msgs.msg import Odometry
 from rclpy.qos import (
     QoSProfile,
@@ -49,15 +49,9 @@ class Sensors(Node):
         # results
         self._camera_cache: List[Tuple[AiOutput, float]] = []
         self._lidar_cache: List[Tuple[PointCloud2, float]] = []
+        self._depth_cache: List[Tuple[PointCloud2, float]] = []
+        self._depth_conf_cache: List[Tuple[PointCloud2, float]] = []
         self._odom_cache: List[Tuple[Odometry, float]] = []
-
-        self._ai_out_sub = self.create_subscription(
-            AiOutput, "/AiOutput", self._camera_callback, 10
-        )
-
-        self._lidar_out_sub = self.create_subscription(
-            PointCloud2, "/center_of_clusters", self._lidar_callback, 10
-        )
 
         self._qos_profile = QoSProfile(
             depth=10,
@@ -67,22 +61,38 @@ class Sensors(Node):
             liveliness=QoSLivelinessPolicy.AUTOMATIC,
         )
 
+        self._ai_out_sub = self.create_subscription(
+            AiOutput, "/AiOutput", self._camera_callback, self._qos_profile
+        )
+
+        self._lidar_out_sub = self.create_subscription(
+            PointCloud2, "/center_of_clusters", self._lidar_callback, self._qos_profile
+        )
+
+        self._depth_out_sub = self.create_subscription(
+            PointCloud2, "/zed/point_cloud/cloud_registered", self._depth_callback, self._qos_profile
+        )
+
+        self._depth_conf_out_sub = self.create_subscription(
+            Image, "/zed/confidence/confidence_image", self._depth_conf_callback, self._qos_profile
+        )
+
         self._odom_out_sub = self.create_subscription(
             Odometry(), "/odometry/filtered", self._odom_callback, self._qos_profile
         )
 
         self._process_timer = self.create_timer(0.1, self._safe_process_sensor_data)
 
-        self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", 10)
+        self.map_publisher = self.create_publisher(BuoyMap, "/mhsboat_ctrl/map", self._qos_profile)
 
         self.map: List[CourseObject] = []
 
-        self.buoy_cluster_pub = self.create_publisher(PointCloud2, "/mhsboat_ctrl/buoy_clusters", 10)
+        self.buoy_cluster_pub = self.create_publisher(PointCloud2, "/mhsboat_ctrl/buoy_clusters", self._qos_profile)
 
         self.previous_odom_data = None
 
         self.get_logger().info("Sensors Node Initialized")
-        # Added FPS counter initialization
+        
         self._fps_counter = 0
         self._fps_start = self.get_clock().now().nanoseconds
         self.fps = 0
@@ -98,6 +108,18 @@ class Sensors(Node):
         self._lidar_cache.append((msg, self.get_clock().now().nanoseconds))
         if len(self._lidar_cache) > 3:
             self._lidar_cache.pop(0)
+
+    def _depth_callback(self, msg: PointCloud2):
+        self.get_logger().info("Received depth data")
+        self._depth_cache.append((msg, self.get_clock().now().nanoseconds))
+        if len(self._depth_cache) > 3:
+            self._depth_cache.pop(0)
+
+    def _depth_conf_callback(self, msg: PointCloud2):
+        self.get_logger().info("Received depth confidence data")
+        self._depth_conf_cache.append((msg, self.get_clock().now().nanoseconds))
+        if len(self._depth_conf_cache) > 3:
+            self._depth_conf_cache.pop(0)
 
     def _odom_callback(self, msg: Odometry):
         self.get_logger().info("Received odometry data")
@@ -146,48 +168,66 @@ class Sensors(Node):
             self.get_logger().warn("No lidar data available")
             return
 
+        if len(self._depth_cache) == 0:
+            self.get_logger().warn("No depth data available")
+            return
+
         if len(self._odom_cache) == 0:
             self.get_logger().warn("No odometry data available")
             return
 
         now = self.get_clock().now().nanoseconds
 
+        ref_time = self._camera_cache[-1][1]
+
         # find the data that has the smallest time difference
         # and process it
         camera_data, camera_time = min(
             self._camera_cache,
-            key=lambda x: abs(x[1] - now),
+            key=lambda x: abs(x[1] - ref_time),
         )
         lidar_data, lidar_time = min(
             self._lidar_cache,
-            key=lambda x: abs(x[1] - now),
+            key=lambda x: abs(x[1] - ref_time),
+        )
+        depth_data, depth_time = min(
+            self._depth_cache,
+            key=lambda x: abs(x[1] - ref_time),
+        )
+        # TODO: Where can we use depth confidence data?
+        depth_conf_data, depth_conf_time = min(
+            self._depth_conf_cache,
+            key=lambda x: abs(x[1] - ref_time),
         )
         odom_data, odom_time = min(
             self._odom_cache,
-            key=lambda x: abs(x[1] - now),
+            key=lambda x: abs(x[1] - ref_time),
         )
 
         if self.previous_odom_data is None:
             self.previous_odom_data = odom_data
             return
 
-        time_diff = max(camera_time, lidar_time, odom_time) - min(
-            camera_time, lidar_time, odom_time
+        time_diff = max(camera_time, lidar_time, depth_time, depth_conf_time, odom_time) - min(
+            camera_time, lidar_time, depth_time, depth_conf_time, odom_time
         )
         self.get_logger().info(f"Data time difference: {time_diff} ns")
 
         # Get which data is laggging behind
         if time_diff > 1e9:
-            if camera_time < lidar_time and camera_time < odom_time:
+            if camera_time < lidar_time and camera_time < depth_time and camera_time < odom_time and camera_time < depth_conf_time:
                 self.get_logger().warn("Camera data is lagging behind")
-            elif lidar_time < camera_time and lidar_time < odom_time:
+            elif lidar_time < camera_time and lidar_time < depth_time and lidar_time < odom_time and lidar_time < depth_conf_time:
                 self.get_logger().warn("Lidar data is lagging behind")
-            elif odom_time < camera_time and odom_time < lidar_time:
+            elif depth_time < camera_time and depth_time < lidar_time and depth_time < odom_time and depth_time < depth_conf_time:
+                self.get_logger().warn("Depth data is lagging behind")
+            elif odom_time < camera_time and odom_time < lidar_time and odom_time < depth_time and odom_time < depth_conf_time:
                 self.get_logger().warn("Odometry data is lagging behind")
             else:
                 self.get_logger().warn("Unknown data is lagging behind")
 
         # TODO: find a good average value to base this off of
+        # Currently set to 1 second
         if time_diff > 1e9:
             self.get_logger().warn(f"Data time difference is large: {time_diff} ns")
 
@@ -349,39 +389,6 @@ class Sensors(Node):
 
         self.get_logger().info(f"Transformation matrix: \n{transformation_matrix}")
 
-        # this should not be necessary anymore
-        # Check if the detected objects match with the map objects
-        # TODO: Is there a more efficient way to do this?
-        # for detected_obj in local_detected_objects:
-        #     matched = False
-        #     for map_obj in self.map:
-        #         self.get_logger().info(
-        #             f"Transforming X: {map_obj.x}, Y: {map_obj.y}, Z: {map_obj.z}"
-        #         )
-        #         point_hom = np.array(
-        #             [map_obj.x, map_obj.y, map_obj.z, 1]
-        #         )
-        #         point_trans = np.dot(transformation_matrix, point_hom)
-
-        #         map_obj.x = point_trans[0]
-        #         map_obj.y = point_trans[1]
-        #         map_obj.z = point_trans[2]
-
-        #         self.get_logger().info(
-        #             f"Transformed X: {map_obj.x}, Y: {map_obj.y}, Z: {map_obj.z}"
-        #         )
-
-        #         if self._is_match(detected_obj, map_obj):
-        #             map_obj.x = detected_obj.x
-        #             map_obj.y = detected_obj.y
-        #             map_obj.last_seen = detected_obj.last_seen
-        #             matched = True
-        #             break
-        #     else:
-        #         ...
-        #     if not matched:
-        #         self.map.append(detected_obj)
-
         items_to_remove = []
 
         self.map += local_detected_objects
@@ -403,7 +410,7 @@ class Sensors(Node):
             theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
             phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
 
-            coords = self.get_XYZ_coordinates(theta, phi, lidar_data, "lidar")
+            coords = self.get_XYZ_coordinates(theta, phi, depth_data, "lidar")
             if coords is None:
                 continue
 
@@ -557,6 +564,9 @@ class Sensors(Node):
         :return: The left/right angle (theta) and the up/down angle (phi)
         :rtype:  Tuple[float, float]
         """
+
+        # TODO: Use /zed/left/camera_info to get the camera parameters
+
         # our camera is D435
         # https://www.intelrealsense.com/depth-camera-d435/
         FOV_H = 69
@@ -605,15 +615,6 @@ class Sensors(Node):
             x = point[0]
             y = point[1]
             z = point[2]
-
-            # calculate angle from x axis, the camera always points towards the x axis so we only care about lidar points near the x axis
-            # might have to change if camera doesn't point towards real lidar's x asix
-
-            # why did jonathan make this complicated mess?
-            # pointTheta = (
-            #     math.degrees(math.acos(x / math.sqrt(x**2 + y**2))) * y / abs(y) * -1
-            # )
-            # pointPhi = math.degrees(math.acos(x / math.sqrt(x**2 + z**2))) * z / abs(z)
 
             pointTheta = math.degrees(math.atan2(y, x))
             pointPhi = math.degrees(math.atan2(z, x))
