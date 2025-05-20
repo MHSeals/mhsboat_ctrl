@@ -20,7 +20,15 @@ ros2 launch velodyne velodyne-all-nodes-VLP16-launch.py
 
 *Tip:* Use this command to initialize and monitor your LiDAR sensor. Check that all sensor topics are active using `ros2 topic list`.
 
-### 2. Odom Stack
+### 2. Zed Camera
+
+Launch the Zed camera nodes:
+
+```bash
+ros2 launch mhsboat_ctrl camera.launch.py
+```
+
+### 3. Odom Stack
 
 Launch the odometry processing system which handles localization data:
 

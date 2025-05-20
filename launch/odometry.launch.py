@@ -10,21 +10,6 @@ def generate_launch_description():
 
     return LaunchDescription(
         [
-            # Launch RealSense Camera Node
-            Node(
-                package="realsense2_camera",
-                executable="realsense2_camera_node",
-                name="realsense2_camera",
-                output="screen",
-                parameters=[
-                    {
-                        "enable_color": True,
-                        "rgb_camera.color_profile": "1920x1080x30",
-                        "enable_depth": True,
-                        "depth_module.profile": "1280x720x30",
-                    }
-                ],
-            ),
             # Launch IMU Filter Node
             Node(
                 package="imu_filter_madgwick",
@@ -41,25 +26,6 @@ def generate_launch_description():
                 name="ekf_localization",
                 output="screen",
                 parameters=[ekf_config],
-            ),
-            # RTAB-Map Node for Visual Odometry & Mapping
-            Node(
-                package="rtabmap_ros",
-                executable="rgbd_odometry",
-                name="rgbd_odometry",
-                output="screen",
-                parameters=[{
-                    'frame_id': 'camera_link',
-                    'rgb_topic': '/color/image_raw',
-                    'depth_topic': '/depth/image_rect_raw',
-                    'camera_info_topic': '/color/camera_info'
-                }],
-                remappings=[
-                    ('rgb/image', '/color/image_raw'),
-                    ('depth/image', '/depth/image_rect_raw'),
-                    ('rgb/camera_info', '/color/camera_info'),
-                    ('odom', '/odom')
-                ],
-            ),
+            )
         ]
     )
