@@ -14,6 +14,7 @@ class CourseObject:
         self.z = z
         self.last_seen = 0
         self.uid: Optional[UUID] = None
+        self.zed_tracking_id: Optional[str] = None  # ZED tracking ID for object persistence
 
     def __str__(self):
         return f"CourseObject({self.x}, {self.y}, {self.z})"
@@ -30,6 +31,7 @@ class Shape(CourseObject):
         self.color = color
         self.last_seen = 0
         self.uid: Optional[UUID] = None
+        self.zed_tracking_id: Optional[str] = None
 
     def __str__(self):
         return f"Shape({self.x}, {self.y}, {self.z}, {self.shape}, {self.color})"
@@ -43,6 +45,7 @@ class Buoy(CourseObject):
         self.color = color
         self.last_seen = 0
         self.uid: Optional[UUID] = None
+        self.zed_tracking_id: Optional[str] = None
 
     def __str__(self):
         return f"Buoy({self.x}, {self.y}, {self.z})"
@@ -62,6 +65,7 @@ class PoleBuoy(Buoy):
         self.color = color
         self.last_seen = 0
         self.uid: Optional[UUID] = None
+        self.zed_tracking_id: Optional[str] = None
 
     def __str__(self):
         return f"PoleBuoy({self.x}, {self.y}, {self.z}, {self.color})"
@@ -75,6 +79,7 @@ class BallBuoy(Buoy):
         self.color = color
         self.last_seen = 0
         self.uid: Optional[UUID] = None
+        self.zed_tracking_id: Optional[str] = None
 
     def __str__(self):
         return f"BallBuoy({self.x}, {self.y}, {self.z}, {self.color})"

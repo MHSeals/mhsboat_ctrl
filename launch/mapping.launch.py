@@ -24,13 +24,13 @@ def generate_launch_description():
                 output="screen",
             ),
             # Launch Computer Vision Node with headless_mode parameter
-            Node(
-                package="mhsboat_ctrl",
-                executable="buoy_recognition",
-                name="buoy_recognition",
-                output="screen",
-                parameters=[{"headless_mode": LaunchConfiguration("headless_mode")}],
-            ),
+            # Node(
+            #     package="mhsboat_ctrl",
+            #     executable="buoy_recognition",
+            #     name="buoy_recognition",
+            #     output="screen",
+            #     parameters=[{"headless_mode": LaunchConfiguration("headless_mode")}],
+            # ),
             # Launch Sensor Processing Node
             Node(
                 package="mhsboat_ctrl",

@@ -1,7 +1,7 @@
 /**:
   ros__parameters:
       object_detection:
-        od_enabled: false
+        od_enabled: true # Enable Object Detection at startup
         class:
           people:
             enabled: true # [DYNAMIC] - Enable/disable the detection of persons

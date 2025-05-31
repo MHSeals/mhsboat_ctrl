@@ -5,6 +5,7 @@ from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
 from sensor_msgs.msg import PointCloud2, Image
 from nav_msgs.msg import Odometry
+from zed_msgs.msg import ObjectsStamped
 from rclpy.qos import (
     QoSProfile,
     QoSHistoryPolicy,
@@ -16,7 +17,7 @@ import os
 import yaml
 import math
 import numpy as np
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Tuple, Optional, cast, Literal
 import tf_transformations
 from sensor_msgs.msg import PointField
 from uuid import uuid1
@@ -34,6 +35,40 @@ buoy_color_mapping: Dict[str, BuoyColors] = {
     "yellow": BuoyColors.YELLOW,
 }
 
+# ZED object detection label mapping to our course objects
+zed_label_mapping = {
+    "black_buoy": ("buoy", BuoyColors.BLACK),
+    "blue_buoy": ("buoy", BuoyColors.BLUE), 
+    "green_buoy": ("buoy", BuoyColors.GREEN),
+    "red_buoy": ("buoy", BuoyColors.RED),
+    "yellow_buoy": ("buoy", BuoyColors.YELLOW),
+    "black_pole_buoy": ("pole_buoy", BuoyColors.BLACK),
+    "blue_pole_buoy": ("pole_buoy", BuoyColors.BLUE),
+    "green_pole_buoy": ("pole_buoy", BuoyColors.GREEN),
+    "red_pole_buoy": ("pole_buoy", BuoyColors.RED),
+    "yellow_pole_buoy": ("pole_buoy", BuoyColors.YELLOW),
+    "black_circle": ("circle", BuoyColors.BLACK),
+    "blue_circle": ("circle", BuoyColors.BLUE),
+    "green_circle": ("circle", BuoyColors.GREEN),
+    "red_circle": ("circle", BuoyColors.RED),
+    "yellow_circle": ("circle", BuoyColors.YELLOW),
+    "black_triangle": ("triangle", BuoyColors.BLACK),
+    "blue_triangle": ("triangle", BuoyColors.BLUE),
+    "green_triangle": ("triangle", BuoyColors.GREEN),
+    "red_triangle": ("triangle", BuoyColors.RED),
+    "yellow_triangle": ("triangle", BuoyColors.YELLOW),
+    "black_cross": ("cross", BuoyColors.BLACK),
+    "blue_cross": ("cross", BuoyColors.BLUE),
+    "green_cross": ("cross", BuoyColors.GREEN),
+    "red_cross": ("cross", BuoyColors.RED),
+    "yellow_cross": ("cross", BuoyColors.YELLOW),
+    "black_square": ("square", BuoyColors.BLACK),
+    "blue_square": ("square", BuoyColors.BLUE),
+    "green_square": ("square", BuoyColors.GREEN),
+    "red_square": ("square", BuoyColors.RED),
+    "yellow_square": ("square", BuoyColors.YELLOW),
+}
+
 BUOY_DUPLICATE_THRESHOLD = 0.2
 CLUSTER_DETECTION_THRESHOLD_ANGLE = 4
 
@@ -47,10 +82,8 @@ class Sensors(Node):
         # this allows us to find the data that has the
         # smallest time difference, giving more accurate
         # results
-        self._camera_cache: List[Tuple[AiOutput, float]] = []
+        self._zed_objects_cache: List[Tuple[ObjectsStamped, float]] = []
         self._lidar_cache: List[Tuple[PointCloud2, float]] = []
-        self._depth_cache: List[Tuple[PointCloud2, float]] = []
-        self._depth_conf_cache: List[Tuple[PointCloud2, float]] = []
         self._odom_cache: List[Tuple[Odometry, float]] = []
 
         self._qos_profile = QoSProfile(
@@ -61,20 +94,12 @@ class Sensors(Node):
             liveliness=QoSLivelinessPolicy.AUTOMATIC,
         )
 
-        self._ai_out_sub = self.create_subscription(
-            AiOutput, "/AiOutput", self._camera_callback, self._qos_profile
+        self._zed_objects_sub = self.create_subscription(
+            ObjectsStamped, "/zed/zed_node/obj_det/objects", self._zed_objects_callback, self._qos_profile
         )
 
         self._lidar_out_sub = self.create_subscription(
             PointCloud2, "/center_of_clusters", self._lidar_callback, self._qos_profile
-        )
-
-        self._depth_out_sub = self.create_subscription(
-            PointCloud2, "/zed/point_cloud/cloud_registered", self._depth_callback, self._qos_profile
-        )
-
-        self._depth_conf_out_sub = self.create_subscription(
-            Image, "/zed/confidence/confidence_image", self._depth_conf_callback, self._qos_profile
         )
 
         self._odom_out_sub = self.create_subscription(
@@ -97,29 +122,17 @@ class Sensors(Node):
         self._fps_start = self.get_clock().now().nanoseconds
         self.fps = 0
 
-    def _camera_callback(self, msg: AiOutput):
-        self.get_logger().info("Received camera data")
-        self._camera_cache.append((msg, self.get_clock().now().nanoseconds))
-        if len(self._camera_cache) > 3:
-            self._camera_cache.pop(0)
+    def _zed_objects_callback(self, msg: ObjectsStamped):
+        self.get_logger().info("Received ZED object detection data")
+        self._zed_objects_cache.append((msg, self.get_clock().now().nanoseconds))
+        if len(self._zed_objects_cache) > 3:
+            self._zed_objects_cache.pop(0)
 
     def _lidar_callback(self, msg: PointCloud2):
         self.get_logger().info("Received lidar data")
         self._lidar_cache.append((msg, self.get_clock().now().nanoseconds))
         if len(self._lidar_cache) > 3:
             self._lidar_cache.pop(0)
-
-    def _depth_callback(self, msg: PointCloud2):
-        self.get_logger().info("Received depth data")
-        self._depth_cache.append((msg, self.get_clock().now().nanoseconds))
-        if len(self._depth_cache) > 3:
-            self._depth_cache.pop(0)
-
-    def _depth_conf_callback(self, msg: PointCloud2):
-        self.get_logger().info("Received depth confidence data")
-        self._depth_conf_cache.append((msg, self.get_clock().now().nanoseconds))
-        if len(self._depth_conf_cache) > 3:
-            self._depth_conf_cache.pop(0)
 
     def _odom_callback(self, msg: Odometry):
         self.get_logger().info("Received odometry data")
@@ -128,8 +141,8 @@ class Sensors(Node):
             self._odom_cache.pop(0)
 
     @property
-    def ai_output(self) -> Optional[AiOutput]:
-        return self._camera_cache[-1][0] if len(self._camera_cache) > 0 else None
+    def zed_objects_output(self) -> Optional[ObjectsStamped]:
+        return self._zed_objects_cache[-1][0] if len(self._zed_objects_cache) > 0 else None
 
     @property
     def lidar_output(self) -> Optional[PointCloud2]:
@@ -158,19 +171,21 @@ class Sensors(Node):
 
     def _process_sensor_data(self) -> None:
         """
-        Process the sensor data
+        Process the sensor data using ZED object detection
         """
-        if len(self._camera_cache) == 0:
-            self.get_logger().warn("No camera data available")
+        if len(self._zed_objects_cache) == 0:
+            self.get_logger().warn("No ZED object detection data available")
             return
 
         if len(self._lidar_cache) == 0:
-            self.get_logger().warn("No lidar data available")
-            return
-
-        if len(self._depth_cache) == 0:
-            self.get_logger().warn("No depth data available")
-            return
+            self.get_logger().warn("No lidar data available; however, it is not necessary")
+            # Set lidar data to None since it's optional
+            lidar_data, lidar_time = None, 0
+        else:
+            lidar_data, lidar_time = min(
+                self._lidar_cache,
+                key=lambda x: abs(x[1] - ref_time),
+            )
 
         if len(self._odom_cache) == 0:
             self.get_logger().warn("No odometry data available")
@@ -178,25 +193,12 @@ class Sensors(Node):
 
         now = self.get_clock().now().nanoseconds
 
-        ref_time = self._camera_cache[-1][1]
+        ref_time = self._zed_objects_cache[-1][1]
 
         # find the data that has the smallest time difference
         # and process it
-        camera_data, camera_time = min(
-            self._camera_cache,
-            key=lambda x: abs(x[1] - ref_time),
-        )
-        lidar_data, lidar_time = min(
-            self._lidar_cache,
-            key=lambda x: abs(x[1] - ref_time),
-        )
-        depth_data, depth_time = min(
-            self._depth_cache,
-            key=lambda x: abs(x[1] - ref_time),
-        )
-        # TODO: Where can we use depth confidence data?
-        depth_conf_data, depth_conf_time = min(
-            self._depth_conf_cache,
+        zed_objects_data, zed_objects_time = min(
+            self._zed_objects_cache,
             key=lambda x: abs(x[1] - ref_time),
         )
         odom_data, odom_time = min(
@@ -208,141 +210,92 @@ class Sensors(Node):
             self.previous_odom_data = odom_data
             return
 
-        time_diff = max(camera_time, lidar_time, depth_time, depth_conf_time, odom_time) - min(
-            camera_time, lidar_time, depth_time, depth_conf_time, odom_time
-        )
+        # Calculate time difference, excluding lidar if not available
+        if lidar_data is not None:
+            time_diff = max(zed_objects_time, lidar_time, odom_time) - min(
+                zed_objects_time, lidar_time, odom_time
+            )
+        else:
+            time_diff = max(zed_objects_time, odom_time) - min(
+                zed_objects_time, odom_time
+            )
         self.get_logger().info(f"Data time difference: {time_diff} ns")
 
-        # Get which data is laggging behind
+        # Get which data is lagging behind
         if time_diff > 1e9:
-            if camera_time < lidar_time and camera_time < depth_time and camera_time < odom_time and camera_time < depth_conf_time:
-                self.get_logger().warn("Camera data is lagging behind")
-            elif lidar_time < camera_time and lidar_time < depth_time and lidar_time < odom_time and lidar_time < depth_conf_time:
-                self.get_logger().warn("Lidar data is lagging behind")
-            elif depth_time < camera_time and depth_time < lidar_time and depth_time < odom_time and depth_time < depth_conf_time:
-                self.get_logger().warn("Depth data is lagging behind")
-            elif odom_time < camera_time and odom_time < lidar_time and odom_time < depth_time and odom_time < depth_conf_time:
-                self.get_logger().warn("Odometry data is lagging behind")
+            if lidar_data is not None:
+                if zed_objects_time < lidar_time and zed_objects_time < odom_time:
+                    self.get_logger().warn("ZED object detection data is lagging behind")
+                elif lidar_time < zed_objects_time and lidar_time < odom_time:
+                    self.get_logger().warn("Lidar data is lagging behind")
+                elif odom_time < zed_objects_time and odom_time < lidar_time:
+                    self.get_logger().warn("Odometry data is lagging behind")
+                else:
+                    self.get_logger().warn("Unknown data is lagging behind")
             else:
-                self.get_logger().warn("Unknown data is lagging behind")
+                if zed_objects_time < odom_time:
+                    self.get_logger().warn("ZED object detection data is lagging behind")
+                elif odom_time < zed_objects_time:
+                    self.get_logger().warn("Odometry data is lagging behind")
+                else:
+                    self.get_logger().warn("Unknown data is lagging behind")
 
         # TODO: find a good average value to base this off of
         # Currently set to 1 second
         if time_diff > 1e9:
             self.get_logger().warn(f"Data time difference is large: {time_diff} ns")
 
-        if camera_data.num != len(camera_data.lefts):
-            self.get_logger().warn(
-                "Inconsistent camera data: number of bounding boxes does not match lefts"
-            )
-            self.get_logger().warn(
-                f"Num: {camera_data.num}, Lefts: {len(camera_data.lefts)}"
-            )
-
-        if camera_data.num != len(camera_data.tops):
-            self.get_logger().warn(
-                "Inconsistent camera data: number of bounding boxes does not match tops"
-            )
-            self.get_logger().warn(
-                f"Num: {camera_data.num}, Tops: {len(camera_data.tops)}"
-            )
-
-        if camera_data.num != len(camera_data.widths):
-            self.get_logger().warn(
-                "Inconsistent camera data: number of bounding boxes does not match widths"
-            )
-            self.get_logger().warn(
-                f"Num: {camera_data.num}, Widths: {len(camera_data.widths)}"
-            )
-
-        if camera_data.num != len(camera_data.heights):
-            self.get_logger().warn(
-                "Inconsistent camera data: number of bounding boxes does not match heights"
-            )
-            self.get_logger().warn(
-                f"Num: {camera_data.num}, Heights: {len(camera_data.heights)}"
-            )
-
-        if camera_data.num != len(camera_data.types):
-            self.get_logger().warn(
-                "Inconsistent camera data: number of bounding boxes does not match types"
-            )
-            self.get_logger().warn(
-                f"Num: {camera_data.num}, Types: {len(camera_data.types)}"
-            )
-
-        if camera_data.num != len(camera_data.confidences):
-            self.get_logger().warn(
-                "Inconsistent camera data: number of bounding boxes does not match confidences"
-            )
-            self.get_logger().warn(
-                f"Num: {camera_data.num}, Confidences: {len(camera_data.confidences)}"
-            )
-
         local_detected_objects: List[CourseObject] = []
 
-        for i in range(camera_data.num):
-            # calculate the 3D angle of each buoy location
-            # returns a list of the left/right angle (theta) and the up/down angle (phi) relative to boat
-            theta, phi = self.get_angle(camera_data, i)
-            self.get_logger().info(f"Buoy {i}: Theta: {theta}, Phi: {phi}")
-
-            # Use angle to get the XYZ coordinates of each buoy
-            # returns X, Y, Z
-            result = self.get_XYZ_coordinates(
-                theta, phi, lidar_data, camera_data.types[i]
-            )
-
-            if result is None:
+        # Process ZED object detection results
+        for obj in zed_objects_data.objects:
+            # Skip objects with low confidence
+            if obj.confidence < 70.0:  # Adjustable confidence threshold
                 continue
-
-            x, y, z, pts = result
-
-            self._publish_cluster(pts, lidar_data.header)
-
-            # skip point if no associated lidar points
-            if x == 0 and y == 0 and z == 0:
+                
+            # Skip objects that are not being tracked properly
+            if obj.tracking_state == 0:  # OFF - object no longer valid
                 continue
+                
+            # Get label and map to our course object types
+            label = obj.label.lower()
+            if label not in zed_label_mapping:
+                self.get_logger().warn(f"Unknown object label: {label}")
+                continue
+                
+            obj_type, color = zed_label_mapping[label]
+            
+            # Use the 3D position directly from ZED (already in camera frame)
+            x, y, z = obj.position[0], obj.position[1], obj.position[2]
+            
+            self.get_logger().info(f"Detected {label}: X: {x}, Y: {y}, Z: {z}, Confidence: {obj.confidence}")
 
-            self.get_logger().info(f"Buoy {i}: X: {x}, Y: {y}, Z: {z}")
-
-            # Publish cluster points for detected objects for debugging
-            #self._publish_cluster(cluster_points, lidar_data.header)
-
-            if camera_data.types[i].endswith("pole_buoy"):
-                buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                # type: ignore - this will always be either red or green
-                local_detected_objects.append(PoleBuoy(x, y, z, buoy_color)) # type: ignore
-            elif camera_data.types[i].endswith("buoy"):
-                buoy_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(BallBuoy(x, y, z, buoy_color))
-            elif camera_data.types[i].endswith("racquet_ball"):
-                # TODO: can we effectively track racquet balls given that they are so small?
-                # Do we need to track them?
-                pass
-            elif camera_data.types[i].endswith("circle"):
-                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(
-                    Shape(x, y, z, Shapes.CIRCLE, shape_color)
-                )
-            elif camera_data.types[i].endswith("triangle"):
-                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(
-                    Shape(x, y, z, Shapes.TRIANGLE, shape_color)
-                )
-            elif camera_data.types[i].endswith("cross"):
-                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(Shape(x, y, z, Shapes.CROSS, shape_color))
-            elif camera_data.types[i].endswith("square"):
-                shape_color = buoy_color_mapping[camera_data.types[i].split("_")[0]]
-                local_detected_objects.append(
-                    Shape(x, y, z, Shapes.SQUARE, shape_color)
-                )
-            elif camera_data.types[i].endswith("duck_image"):
-                # TODO: do we need to track duck images?
-                pass
-
-            local_detected_objects[-1].last_seen = now
+            # Create the appropriate course object
+            course_obj = None
+            if obj_type == "pole_buoy":
+                # PoleBuoy only accepts RED or GREEN colors
+                if color in [BuoyColors.RED, BuoyColors.GREEN]:
+                    # Use cast to satisfy the literal type constraint
+                    course_obj = PoleBuoy(x, y, z, cast("Literal[BuoyColors.RED, BuoyColors.GREEN]", color))
+                else:
+                    self.get_logger().warn(f"Invalid color {color} for pole buoy, skipping")
+                    continue
+            elif obj_type == "buoy":
+                course_obj = BallBuoy(x, y, z, color)
+            elif obj_type == "circle":
+                course_obj = Shape(x, y, z, Shapes.CIRCLE, color)
+            elif obj_type == "triangle":
+                course_obj = Shape(x, y, z, Shapes.TRIANGLE, color)
+            elif obj_type == "cross":
+                course_obj = Shape(x, y, z, Shapes.CROSS, color)
+            elif obj_type == "square":
+                course_obj = Shape(x, y, z, Shapes.SQUARE, color)
+                
+            if course_obj:
+                course_obj.last_seen = now
+                # Store ZED tracking ID for future reference
+                course_obj.zed_tracking_id = obj.sublabel  # Use sublabel as tracking ID
+                local_detected_objects.append(course_obj)
 
         self.get_logger().info(
             f"Detected objects in this frame: {local_detected_objects}"
@@ -384,17 +337,31 @@ class Sensors(Node):
         self.get_logger().info(f"Odometry translation: {trans}")
         self.get_logger().info(f"Odometry quaternion: {delta_quat}")
 
+        # Validate transformation values to prevent NaN
+        if np.any(np.isnan(trans)) or np.any(np.isnan(delta_quat)):
+            self.get_logger().warn("NaN detected in transformation, skipping frame")
+            return
+
         transformation_matrix = tf_transformations.quaternion_matrix(delta_quat)
         transformation_matrix[0:3, 3] = trans
+
+        # Validate transformation matrix
+        if np.any(np.isnan(transformation_matrix)):
+            self.get_logger().warn("NaN detected in transformation matrix, skipping frame")
+            return
 
         self.get_logger().info(f"Transformation matrix: \n{transformation_matrix}")
 
         items_to_remove = []
 
-        self.map += local_detected_objects
+        # Store existing map objects before processing new detections
+        existing_map_objects = self.map.copy()
 
         # Check for objects that aren't seen by camera, but are seen by lidar
-        for map_obj in self.map:
+
+        # TODO: Use ZED tracking ID to match objects more accurately
+        # Only process existing map objects, not newly detected ones
+        for map_obj in existing_map_objects:
             if map_obj in items_to_remove:
                 continue
 
@@ -403,72 +370,125 @@ class Sensors(Node):
 
             point_trans = np.dot(transformation_matrix, point_hom)
 
+            # Validate transformed coordinates
+            if np.any(np.isnan(point_trans)):
+                self.get_logger().warn(f"NaN detected in transformed coordinates for object {map_obj}, marking for removal")
+                items_to_remove.append(map_obj)
+                continue
+
             map_obj.x = point_trans[0]
             map_obj.y = point_trans[1]
             map_obj.z = point_trans[2]
 
-            theta = math.degrees(math.atan2(map_obj.y, map_obj.x))
-            phi = math.degrees(math.atan2(map_obj.z, map_obj.x))
+            # Try to find a matching object in the current detections using ZED tracking ID
+            matched = False
+            for detected_obj in local_detected_objects:
+                if (hasattr(map_obj, 'zed_tracking_id') and 
+                    hasattr(detected_obj, 'zed_tracking_id') and
+                    map_obj.zed_tracking_id is not None and
+                    detected_obj.zed_tracking_id is not None and
+                    map_obj.zed_tracking_id == detected_obj.zed_tracking_id):
+                    # Update position with the new detection
+                    map_obj.x = detected_obj.x
+                    map_obj.y = detected_obj.y
+                    map_obj.z = detected_obj.z
+                    map_obj.last_seen = now
+                    matched = True
+                    # Remove from local detections to avoid duplicates
+                    items_to_remove.append(detected_obj)
+                    break
 
-            coords = self.get_XYZ_coordinates(theta, phi, depth_data, "lidar")
-            if coords is None:
+            # If no tracking ID match, check for spatial proximity (fallback)
+            if not matched:
+                for detected_obj in local_detected_objects:
+                    if detected_obj in items_to_remove:
+                        continue
+                        
+                    # Check if this is the same type of object
+                    if not self._is_match(detected_obj, map_obj):
+                        continue
+                        
+                    distance = math.sqrt(
+                        (map_obj.x - detected_obj.x) ** 2
+                        + (map_obj.y - detected_obj.y) ** 2
+                        + (map_obj.z - detected_obj.z) ** 2
+                    )
+                    
+                    if distance < BUOY_DUPLICATE_THRESHOLD:
+                        # Update the map object with new detection
+                        map_obj.x = detected_obj.x
+                        map_obj.y = detected_obj.y  
+                        map_obj.z = detected_obj.z
+                        map_obj.last_seen = now
+                        # Update tracking ID if it was missing
+                        if hasattr(detected_obj, 'zed_tracking_id'):
+                            map_obj.zed_tracking_id = detected_obj.zed_tracking_id
+                        items_to_remove.append(detected_obj)
+                        matched = True
+                        break
+
+        # Add any new detections that weren't matched to existing objects
+        for obj in local_detected_objects:
+            if obj not in items_to_remove:
+                self.map.append(obj)
+
+        # Remove objects that are really close to each other (duplicates)
+        additional_removals = []
+        for i, obj1 in enumerate(self.map):
+            if obj1 in items_to_remove or obj1 in additional_removals:
                 continue
-
-            x, y, z, _ = coords
-
-            if x == 0 and y == 0 and z == 0:
-                continue
-
-            map_obj.x = x
-            map_obj.y = y
-            map_obj.z = z
-            map_obj.last_seen = now
-
-            # check for objects that are really close to each other
-            for obj2 in self.map:
-                if obj2 in items_to_remove:
+                
+            for j, obj2 in enumerate(self.map[i+1:], i+1):
+                if obj2 in items_to_remove or obj2 in additional_removals:
                     continue
 
-                if map_obj == obj2:
+                # Skip if they have the same ZED tracking ID (they're the same object)
+                if (hasattr(obj1, 'zed_tracking_id') and hasattr(obj2, 'zed_tracking_id') and
+                    obj1.zed_tracking_id is not None and obj2.zed_tracking_id is not None and
+                    obj1.zed_tracking_id == obj2.zed_tracking_id):
                     continue
 
-                same = True
-
-                if isinstance(map_obj, Shape) and isinstance(obj2, Shape):
-                    if map_obj.shape != obj2.shape or map_obj.color != obj2.color:
-                        same = False
-                elif isinstance(map_obj, Buoy) and isinstance(obj2, Buoy):
-                    if map_obj.color != obj2.color:
-                        same = False
-                elif type(map_obj) != type(obj2):
-                    same = False
+                same = self._is_match(obj1, obj2)
 
                 if same:
                     self.get_logger().info(
-                        f"Checking for duplicates: {map_obj} (original) and {obj2} (this frame)"
+                        f"Checking for duplicates: {obj1} and {obj2}"
                     )
 
                     distance = math.sqrt(
-                        (map_obj.x - obj2.x) ** 2
-                        + (map_obj.y - obj2.y) ** 2
-                        + (map_obj.z - obj2.z) ** 2
+                        (obj1.x - obj2.x) ** 2
+                        + (obj1.y - obj2.y) ** 2
+                        + (obj1.z - obj2.z) ** 2
                     )
 
                     self.get_logger().info(f"Distance: {distance}")
 
                     if distance < BUOY_DUPLICATE_THRESHOLD:
                         self.get_logger().info("Found duplicate; merging objects")
-                        # make position the average of the two
-                        map_obj.x = (map_obj.x + obj2.x) / 2
-                        map_obj.y = (map_obj.y + obj2.y) / 2
-                        map_obj.z = (map_obj.z + obj2.z) / 2
-                        map_obj.uid = map_obj.uid or obj2.uid
+                        # Keep the one with more recent detection or ZED tracking ID
+                        if (hasattr(obj1, 'zed_tracking_id') and obj1.zed_tracking_id is not None and
+                            (not hasattr(obj2, 'zed_tracking_id') or obj2.zed_tracking_id is None)):
+                            # Keep obj1, remove obj2
+                            additional_removals.append(obj2)
+                        elif (hasattr(obj2, 'zed_tracking_id') and obj2.zed_tracking_id is not None and
+                              (not hasattr(obj1, 'zed_tracking_id') or obj1.zed_tracking_id is None)):
+                            # Keep obj2, remove obj1
+                            additional_removals.append(obj1)
+                        else:
+                            # Make position the average of the two and keep the more recent one
+                            if obj1.last_seen >= obj2.last_seen:
+                                obj1.x = (obj1.x + obj2.x) / 2
+                                obj1.y = (obj1.y + obj2.y) / 2
+                                obj1.z = (obj1.z + obj2.z) / 2
+                                additional_removals.append(obj2)
+                            else:
+                                obj2.x = (obj1.x + obj2.x) / 2
+                                obj2.y = (obj1.y + obj2.y) / 2
+                                obj2.z = (obj1.z + obj2.z) / 2
+                                additional_removals.append(obj1)
 
-                        # remove the other object
-                        items_to_remove.append(obj2)
-
-
-        # Remove objects that are really close to each other
+        # Remove all marked objects
+        items_to_remove.extend(additional_removals)
         self.map = [obj for obj in self.map if obj not in items_to_remove]
 
         # Handle other objects that havent been seen in for 5 seconds
@@ -485,9 +505,14 @@ class Sensors(Node):
         msg = BuoyMap()
         x, y, z, types, colors, uids = [], [], [], [], [], []
         for obj in self.map:
-            x.append(obj.x)
-            y.append(obj.y)
-            z.append(obj.z)
+            # Skip objects with NaN coordinates
+            if np.isnan(obj.x) or np.isnan(obj.y) or np.isnan(obj.z):
+                self.get_logger().warn(f"Skipping object with NaN coordinates: {obj}")
+                continue
+                
+            x.append(float(obj.x))
+            y.append(float(obj.y))
+            z.append(float(obj.z))
             uids.append(str(obj.uid))
 
             if isinstance(obj, Shape):
@@ -551,93 +576,7 @@ class Sensors(Node):
         self.get_logger().info(f"Match: {distance < distance_threshold}")
         return distance < distance_threshold
 
-    # calculate the 3D angle of each buoy location
-    # returns a list of the left/right angle (theta) and the up/down angle (phi)
-    def get_angle(self, camera_data: AiOutput, index: int) -> Tuple[float, float]:
-        """
-        Calculate the 3D angle of a bounding box in the camera image relative to the camera
-
-        :param camera_data: The camera data
-        :type  camera_data: class:`boat_interfaces.msg.AiOutput`
-        :param index: The index of the bounding box
-        :type  index: int
-        :return: The left/right angle (theta) and the up/down angle (phi)
-        :rtype:  Tuple[float, float]
-        """
-
-        # TODO: Use /zed/left/camera_info to get the camera parameters
-
-        # our camera is D435
-        # https://www.intelrealsense.com/depth-camera-d435/
-        FOV_H = 69
-        FOV_V = 42
-
-        centerX = camera_data.img_width / 2.0
-        centerY = camera_data.img_height / 2.0
-
-        pointX = camera_data.lefts[index] + camera_data.widths[index] / 2.0
-        pointY = camera_data.tops[index] + camera_data.heights[index] / 2.0
-
-        deltaX = pointX - centerX
-        deltaY = pointY - centerY
-
-        fX = camera_data.img_width / (2.0 * math.tan(math.radians(FOV_H / 2.0)))
-        fY = camera_data.img_height / (2.0 * math.tan(math.radians(FOV_V / 2.0)))
-
-        theta = math.degrees(math.atan2(deltaX, fX))
-        phi = math.degrees(math.atan2(deltaY, fY))
-
-        return theta, phi
-
-    def get_XYZ_coordinates(
-        self, theta: float, phi: float, pointCloud: PointCloud2, name: str
-    ) -> Optional[Tuple[float, float, float, np.ndarray]]:
-        """
-        Get the XYZ coordinates of a buoy based on the angle from the camera
-
-        :param theta: The angle from the x-axis
-        :type  theta: float
-        :param phi: The angle from the z-axis
-        :type  phi: float
-        :param pointCloud: The point cloud data
-        :type  pointCloud: class:`sensor_msgs.msg.PointCloud2`
-        :param name: The name of the buoy
-        :type  name: str
-        :return: The X, Y, Z coordinates of the buoy, or None if the buoy is not found
-        :rtype:  Tuple[float, float, float] | None
-        """
-        points = np.array(list(read_points(pointCloud)))
-
-        min_distance = float("inf")
-        min_point = None
-
-        for point in points:
-            x = point[0]
-            y = point[1]
-            z = point[2]
-
-            pointTheta = math.degrees(math.atan2(y, x))
-            pointPhi = math.degrees(math.atan2(z, x))
-
-            # is pointTheta and pointPhi within a certain threshold of theta and phi?
-            if (
-                abs(pointTheta - theta) > CLUSTER_DETECTION_THRESHOLD_ANGLE
-                or abs(pointPhi - phi) > CLUSTER_DETECTION_THRESHOLD_ANGLE
-            ):
-                continue
-
-            dist = math.sqrt((pointTheta - theta) ** 2 + (pointPhi - phi) ** 2)
-
-            if dist < min_distance:
-                min_distance = dist
-                min_point = point
-
-        if min_point is None:
-            return None
-        
-        return min_point[0], min_point[1], min_point[2], points
-
-    # New helper function to publish cluster points as PointCloud2
+    # New helper function to publish cluster points as PointCloud2 (for debugging)
     def _publish_cluster(self, points: np.ndarray, header) -> None:
         if points.size == 0:
             return

@@ -4,7 +4,15 @@ from mhsboat_ctrl.course_objects import Buoy, PoleBuoy, BallBuoy, CourseObject
 import pygame
 import rclpy
 from rclpy.node import Node
+from rclpy.qos import (
+    QoSProfile,
+    QoSHistoryPolicy,
+    QoSReliabilityPolicy,
+    QoSDurabilityPolicy,
+    QoSLivelinessPolicy,
+)
 import os
+import math
 from typing import Tuple
 from mhsboat_ctrl.utils.custom_types import numeric
 
@@ -30,6 +38,11 @@ SCALE = 50
 
 
 def world_to_screen(x: float, y: float, scale: numeric = SCALE) -> Tuple[int, int]:
+    # Validate input coordinates
+    if math.isnan(x) or math.isnan(y):
+        # Return center screen for NaN coordinates
+        return (SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2)
+    
     screen_x = SCREEN_WIDTH // 2 + int(round(y * scale))
     screen_y = SCREEN_HEIGHT // 2 - int(round(x * scale))
     return (screen_x, screen_y)
@@ -52,8 +65,17 @@ class TESTGUI(Node):
         self.words = ""
         self.run = True
 
+        # Create QoS profile to match the sensors publisher
+        self._qos_profile = QoSProfile(
+            depth=10,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            liveliness=QoSLivelinessPolicy.AUTOMATIC,
+        )
+
         self.map_sub = self.create_subscription(
-            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, 10
+            BuoyMap, "/mhsboat_ctrl/map", self.map_callback, self._qos_profile
         )
 
         self.display_timer = self.create_timer(0, self.display_loop)

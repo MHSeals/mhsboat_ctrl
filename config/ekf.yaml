@@ -14,7 +14,7 @@ ekf_localization:
     world_frame: odom
 
     # === ZED 2i VIO ===
-    odom0: /zed/odom
+    odom0: /zed/zed_node/odom
     odom0_differential: false
     odom0_relative: false
     odom0_config: [
@@ -25,17 +25,17 @@ ekf_localization:
       false, false, false    # ax, ay, az
     ]
 
-    # === Lidar Odometry ===
-    odom1: /dlio/odom_node/odom
-    odom1_differential: false
-    odom1_relative: false
-    odom1_config: [
-      true,  true,  true,    # x, y, z
-      true,  true,  true,    # roll, pitch, yaw
-      true,  true,  true,    # vx, vy, vz
-      true,  true,  true,    # vroll, vpitch, vyaw
-      false, false, false    # ax, ay, az
-    ]
+    # === Lidar Odometry - COMMENTED OUT (requires Cube Orange IMU for DLIO) ===
+    # odom1: /dlio/odom_node/odom
+    # odom1_differential: false
+    # odom1_relative: false
+    # odom1_config: [
+    #   true,  true,  true,    # x, y, z
+    #   true,  true,  true,    # roll, pitch, yaw
+    #   true,  true,  true,    # vx, vy, vz
+    #   true,  true,  true,    # vroll, vpitch, vyaw
+    #   false, false, false    # ax, ay, az
+    # ]
 
     # === CubeOrange IMU ===
     # DLIO Fuses the Cube Orange IMU itself.
