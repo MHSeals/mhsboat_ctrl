@@ -5,7 +5,7 @@ from boat_interfaces.msg import AiOutput, BuoyMap
 import rclpy.utilities
 from sensor_msgs.msg import PointCloud2, Image
 from nav_msgs.msg import Odometry
-from zed_msgs.msg import ObjectsStamped
+from zed_msgs.msg import ObjectsStamped, Object
 from rclpy.qos import (
     QoSProfile,
     QoSHistoryPolicy,
@@ -250,7 +250,7 @@ class Sensors(Node):
         # Process ZED object detection results
         for obj in zed_objects_data.objects:
             # Skip objects with low confidence
-            if obj.confidence < 70.0:  # Adjustable confidence threshold
+            if obj.confidence < 0.0:  # Adjustable confidence threshold
                 continue
                 
             # Skip objects that are not being tracked properly
@@ -294,7 +294,7 @@ class Sensors(Node):
             if course_obj:
                 course_obj.last_seen = now
                 # Store ZED tracking ID for future reference
-                course_obj.zed_tracking_id = obj.sublabel  # Use sublabel as tracking ID
+                course_obj.zed_tracking_id = obj.label_id  # label_id is the ZED tracking ID
                 local_detected_objects.append(course_obj)
 
         self.get_logger().info(
@@ -353,6 +353,7 @@ class Sensors(Node):
         self.get_logger().info(f"Transformation matrix: \n{transformation_matrix}")
 
         items_to_remove = []
+        matched_detected_objects = []  # Track which detected objects have been matched
 
         # Store existing map objects before processing new detections
         existing_map_objects = self.map.copy()
@@ -394,14 +395,15 @@ class Sensors(Node):
                     map_obj.z = detected_obj.z
                     map_obj.last_seen = now
                     matched = True
-                    # Remove from local detections to avoid duplicates
-                    items_to_remove.append(detected_obj)
+                    # Track that this detected object was matched
+                    matched_detected_objects.append(detected_obj)
+                    self.get_logger().info(f"Matched via tracking ID: {detected_obj.zed_tracking_id}")
                     break
 
             # If no tracking ID match, check for spatial proximity (fallback)
             if not matched:
                 for detected_obj in local_detected_objects:
-                    if detected_obj in items_to_remove:
+                    if detected_obj in matched_detected_objects:
                         continue
                         
                     # Check if this is the same type of object
@@ -416,21 +418,34 @@ class Sensors(Node):
                     
                     if distance < BUOY_DUPLICATE_THRESHOLD:
                         # Update the map object with new detection
+                        map_tracking_id = getattr(map_obj, 'zed_tracking_id', 'None')
+                        local_tracking_id = getattr(detected_obj, 'zed_tracking_id', 'None')
+
+                        self.get_logger().info(f"Matched via spatial proximity: distance {distance:.3f}m, tracking ID {map_tracking_id} -> {local_tracking_id}")
+
                         map_obj.x = detected_obj.x
-                        map_obj.y = detected_obj.y  
+                        map_obj.y = detected_obj.y
                         map_obj.z = detected_obj.z
                         map_obj.last_seen = now
-                        # Update tracking ID if it was missing
+                        # Update tracking ID
                         if hasattr(detected_obj, 'zed_tracking_id'):
                             map_obj.zed_tracking_id = detected_obj.zed_tracking_id
-                        items_to_remove.append(detected_obj)
+                        items_to_remove.append(map_obj) # Mark the map object for removal
+                        matched_detected_objects.append(detected_obj) # Track that this detected object was matched
                         matched = True
                         break
 
         # Add any new detections that weren't matched to existing objects
+        newly_added_count = 0
         for obj in local_detected_objects:
-            if obj not in items_to_remove:
+            if obj not in matched_detected_objects:
                 self.map.append(obj)
+                newly_added_count += 1
+                tracking_id = getattr(obj, 'zed_tracking_id', 'None')
+                self.get_logger().info(f"Adding NEW object to map: tracking_id={tracking_id}, pos=({obj.x:.2f}, {obj.y:.2f}, {obj.z:.2f})")
+        
+        if newly_added_count > 0:
+            self.get_logger().info(f"Added {newly_added_count} new objects. Map size before duplicates removal: {len(self.map)}")
 
         # Remove objects that are really close to each other (duplicates)
         additional_removals = []
@@ -489,10 +504,16 @@ class Sensors(Node):
 
         # Remove all marked objects
         items_to_remove.extend(additional_removals)
+        removed_duplicate_count = len([obj for obj in self.map if obj in items_to_remove])
         self.map = [obj for obj in self.map if obj not in items_to_remove]
 
         # Handle other objects that havent been seen in for 5 seconds
+        old_count = len(self.map)
         self.map = [obj for obj in self.map if now - obj.last_seen < 5e9]
+        timeout_removed_count = old_count - len(self.map)
+        
+        if removed_duplicate_count > 0 or timeout_removed_count > 0:
+            self.get_logger().info(f"Removed {removed_duplicate_count} duplicates, {timeout_removed_count} timed-out objects. Final map size: {len(self.map)}")
 
         # Add UID to objects that don't have one
         for obj in self.map:
