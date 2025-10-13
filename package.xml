@@ -16,15 +16,8 @@
   <exec_depend>joint_state_publisher</exec_depend>
   <exec_depend>joint_state_publisher_gui</exec_depend>
   <exec_depend>robot_state_publisher</exec_depend>
-  <exec_depend>rviz</exec_depend>
+  <exec_depend>rviz2</exec_depend>
   <exec_depend>xacro</exec_depend>
-
-  <!-- Python dependencies -->
-  <depend>pyyaml</depend>
-  <depend>matplotlib</depend>
-  <depend>scikit-learn</depend>
-  <depend>opencv-contrib-python</depend>
-  <depend>python3-transforms3d</depend>
 
   <!-- Custom Messages -->
   <depend>boat_interfaces</depend>
